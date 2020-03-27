@@ -1,6 +1,6 @@
 {
-  "name": "aorp",
-  "version": "0.0.0",
+  "name": "roap",
+  "version": "0.0.1",
   "files": [
     "code/",
     "esm/"

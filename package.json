@@ -1,0 +1,27 @@
+{
+  "name": "aorp",
+  "version": "0.0.0",
+  "files": [
+    "code/",
+    "esm/"
+  ],
+  "type": "module",
+  "module": "./esm/index.mjs",
+  "exports": {
+    "./": "./",
+    ".": "./esm/index.mjs"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "rollup": "^2.2.0",
+    "rollup-plugin-jsy-lite": "^1.5.3",
+    "rollup-plugin-terser": "^5.3.0"
+  },
+  "scripts": {
+    "clean": "rm -rf ./cjs/* ./esm/* ./umd/*",
+    "build": "rollup --config",
+    "watch": "npm -s run build -- --watch",
+    "pretest": "npm -s run build",
+    "test": "true"
+  }
+}

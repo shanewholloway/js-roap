@@ -1,0 +1,37 @@
+import {as_async_iter} from './core.jsy'
+
+export @{}
+  ao_watch as default
+
+export async function ao_watch(...args) ::
+  let obj={}, ao_iter, on_update
+  for const ea of args ::
+    if 'function' === typeof ea ::
+      on_update = ea
+    else if undefined !== ea[Symbol.asyncIterator] || ea.next ::
+      ao_iter = as_async_iter(ea)
+    else obj = ea
+
+  return _ao_watcher @ obj, ao_iter, on_update
+
+
+export async function _ao_watcher(obj, ao_iter, on_update) ::
+  const {value, done} = await ao_iter.next()
+  obj.value = value
+  obj.done = done
+  obj.tail = done
+    ? Promise.resolve @ obj
+    : _ao_watcher @ obj, ao_iter, on_update
+
+  if undefined !== on_update ::
+    await on_update @ value, obj
+
+  return obj
+
+export function as_ao_watch(arg) ::
+  if undefined !== arg.tail ::
+    return arg // already an ao_watch instance
+
+  arg = as_async_iter(arg)
+  return _ao_watcher({}, arg)
+

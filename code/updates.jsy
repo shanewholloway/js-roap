@@ -1,0 +1,29 @@
+import {ao_deferred} from './core.jsy'
+
+
+export default ao_updates
+export async function * ao_updates(init_ao) ::
+  const aod = ao_deferred(init_ao)
+  for await let xform of aod.init ::
+    if 'function' !== typeof xform ::
+      xform = undefined
+
+    yield * ao_dispatch @ aod, xform
+
+
+export async function * ao_dispatch(aod, xform) ::
+  while true ::
+    await aod.promise
+    if false !== aod.done ::
+      return await aod.done
+
+    // grab current v_tip into local const
+    let v_cur = aod.tip
+    aod.tip = undefined
+    aod.reset()
+
+    if undefined !== xform ::
+      v_cur = await xform @ v_cur
+
+    yield v_cur
+

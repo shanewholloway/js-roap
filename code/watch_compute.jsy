@@ -1,0 +1,84 @@
+import {as_ao_watch, _ao_watcher} from './watch_core.jsy'
+
+
+export @{}
+  ao_watch_compute_kw as default,
+  ao_watch_compute_kw as ao_watch_compute,
+  ao_compute_kw as ao_compute,
+
+
+function _ao_watch_inner(_ao_compute_with) ::
+  return @\ fn_compute, on_update ::
+    const ao = _ao_compute_with(fn_compute)
+    return _ao_watcher @ {}, ao, on_update
+
+export function ao_watch_compute_args(...args) ::
+  return _ao_watch_inner @
+    ao_compute_pos @ args
+
+export function ao_watch_compute_pos(by_pos) ::
+  return _ao_watch_inner @
+    ao_compute_pos @ by_pos
+
+export function ao_watch_compute_kw(by_kw) ::
+  return _ao_watch_inner @
+    ao_compute_entries @
+      Object.entries(by_kw)
+
+export function ao_watch_compute_entries(by_entries) ::
+  return _ao_watch_inner @
+    ao_compute_entries @ by_entries
+
+
+
+export function ao_compute_args(...args) ::
+  return ao_compute_pos @ args
+
+export function ao_compute_pos(by_pos) ::
+  const watch_deps = new Set()
+  for const each of by_pos ::
+    watch_deps.add @ as_ao_watch(each)
+
+  return _ao_compute_with.bind @ null,
+    watch_deps, _ao_compute_pos
+
+
+export function ao_compute_kw(by_kw) ::
+  return ao_compute_entries @
+    Object.entries(by_kw)
+
+export function ao_compute_entries(by_entries) ::
+  const watch_deps = new Map()
+  for const [name, each] of by_entries ::
+    watch_deps.set @ name, as_ao_watch(each)
+
+  return _ao_compute_with.bind @ null,
+    watch_deps, _ao_compute_kw
+
+
+
+
+export async function ao_watch_join(watch_deps) ::
+  await new Promise @\ resolve ::
+    for const d of watch_deps.values() ::
+      d.tail.then(resolve)
+
+export async function * _ao_compute_with(watch_deps, _ao_compute, fn_compute, only_next) ::
+  if only_next ::
+    await ao_watch_join @ watch_deps
+
+  while true ::
+    yield _ao_compute @ watch_deps, fn_compute
+    await ao_watch_join @ watch_deps
+
+const _obj_value = o => o.value
+export function _ao_compute_pos(watch_deps, fn_compute) ::
+  const deps = Array.from @ watch_deps.values(), _obj_value
+  return fn_compute(... deps)
+
+export function _ao_compute_kw(watch_deps, fn_compute) ::
+  const deps = {}
+  for const [k,d] of watch_deps.entries() ::
+    deps[k] = d.value
+  return fn_compute(deps)
+

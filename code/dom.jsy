@@ -1,0 +1,49 @@
+import {ao_tee} from './core.jsy'
+import {ao_updates} from './updates.jsy'
+
+export @{}
+  ao_dom_events as default,
+  ao_dom_events as ao_dom,
+
+export function ao_dom_events(...args) ::
+  return ao_tee @ ao_dom_updates @ ...args
+
+export function ao_dom_updates(elem, evt_list='input', fn_compute='value') ::
+  ::
+    if 'string' === typeof elem ::
+      elem = document.querySelector(elem)
+
+    if 'string' === typeof evt_list ::
+      evt_list = evt_list.split(/\s+/)
+
+    if 'string' === typeof fn_compute ::
+      const attr = fn_compute
+      fn_compute = elem => elem[attr]
+
+
+  return ao_updates @\ ao ::>*
+    function _update() ::
+      ao.update @ elem
+
+    for const evt of evt_list ::
+      elem.addEventListener @ evt, _update
+
+    try ::
+      _update(elem)
+      yield fn_compute
+
+    finally ::
+      for const evt of evt_list ::
+        elem.removeEventListener @ evt, _update
+
+
+export function ao_animation_frames() ::
+  return ao_updates @\ ao ::>*
+    async function _update(ts) ::
+      await ao.update(ts)
+      rid = requestAnimationFrame @ _update
+
+    let rid = requestAnimationFrame @ _update
+    try :: yield
+    finally :: cancelAnimationFrame(rid)
+

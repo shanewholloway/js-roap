@@ -1,6 +1,17 @@
 {
   "name": "roap",
-  "version": "0.0.2",
+  "version": "0.0.3",
+  "description": "Reactive Observable Async-iterable Programming",
+  "license": "BSD-2-Clause",
+  "author": "Shane Holloway <shane.holloway@ieee.org>",
+  "homepage": "https://github.com/shanewholloway/js-roap#readme",
+  "bugs": {
+    "url": "https://github.com/shanewholloway/js-roap/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/shanewholloway/js-roap.git"
+  },
   "files": [
     "code/",
     "esm/"
@@ -14,7 +25,7 @@
   "dependencies": {},
   "devDependencies": {
     "rollup": "^2.2.0",
-    "rollup-plugin-jsy-lite": "^1.5.3",
+    "rollup-plugin-jsy-lite": "^1.5.4",
     "rollup-plugin-terser": "^5.3.0"
   },
   "scripts": {

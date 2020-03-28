@@ -1,6 +1,11 @@
 
-export async function * as_async_iter(ao_iterable) ::
+export async function * as_ao_iter(ao_iterable) ::
   yield * ao_iterable
+
+export function is_ao_iter(v) ::
+  if undefined !== v[Symbol.asyncIterator] || v.next ::
+    return true
+  return false
 
 
 export const deferred = @!
@@ -46,7 +51,7 @@ export function ao_deferred(init_ao) ::
 
 export function ao_tee(ao_iter, only_next_) ::
   only_next_ = !! only_next_
-  ao_iter = as_async_iter(ao_iter)
+  ao_iter = as_ao_iter(ao_iter)
 
   const aod = ao_deferred @\ ao ::>
     for await const tip of ao_iter ::

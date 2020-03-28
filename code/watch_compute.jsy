@@ -54,20 +54,21 @@ export function ao_compute_entries(by_entries) ::
 export async function _ao_watch_deps_set(by_pos) ::
   const watch_deps = new Set()
   for const each of by_pos ::
-    watch_deps.add @ await as_ao_watch @ await each
+    watch_deps.add @ await as_ao_watch @ each
   return watch_deps
 
 export async function _ao_watch_deps_map(by_entries) ::
   const watch_deps = new Map()
   for const [name, each] of by_entries ::
-    watch_deps.set @ name, await as_ao_watch @ await each
+    watch_deps.set @ name, await as_ao_watch @ each
   return watch_deps
 
 
 export async function _ao_watch_join(watch_deps) ::
   await new Promise @\ resolve ::
-    for const d of watch_deps.values() ::
-      d.tail.then(resolve)
+    for const {tail} of watch_deps.values() ::
+      if undefined !== tail ::
+        tail.then(resolve)
 
 export async function * _ao_compute_with(watch_deps, _ao_compute, fn_compute, only_next) ::
   watch_deps = await watch_deps

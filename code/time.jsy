@@ -5,6 +5,10 @@ export @{}
   ao_pulse_events as default,
   ao_pulse_events as ao_pulse,
 
+export const delay = (...args) =>
+  new Promise @ y =>
+    setTimeout @ y, ...args
+
 export function ao_pulse_events(...args) ::
   return ao_tee @ ao_pulse_updates @ ...args
 

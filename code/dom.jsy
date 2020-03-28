@@ -1,3 +1,4 @@
+import {_e_value} from './_common.jsy'
 import {ao_tee} from './core.jsy'
 import {ao_updates} from './updates.jsy'
 
@@ -8,7 +9,6 @@ export @{}
 
 const _en_click = ['click']
 const _en_input = ['input', 'change']
-const _e_value = e => e.value
 const _e_no_default = e => e.preventDefault()
 const _opt_unpack = ({text, value}) => @: text, value
 export const _dom_std_args = @{}

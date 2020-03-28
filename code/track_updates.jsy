@@ -1,0 +1,62 @@
+import {_e_value} from './_common.jsy'
+import {as_ao_watch, _ao_watcher} from './watch_core.jsy'
+
+
+export function ao_track_updates_kw(kw) ::
+  kw = Object.entries(kw)
+  return _ao_track_updates_kw @ ao_deps_map(kw)
+
+export function ao_track_updates_map(by_entries) ::
+  return _ao_track_updates_kw @ ao_deps_map(by_entries)
+
+export async function * _ao_track_updates_kw(watch_deps) ::
+  watch_deps = await watch_deps
+
+  while true ::
+    ::
+      const deps = {}
+      for const e of watch_deps.entries() ::
+        deps[e[0]] = e[1].value
+
+      yield deps
+
+    await _ao_await_any_dep @ watch_deps.values()
+
+export async function ao_deps_map(by_entries) ::
+  const watch_deps = new Map()
+  for const [name, each] of by_entries ::
+    watch_deps.set @ name, await as_ao_watch @ each
+  return watch_deps
+
+
+
+export function ao_track_updates_args(... args) ::
+  return _ao_track_updates_pos @ ao_deps_pos(args)
+
+export function ao_track_updates_pos(by_pos) ::
+  return _ao_track_updates_pos @ ao_deps_pos(by_pos)
+
+export async function * _ao_track_updates_pos(watch_deps) ::
+  watch_deps = await watch_deps
+
+  while true ::
+    ::
+      const deps = Array.from @ watch_deps, _e_value
+      yield deps
+
+    await _ao_await_any_dep @ watch_deps
+
+export async function ao_deps_pos(by_pos) ::
+  const watch_deps = []
+  for const each of by_pos ::
+    watch_deps.push @ await as_ao_watch @ each
+  return watch_deps
+
+
+
+export async function _ao_await_any_dep(iter_deps) ::
+  await new Promise @\ resolve ::
+    for const {tail} of iter_deps ::
+      if undefined !== tail ::
+        tail.then(resolve)
+

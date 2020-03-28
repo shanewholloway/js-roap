@@ -1,31 +1,34 @@
-import {as_ao_iter, is_ao_iter} from './core.jsy'
+import {as_ao_iter, is_ao_iterable, ao_tail_obj} from './core.jsy'
 
 export @{}
   ao_watch as default
 
+const ao_watch_obj0 = @{}
+  [Symbol.asyncIterator]: ao_tail_obj
+
 export async function ao_watch(...args) ::
-  let obj={}, ao_iter, on_update
+  let ao_obj={__proto__: ao_watch_obj0}, ao_iter, on_update
   for const ea of args ::
     if 'function' === typeof ea ::
       on_update = ea
-    else if is_ao_iter(ea) ::
+    else if is_ao_iterable(ea) ::
       ao_iter = as_ao_iter(ea)
-    else obj = ea
+    else ao_obj = ea
 
-  return _ao_watcher @ obj, ao_iter, on_update
+  return _ao_walker @ ao_obj, ao_iter, on_update
 
 
-export async function _ao_watcher(obj, ao_iter, on_update) ::
+export async function _ao_walker(ao_obj, ao_iter, on_update) ::
   const {value, done} = await ao_iter.next()
-  obj.value = value
-  obj.done = done
-  obj.tail = done ? Promise.resolve(obj)
-    : _ao_watcher @ obj, ao_iter, on_update
+  ao_obj.value = value
+  ao_obj.done = done
+  ao_obj.tail = done ? Promise.resolve(ao_obj)
+    : _ao_walker @ ao_obj, ao_iter, on_update
 
   if undefined !== on_update ::
-    await on_update @ value, obj
+    ao_obj.value = await on_update @ value, ao_obj
 
-  return obj
+  return ao_obj
 
 export async function as_ao_watch(arg) ::
   arg = await arg
@@ -33,7 +36,9 @@ export async function as_ao_watch(arg) ::
     if undefined !== arg.tail ::
       return arg // already an ao_watch instance
 
-    if is_ao_iter(arg) ::
-      return await _ao_watcher @ {}, as_ao_iter(arg)
+    if is_ao_iterable(arg) ::
+      return await _ao_walker @
+        {__proto__: ao_watch_obj0}
+        as_ao_iter(arg)
 
   return @{} value: arg, done: true

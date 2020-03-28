@@ -1,5 +1,5 @@
 import {_e_value} from './_common.jsy'
-import {as_ao_watch, _ao_watcher} from './watch_core.jsy'
+import {as_ao_watch} from './watch_core.jsy'
 
 
 export function ao_track_updates_kw(kw) ::

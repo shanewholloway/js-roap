@@ -1,9 +1,19 @@
 
 export async function * as_ao_iter(ao_iterable) ::
+  if undefined !== ao_iterable.tail ::
+    ao_iterable = ao_tail_obj(ao_iterable)
+
   yield * ao_iterable
 
-export function is_ao_iter(v) ::
-  if undefined !== v[Symbol.asyncIterator] || v.next ::
+export async function * ao_tail_obj(ao_obj) ::
+  if undefined === ao_obj :: ao_obj = this
+
+  while ao_obj && true !== ao_obj.done ::
+    yield ao_obj.value
+    ao_obj = await ao_obj.tail
+
+export function is_ao_iterable(v) ::
+  if undefined !== v[Symbol.asyncIterator] || v.next || v.tail ::
     return true
   return false
 

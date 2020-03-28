@@ -7,69 +7,76 @@ export @{}
   ao_compute_kw as ao_compute,
 
 
-function _ao_watch_inner(_ao_compute_with) ::
-  return @\ fn_compute, on_update ::
-    const ao = _ao_compute_with(fn_compute)
-    return _ao_watcher @ {}, ao, on_update
+export function _ao_wrap_watcher(_ao_compute_with) ::
+  return fn_compute =>
+    _ao_watcher @ {}, _ao_compute_with(fn_compute)
 
 export function ao_watch_compute_args(...args) ::
-  return _ao_watch_inner @
+  return _ao_wrap_watcher @
     ao_compute_pos @ args
 
 export function ao_watch_compute_pos(by_pos) ::
-  return _ao_watch_inner @
+  return _ao_wrap_watcher @
     ao_compute_pos @ by_pos
 
 export function ao_watch_compute_kw(by_kw) ::
-  return _ao_watch_inner @
-    ao_compute_entries @
-      Object.entries(by_kw)
+  return _ao_wrap_watcher @
+    ao_compute_entries @ Object.entries(by_kw)
 
 export function ao_watch_compute_entries(by_entries) ::
-  return _ao_watch_inner @
+  return _ao_wrap_watcher @
     ao_compute_entries @ by_entries
 
 
 
 export function ao_compute_args(...args) ::
-  return ao_compute_pos @ args
+  return _ao_compute_with.bind @ null,
+    _ao_watch_deps_set(args)
+    _ao_compute_pos
 
 export function ao_compute_pos(by_pos) ::
-  const watch_deps = new Set()
-  for const each of by_pos ::
-    watch_deps.add @ as_ao_watch(each)
-
   return _ao_compute_with.bind @ null,
-    watch_deps, _ao_compute_pos
-
+    _ao_watch_deps_set(by_pos)
+    _ao_compute_pos
 
 export function ao_compute_kw(by_kw) ::
-  return ao_compute_entries @
-    Object.entries(by_kw)
+  return _ao_compute_with.bind @ null,
+    _ao_watch_deps_map(Object.entries(by_kw))
+    _ao_compute_kw
 
 export function ao_compute_entries(by_entries) ::
+  return _ao_compute_with.bind @ null,
+    _ao_watch_deps_map(by_entries)
+    _ao_compute_kw
+
+
+
+export async function _ao_watch_deps_set(by_pos) ::
+  const watch_deps = new Set()
+  for const each of by_pos ::
+    watch_deps.add @ await as_ao_watch @ await each
+  return watch_deps
+
+export async function _ao_watch_deps_map(by_entries) ::
   const watch_deps = new Map()
   for const [name, each] of by_entries ::
-    watch_deps.set @ name, as_ao_watch(each)
-
-  return _ao_compute_with.bind @ null,
-    watch_deps, _ao_compute_kw
+    watch_deps.set @ name, await as_ao_watch @ await each
+  return watch_deps
 
 
-
-
-export async function ao_watch_join(watch_deps) ::
+export async function _ao_watch_join(watch_deps) ::
   await new Promise @\ resolve ::
     for const d of watch_deps.values() ::
       d.tail.then(resolve)
 
 export async function * _ao_compute_with(watch_deps, _ao_compute, fn_compute, only_next) ::
+  watch_deps = await watch_deps
   if only_next ::
-    await ao_watch_join @ watch_deps
+    await _ao_watch_join @ watch_deps
 
   while true ::
     yield _ao_compute @ watch_deps, fn_compute
-    await ao_watch_join @ watch_deps
+    await _ao_watch_join @ watch_deps
 
 const _obj_value = o => o.value
 export function _ao_compute_pos(watch_deps, fn_compute) ::

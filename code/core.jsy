@@ -54,7 +54,7 @@ export function ao_tee(ao_iter, only_next_) ::
       aod.reset()
 
   return @{}
-    inner: ao_iter
+    ao_iter
     ao_tee(only_next=only_next_) ::
       return ao_tee_dispatch(aod, only_next)
     [Symbol.asyncIterator]() ::

@@ -1,0 +1,20 @@
+import {ao_tee} from './core.jsy'
+import {ao_updates} from './updates.jsy'
+
+export @{}
+  ao_pulse_events as default,
+  ao_pulse_events as ao_pulse,
+
+export function ao_pulse_events(...args) ::
+  return ao_tee @ ao_pulse_updates @ ...args
+
+export function ao_pulse_updates(ms) ::
+  return ao_updates @\ ao ::>*
+    const ts0 = Date.now()
+    function _update() ::
+      ao.update @ Date.now() - ts0
+
+    const tid = setInterval @ _update, ms
+    try :: yield
+    finally :: clearInterval @ tid
+

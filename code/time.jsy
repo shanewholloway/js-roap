@@ -8,13 +8,16 @@ export @{}
 export function ao_pulse_events(...args) ::
   return ao_tee @ ao_pulse_updates @ ...args
 
-export function ao_pulse_updates(ms) ::
+export function ao_pulse_updates(ms, immediate) ::
   return ao_updates @\ ao ::>*
     const ts0 = Date.now()
     function _update() ::
       ao.update @ Date.now() - ts0
 
     const tid = setInterval @ _update, ms
-    try :: yield
+    try ::
+      if immediate ::
+        _update()
+      yield
     finally :: clearInterval @ tid
 

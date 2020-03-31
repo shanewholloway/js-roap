@@ -1,6 +1,15 @@
 import {_e_value} from './_common.jsy'
 import {as_ao_watch} from './watch_core.jsy'
 
+export function ao_track_updates(... args) ::
+  if args.length !== 1 ::
+    return ao_track_updates_pos(args)
+
+  const [a0] = args
+  return Array.isArray(a0)
+    ? ao_track_updates_pos(a0)
+    : ao_track_updates_kw(a0)
+
 
 export function ao_track_updates_kw(kw) ::
   kw = Object.entries(kw)

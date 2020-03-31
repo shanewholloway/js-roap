@@ -1,4 +1,4 @@
-import rpi_jsy from 'rollup-plugin-jsy-lite'
+import rpi_jsy from 'rollup-plugin-jsy'
 import { terser as rpi_terser } from 'rollup-plugin-terser'
 
 const configs = []

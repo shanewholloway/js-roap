@@ -17,7 +17,6 @@ export async function ao_watch(...args) ::
 
   return _ao_walker @ ao_obj, ao_iter, on_update
 
-
 export async function _ao_walker(ao_obj, ao_iter, on_update) ::
   const {value, done} = await ao_iter.next()
   ao_obj.value = value
@@ -26,7 +25,9 @@ export async function _ao_walker(ao_obj, ao_iter, on_update) ::
     : _ao_walker @ ao_obj, ao_iter, on_update
 
   if undefined !== on_update ::
-    ao_obj.value = await on_update @ value, ao_obj
+    const res = await on_update @ value, ao_obj
+    if undefined !== res ::
+      ao_obj.value = res
 
   return ao_obj
 

@@ -1,15 +1,10 @@
 import {sym_ao} from './core.jsy'
-import {ao_deferred, ao_deferred_gen} from './deferred_core.jsy'
+import {ao_deferred} from './deferred_core.jsy'
 
 
-export function ao_updates(init_ao) ::
+export function ao_updates(... args) ::
   return _ao_updates @
-    ao_deferred(init_ao)
-
-export function ao_updates_gen(init_ao) ::
-  return _ao_updates @
-    ao_deferred_gen(init_ao)
-
+    ao_deferred(... args)
 
 export async function * _ao_updates(aod) ::
   for await let xform of aod.init ::

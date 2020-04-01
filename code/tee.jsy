@@ -22,7 +22,7 @@ export function ao_tee(ao_source) ::
   const ao_tee = @{}
     __proto__: __ao_tee__
     tip: undefined
-    done: undefined
+    done: false
     ao_source
 
   const aod = ao_deferred @\ ao_update ::>
@@ -32,11 +32,9 @@ export function ao_tee(ao_source) ::
 
       ao_update(tip)
       if undefined !== _update ::
-        ao_tee.done = false
         ao_tee.tip = _update(tip)
 
       aod.reset()
-
 
     ao_tee.done = true
 

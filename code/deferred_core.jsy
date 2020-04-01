@@ -35,28 +35,29 @@ export async function * ao_iter_deferred(aod, only_next) ::
     yield aod.tip
 
 
-export function ao_deferred(init_ao) ::
-  const aod = deferred @:
-    __proto__: __ao_deferred__
+export function ao_deferred(...args) ::
+  const ao_kind = 'string' === typeof args[0] ? args.shift() : 'ao_update'
+  const init_ao = args.pop()
+
+  const aod = deferred @: __proto__: __ao_deferred__
+  const ao_api = _ao_deferred_api[ao_kind] @ aod
 
   if undefined !== init_ao ::
-    aod.init = init_ao(ao_update)
-  else aod.ao_update = ao_update
+    aod.init = init_ao(ao_api)
+  else aod[ao_kind] = ao_api
 
   return aod
 
-  function ao_update(v) ::
-    aod.valid = true
-    aod.tip = v
-    aod.resolve(v)
-    return aod.promise
 
+const _ao_deferred_api = @{}
+  ao_update: aod => @
+    function ao_update(v) ::
+      aod.valid = true
+      aod.tip = v
+      aod.resolve(v)
+      return aod.promise
 
-export function ao_deferred_gen(init_ao) ::
-  const aod = deferred @:
-    __proto__: __ao_deferred__
-
-  const ao_gen = @{}
+  ao_gen: aod => @:
     update(v) ::
       aod.valid = true
       aod.tip = v
@@ -72,10 +73,4 @@ export function ao_deferred_gen(init_ao) ::
       aod.done = Promise.reject(err)
       aod.resolve()
       return aod.done
-
-  if undefined !== init_ao ::
-    aod.init = init_ao(ao_gen)
-  else aod.ao_gen = ao_gen
-
-  return aod
 

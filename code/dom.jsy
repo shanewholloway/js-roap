@@ -1,6 +1,6 @@
 import {_e_value} from './_common.jsy'
-import {ao_tee} from './core.jsy'
 import {ao_updates} from './updates.jsy'
+import {ao_tee} from './tee.jsy'
 
 export @{}
   ao_dom_events as default,
@@ -81,10 +81,10 @@ export function _ao_dom_updates({elem, evt_names, on_evt, on_calc, on_add, on_re
   if 'function' !== typeof on_evt ::
     on_evt = extra.on_evt
 
-  return ao_updates @\ ao ::>*
+  return ao_updates @\ ao_update ::>*
     const _update = on_evt
-      ? evt => ao.update @ on_evt(elem, evt)
-      : ()=> ao.update @ elem
+      ? evt => ao_update @ on_evt(elem, evt)
+      : ()=> ao_update @ elem
 
     if extra.on_add ::
       extra.on_add(elem)
@@ -105,9 +105,9 @@ export function _ao_dom_updates({elem, evt_names, on_evt, on_calc, on_add, on_re
 
 
 export function ao_animation_frames() ::
-  return ao_updates @\ ao ::>*
+  return ao_updates @\ ao_update ::>*
     async function _update(ts) ::
-      await ao.update(ts)
+      ao_update(ts)
       rid = requestAnimationFrame @ _update
 
     let rid = requestAnimationFrame @ _update

@@ -1,4 +1,4 @@
-import {ao_tee} from './core.jsy'
+import {ao_tee} from './tee.jsy'
 import @{}
   ao_track_updates
   ao_track_updates_kw

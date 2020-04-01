@@ -1,17 +1,25 @@
-import {ao_deferred} from './core.jsy'
+import {sym_ao} from './core.jsy'
+import {ao_deferred, ao_deferred_gen} from './deferred_core.jsy'
 
 
-export default ao_updates
-export async function * ao_updates(init_ao) ::
-  const aod = ao_deferred(init_ao)
+export function ao_updates(init_ao) ::
+  return _ao_updates @
+    ao_deferred(init_ao)
+
+export function ao_updates_gen(init_ao) ::
+  return _ao_updates @
+    ao_deferred_gen(init_ao)
+
+
+export async function * _ao_updates(aod) ::
   for await let xform of aod.init ::
     if 'function' !== typeof xform ::
       xform = undefined
 
-    yield * ao_dispatch @ aod, xform
+    yield * _ao_iter_updates @ aod, xform
 
 
-export async function * ao_dispatch(aod, xform) ::
+export async function * _ao_iter_updates(aod, xform) ::
   while true ::
     await aod.promise
     if false !== aod.done ::
@@ -26,4 +34,16 @@ export async function * ao_dispatch(aod, xform) ::
       v_cur = await xform @ v_cur
 
     yield v_cur
+
+
+
+export function ao_push() ::
+  const aod = ao_deferred()
+  ao_push[sym_ao] = aod[sym_ao]
+  return ao_push
+
+  function ao_push(v) ::
+    const res = aod.ao_update(v)
+    aod.reset()
+    return res
 

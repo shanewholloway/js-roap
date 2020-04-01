@@ -1,5 +1,5 @@
-import {ao_tee} from './core.jsy'
 import {ao_updates} from './updates.jsy'
+import {ao_tee} from './tee.jsy'
 
 export @{}
   ao_pulse_events as default,

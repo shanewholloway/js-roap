@@ -1,3 +1,4 @@
+export const sym_ao = Symbol.asyncIterator
 
 export async function * as_ao_iter(ao_iterable) ::
   if undefined !== ao_iterable.tail ::
@@ -6,83 +7,19 @@ export async function * as_ao_iter(ao_iterable) ::
   yield * ao_iterable
 
 export async function * ao_tail_obj(ao_obj) ::
-  if undefined === ao_obj :: ao_obj = this
-
   while ao_obj && true !== ao_obj.done ::
     yield ao_obj.value
     ao_obj = await ao_obj.tail
 
 export function is_ao_iterable(v) ::
-  if undefined !== v[Symbol.asyncIterator] || v.next || v.tail ::
+  if undefined !== v[sym_ao] || v.next || v.tail ::
     return true
   return false
 
-
-export const deferred = @!
-  const l=[], lset = l.splice.bind(l, 0, 2)
-  return function deferred(host) ::
-    'use strict';
-    if undefined === host ::
-      host = this || {reset: deferred}
-
-    host.promise = new Promise(lset)
-    host.resolve = l[0]
-    host.reject = l[1]
-    return host
-
-
-export function ao_deferred(init_ao) ::
-  const aod = deferred @:
-    tip: undefined
-    valid: false
-    done: false
-    reset: deferred
-
-  aod.init = init_ao @:
-    // mirrored async generator protocol
-    update(v) ::
-      aod.valid = true
-      aod.tip = v
-      aod.resolve(v)
-      return aod.promise
-
-    return(v) ::
-      aod.done = Promise.resolve(v)
-      aod.resolve()
-      return aod.done
-
-    throw(err) ::
-      aod.done = Promise.reject(err)
-      aod.resolve()
-      return aod.done
-
-  return aod
-
-
-export function ao_tee(ao_iter, only_next_) ::
-  only_next_ = !! only_next_
-  ao_iter = as_ao_iter(ao_iter)
-
-  const aod = ao_deferred @\ ao ::>
-    for await const tip of ao_iter ::
-      ao.update(tip)
-      aod.reset()
-
-  return @{}
-    ao_iter
-    ao_tee(only_next=only_next_) ::
-      return ao_tee_dispatch(aod, only_next)
-    [Symbol.asyncIterator]() ::
-      return ao_tee_dispatch(aod, only_next_)
-
-
-export async function * ao_tee_dispatch(aod, only_next) ::
-  if !only_next && aod.valid ::
-    yield aod.tip
-
-  while true ::
-    await aod.promise
-    if false !== aod.done ::
-      return await aod.done
-    yield aod.tip
+export function as_fn(fn, absent) ::
+  if ! fn || true === fn ::
+    return absent
+  if 'function' !== typeof fn ::
+    throw new TypeError()
+  return fn
 

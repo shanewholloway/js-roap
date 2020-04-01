@@ -1,3 +1,5 @@
 
+export const _ident = e => e
+export const _is_defined = e => undefined !== e
 export const _e_value = e => e.value
 

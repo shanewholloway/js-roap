@@ -1,4 +1,6 @@
-export * from './core.jsy'
+// all > watch > deferred > core
+export * from './deferred.jsy'
+
 export * from './watch_core.jsy'
 export * from './track_updates.jsy'
 export * from './track.jsy'

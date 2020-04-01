@@ -10,7 +10,7 @@ const plugins_web = [ ... plugins, rpi_terser({}) ]
 
 
 add_jsy('index')
-add_jsy('core')
+add_jsy('deferred')
 add_jsy('watch')
 
 

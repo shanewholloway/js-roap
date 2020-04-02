@@ -1,26 +1,36 @@
 import @{}
-  ao_dom, ao_watch, ao_track, ao_push
+  ao_dom, ao_track, ao_push
 from './esm/index.mjs'
 
-if 0 ::
-  const fun = window.fun = ao_push()
-  fun @ 1942
+::
+  Object.assign @ window, 
+    ao_dom, ao_track, ao_push
 
-  const ao_deps = window.ao_deps = ao_track @:
-    a: ao_dom @ '#aaa'
-    b: ao_dom @ '#bbb'
-    c: ao_dom @ '#ccc'
-    fun
-  ao_deps.watch()
+  if 0 :: console.log @:
+    ao_dom, ao_track, ao_push
 
-  console.log @ 'ao_deps[0]', ao_deps
 
-  ::!>
-    console.log @ 'ao_deps[1]', ao_deps
-    await null
-    console.log @ 'ao_deps[2]', ao_deps
 
-    for await const tip of ao_deps ::
-      console.log @ 'tip', tip
-      console.log @ 'ao_deps[n]', ao_deps
+const fun = window.fun = ao_push()
+fun @ 1942
+
+const dom_fun = window.dom_fun = @{}
+  a: ao_dom @ '#aaa'
+  b: ao_dom @ '#bbb'
+  c: ao_dom @ '#ccc'
+
+::!>
+  for await const a of dom_fun.a ::
+    console.log @: a
+
+
+
+
+const many_deps = window.many_deps = ao_track @:
+  fun, ... dom_fun
+
+::!>
+  for await const tip of many_deps ::
+    console.log @ 'tip', tip
+    console.log @ 'many_deps[n]', many_deps
 

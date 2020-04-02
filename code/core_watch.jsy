@@ -9,7 +9,7 @@ export function ao_watch(ao_iter) ::
   aod.complete = _ao_walk @ ao_iter, ao_update
   return aod
 
-async function _ao_walk(ao_iter, ao_update) ::
-  for await const ea of ao_iter ::
-    ao_update(ea)
+async function _ao_walk(ao_iter, fn) ::
+  for await const v of ao_iter ::
+    fn(v)
 

@@ -5,12 +5,18 @@ import {ao_watch} from './core_watch.jsy'
 
 
 export async function as_ao_dep(arg) ::
-  if undefined !== arg && null !== arg && 'object' !== typeof arg ::
+  if undefined !== arg && null !== arg || 'object' !== typeof arg ::
+
     const aod = arg[sym_ao_latest]
-    if undefined !== aod :: return aod
-    if arg[sym_ao] :: return ao_watch(arg)
+    if undefined !== aod ::
+      return aod
+
+    if arg[sym_ao] ::
+      return ao_watch(arg)
+
     if 'object' === typeof arg && 'tip' in arg ::
       return arg
+
   return { tip: arg }
 
 export async function ao_deps_map(by_entries) ::
@@ -43,7 +49,7 @@ export async function _ao_deps_map_updates(ao_update, deps) ::
 
       ao_update @ res
 
-    await _ao_deps_change(deps.entries())
+    await _ao_deps_change @ deps.values()
 
 export async function _ao_deps_vec_updates(ao_update, deps) ::
   deps = await ao_deps_vec(deps)
@@ -52,6 +58,5 @@ export async function _ao_deps_vec_updates(ao_update, deps) ::
       const res = Array.from @ deps, _e_tip
       ao_update @ res
 
-    await _ao_deps_change(deps)
-
+    await _ao_deps_change @ deps
 

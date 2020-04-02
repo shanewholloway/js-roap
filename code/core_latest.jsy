@@ -32,6 +32,22 @@ const __ao_latest__ = @{}
   get [sym_ao]() ::
     return _ao_iter_latest.bind(null, this)
 
+  ao_iter() ::
+    return _ao_iter_latest(this)
+
+  async ao_each(fn) ::
+    for await const tip of this ::
+      await fn(tip)
+
+  async * ao_map(fn) ::
+    for await const tip of this ::
+      yield fn(tip)
+
+  async * ao_filter(fn) ::
+    for await const tip of this ::
+      if await fn(tip) ::
+        yield tip
+
 
 export function ao_latest() ::
   const [tail, resume] = ao_fence()

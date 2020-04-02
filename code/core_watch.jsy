@@ -11,5 +11,5 @@ export function ao_watch(ao_iter) ::
 
 async function _ao_walk(ao_iter, fn) ::
   for await const v of ao_iter ::
-    fn(v)
+    await fn(v)
 

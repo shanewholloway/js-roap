@@ -77,12 +77,17 @@ const __ao_latest__ ={
 
 , async * ao_map(fn) {
     for await (const tip of this) {
-      yield fn(tip);} }
+      yield await fn(tip);} }
 
 , async * ao_filter(fn) {
     for await (const tip of this) {
       if (await fn(tip)) {
-        yield tip;} } } };
+        yield tip;} } }
+
+, async * ao_map_if(fn) {
+    for await (const tip of this) {
+      const res = await fn(tip);
+      if (res) {yield res;} } } };
 
 
 function ao_latest() {
@@ -142,7 +147,7 @@ function ao_watch(ao_iter) {
 
 async function _ao_walk(ao_iter, fn) {
   for await (const v of ao_iter) {
-    fn(v);} }
+    await fn(v);} }
 
 async function as_ao_dep(arg) {
   if (undefined !== arg && null !== arg || 'object' !== typeof arg) {
@@ -183,11 +188,11 @@ async function _ao_deps_map_updates(ao_update, deps) {
   deps = await ao_deps_map(deps);
   while (true) {
      {
-      const res = {};
+      const snap = {};
       for (const [k, arg] of deps.entries()) {
-        res[k] = arg.tip;}
+        snap[k] = arg.tip;}
 
-      ao_update(res); }
+      ao_update(snap); }
 
     await _ao_deps_change(deps.values()); } }
 
@@ -195,8 +200,9 @@ async function _ao_deps_vec_updates(ao_update, deps) {
   deps = await ao_deps_vec(deps);
   while (true) {
      {
-      const res = Array.from(deps, _e_tip);
-      ao_update(res); }
+      const snap = Array.from(deps, _e_tip);
+
+      ao_update(snap); }
 
     await _ao_deps_change(deps); } }
 

@@ -2,14 +2,6 @@ import @{}
   ao_dom, ao_track, ao_push
 from './esm/index.mjs'
 
-::
-  Object.assign @ window, 
-    ao_dom, ao_track, ao_push
-
-  if 0 :: console.log @:
-    ao_dom, ao_track, ao_push
-
-
 
 const fun = window.fun = ao_push()
 fun @ 1942

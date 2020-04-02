@@ -43,11 +43,11 @@ export async function _ao_deps_map_updates(ao_update, deps) ::
   deps = await ao_deps_map(deps)
   while true ::
     ::
-      const res = {}
+      const snap = {}
       for const [k, arg] of deps.entries() ::
-        res[k] = arg.tip
+        snap[k] = arg.tip
 
-      ao_update @ res
+      ao_update @ snap
 
     await _ao_deps_change @ deps.values()
 
@@ -55,8 +55,9 @@ export async function _ao_deps_vec_updates(ao_update, deps) ::
   deps = await ao_deps_vec(deps)
   while true ::
     ::
-      const res = Array.from @ deps, _e_tip
-      ao_update @ res
+      const snap = Array.from @ deps, _e_tip
+
+      ao_update @ snap
 
     await _ao_deps_change @ deps
 

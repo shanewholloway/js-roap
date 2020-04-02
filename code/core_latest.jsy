@@ -41,12 +41,17 @@ const __ao_latest__ = @{}
 
   async * ao_map(fn) ::
     for await const tip of this ::
-      yield fn(tip)
+      yield await fn(tip)
 
   async * ao_filter(fn) ::
     for await const tip of this ::
       if await fn(tip) ::
         yield tip
+
+  async * ao_map_if(fn) ::
+    for await const tip of this ::
+      const res = await fn(tip)
+      if res :: yield res
 
 
 export function ao_latest() ::

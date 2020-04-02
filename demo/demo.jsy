@@ -1,5 +1,5 @@
 import @{}
-  ao_dom, ao_track, ao_push
+  ao_dom, ao_track, ao_push, delay
 from './esm/index.mjs'
 
 
@@ -11,11 +11,18 @@ const dom_fun = window.dom_fun = @{}
   b: ao_dom @ '#bbb'
   c: ao_dom @ '#ccc'
 
-::!>
-  for await const a of dom_fun.a ::
-    console.log @: a
+if 0 ::
+  ::!>
+    for await const a of dom_fun.a ::
+      console.log @: pre_a: a
+      await delay(1000)
+      console.log @: post_a: a
 
-
+  ::!>
+    for await const aa of dom_fun.a ::
+      console.log @: less_slow: aa
+      await delay(100)
+      console.log @: less_slow_after: aa
 
 
 const many_deps = window.many_deps = ao_track @:

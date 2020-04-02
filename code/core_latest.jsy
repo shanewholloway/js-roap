@@ -2,6 +2,8 @@ import {_ident, deferred} from './_common.jsy'
 import {sym_ao} from './core_iters.jsy'
 import {ao_fence} from './core_fence.jsy'
 
+export const sym_ao_latest = Symbol('ao_latest')
+
 
 export function ao_push(xform) ::
   const [aod, ao_push] = ao_latest()
@@ -9,6 +11,7 @@ export function ao_push(xform) ::
     aod.xform = as_fn(xform)
 
   ao_push.aod = aod
+  ao_push[sym_ao_latest] = aod
   ao_push[sym_ao] = aod[sym_ao]
   return ao_push
 
@@ -25,13 +28,13 @@ export async function * _ao_iter_latest(aod) ::
     yield _cur = _tip
 
 
-export const sym_ao_latest = Symbol('ao_latest')
 const __ao_latest__ = @{}
-  get [sym_ao_latest]() :: return this
   xform: _ident
+
+  get [sym_ao_latest]() ::
+    return this
   get [sym_ao]() ::
     return _ao_iter_latest.bind(null, this)
-
   ao_iter() ::
     return _ao_iter_latest(this)
 

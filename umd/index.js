@@ -34,16 +34,20 @@
   function ao_fence() {
     let _fp, _resume = _ret_void;
     const _set = y => _resume = y;
+    return [fence, resume]
 
-    const resume = v => {
+    function fence() {
+      if (undefined === _fp) {
+        _fp = new Promise(_set); }
+
+      return _fp}
+
+    function resume(v) {
       _fp = undefined;
-      _resume(v);};
+      _resume(v);} }
 
-    const fence = (() =>
-      undefined !== _fp ? _fp :
-        _fp = new Promise(_set) );
+  const sym_ao_latest = Symbol('ao_latest');
 
-    return [fence, resume]}
 
   function ao_push(xform) {
     const [aod, ao_push] = ao_latest();
@@ -51,6 +55,7 @@
       aod.xform = as_fn(xform);}
 
     ao_push.aod = aod;
+    ao_push[sym_ao_latest] = aod;
     ao_push[sym_ao] = aod[sym_ao];
     return ao_push}
 
@@ -67,13 +72,13 @@
       yield _cur = _tip;} }
 
 
-  const sym_ao_latest = Symbol('ao_latest');
   const __ao_latest__ ={
-    get [sym_ao_latest]() {return this}
-  , xform: _ident
+    xform: _ident
+
+  , get [sym_ao_latest]() {
+      return this}
   , get [sym_ao]() {
       return _ao_iter_latest.bind(null, this)}
-
   , ao_iter() {
       return _ao_iter_latest(this)}
 

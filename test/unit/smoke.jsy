@@ -1,0 +1,8 @@
+const { assert } = require('chai')
+import {ao_latest, ao_update_ctx, ao_watch} from 'roap'
+
+it @ 'smoke', @::
+  assert.equal @ 'function', typeof ao_latest
+  assert.equal @ 'function', typeof ao_update_ctx
+  assert.equal @ 'function', typeof ao_watch
+

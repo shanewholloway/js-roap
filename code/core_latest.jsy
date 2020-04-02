@@ -1,0 +1,64 @@
+import {_ident, deferred} from './_common.jsy'
+import {sym_ao} from './core_iters.jsy'
+import {ao_fence} from './core_fence.jsy'
+
+
+export function ao_push(xform) ::
+  const [aod, ao_push] = ao_latest()
+  if undefined !== xform ::
+    aod.xform = as_fn(xform)
+
+  ao_push.aod = aod
+  ao_push[sym_ao] = aod[sym_ao]
+  return ao_push
+
+
+export async function * _ao_iter_latest(aod) ::
+  let _cur
+  while true ::
+    let _tip
+    while _cur === (_tip = aod.tip) ::
+      if aod.done :: return
+
+      await aod.fence()
+
+    yield _cur = _tip
+
+
+const __ao_latest__ = @{}
+  xform: _ident
+  get [sym_ao]() ::
+    return _ao_iter_latest.bind(null, this)
+
+
+export function ao_latest() ::
+  const [fence, resume] = ao_fence()
+  const [_fin, _do_stop] = deferred()
+
+  const aod = @{}
+    __proto__: __ao_latest__
+    tip: undefined, done: false,
+    fence, stop
+
+  Object.assign @ update, @{}
+    update, stop, 
+    fin: fn => _fin.finally @ _as_fin(fn)
+
+  return @[] aod, update
+
+  function update(tip) ::
+    aod.tip = tip = aod.xform @ tip
+    resume @ tip
+
+  function stop(v) ::
+    aod.done = true
+    resume()
+    _do_stop(v)
+    return _fin
+
+
+function _as_fin(fn) ::
+  if 'function' === typeof fn.return ::
+    return v => fn.return(v)
+  return fn
+

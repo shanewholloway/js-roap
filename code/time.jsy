@@ -1,27 +1,21 @@
-import {ao_updates} from './updates.jsy'
-import {ao_tee} from './tee.jsy'
-
-export @{}
-  ao_pulse_events as default,
-  ao_pulse_events as ao_pulse,
+import {ao_update_ctx} from './core_updates.jsy'
 
 export const delay = (...args) =>
   new Promise @ y =>
     setTimeout @ y, ...args
 
-export function ao_pulse_events(...args) ::
-  return ao_tee @ ao_pulse_updates @ ...args
-
-export function ao_pulse_updates(ms, immediate) ::
-  return ao_updates @\ ao ::>*
+export function ao_pulse(ms, immediate) ::
+  return ao_update_ctx @\ ao_update ::*
     const ts0 = Date.now()
-    function _update() ::
-      ao.update @ Date.now() - ts0
+    function _pulse() ::
+      ao_update @ Date.now() - ts0
 
-    const tid = setInterval @ _update, ms
+    const tid = setInterval @ _pulse, ms
     try ::
-      if immediate ::
-        _update()
+      if immediate :: _pulse()
+
       yield
-    finally :: clearInterval @ tid
+
+    finally ::
+      clearInterval @ tid
 

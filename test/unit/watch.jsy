@@ -1,0 +1,23 @@
+import {ao_watch} from 'roap'
+
+import @{}
+  assert, expect
+  expect_ao_latest, expect_ao_api
+from './_utils.jsy'
+
+describe @ 'ao_watch', @::
+  it @ 'smoke', @::
+    expect(ao_watch).to.be.a('function')
+
+  it @ 'shape', @::>
+    const aod = ao_watch @# 1,2,3
+
+    expect_ao_latest(aod)
+    expect(aod.complete).to.be.a('promise')
+
+    const lst = [1, 2, 3]
+    for await const ea of aod ::
+      expect(ea).to.equal(lst.shift())
+
+      if 0 === lst.length :: break
+

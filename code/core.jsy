@@ -1,25 +1,7 @@
-export const sym_ao = Symbol.asyncIterator
+export * from './core_iters.jsy'
+export * from './core_fence.jsy'
+export * from './core_latest.jsy'
+export * from './core_updates.jsy'
+export * from './core_watch.jsy'
 
-export async function * as_ao_iter(ao_iterable) ::
-  if undefined !== ao_iterable.tail ::
-    ao_iterable = ao_tail_obj(ao_iterable)
-
-  yield * ao_iterable
-
-export async function * ao_tail_obj(ao_obj) ::
-  while ao_obj && true !== ao_obj.done ::
-    yield ao_obj.value
-    ao_obj = await ao_obj.tail
-
-export function is_ao_iterable(v) ::
-  if undefined !== v[sym_ao] || v.next || v.tail ::
-    return true
-  return false
-
-export function as_fn(fn, absent) ::
-  if ! fn || true === fn ::
-    return absent
-  if 'function' !== typeof fn ::
-    throw new TypeError()
-  return fn
 

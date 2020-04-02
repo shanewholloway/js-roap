@@ -24,32 +24,6 @@
     <label>C <input id=ccc type=range min=0 max=255 value=225 /></label>
   </main>
 
-  <jsy-script>
-    import @{}
-      ao_dom, ao_watch, ao_track, ao_push
-    from './esm/index.mjs'
-
-    const fun = window.fun = ao_push()
-    fun @ 1942
-
-    const ao_deps = window.ao_deps = ao_track @:
-      a: ao_dom @ '#aaa'
-      b: ao_dom @ '#bbb'
-      c: ao_dom @ '#ccc'
-      fun
-    ao_deps.watch()
-
-    console.log @ 'ao_deps[0]', ao_deps
-
-    ::!>
-      console.log @ 'ao_deps[1]', ao_deps
-      await null
-      console.log @ 'ao_deps[2]', ao_deps
-
-      for await const tip of ao_deps ::
-        console.log @ 'tip', tip
-        console.log @ 'ao_deps[n]', ao_deps
-
-  </jsy-script>
+  <jsy-script src='./demo.jsy'></jsy-script>
 </body>
 </html>

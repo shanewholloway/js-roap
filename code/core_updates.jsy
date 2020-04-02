@@ -1,0 +1,19 @@
+import {as_ao_iter_checked} from './core_iters.jsy'
+import {ao_latest} from './core_latest.jsy'
+
+export function ao_update_ctx(ao_ctx_mgr) ::
+  const [aod, ao_update] = ao_latest()
+
+  ao_ctx_mgr = as_ao_iter_checked @
+    ao_ctx_mgr(ao_update)
+
+  ao_update.fin @ ao_ctx_mgr
+  aod.ready = _ao_init @ ao_ctx_mgr, aod
+  return aod
+
+async function _ao_init(ao_ctx_mgr, aod) ::
+  const {value: xform} = await ao_ctx_mgr.next()
+  if 'function' === typeof xform ::
+    aod.xform = xform
+  return true
+

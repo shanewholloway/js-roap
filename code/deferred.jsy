@@ -1,7 +1,0 @@
-// all > watch > deferred > core
-export * from './core.jsy'
-
-export * from './deferred_core.jsy'
-export * from './updates.jsy'
-export * from './tee.jsy'
-

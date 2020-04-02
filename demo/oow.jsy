@@ -1,0 +1,17 @@
+
+function bind_reset(host) ::
+  _reset_next()
+  return host
+
+  async function next_reset() ::
+    await new Promise @ reset => host.reset = reset
+    _reset_next()
+
+  function _reset_next() ::
+    host.next = @{}
+      answer: new Promise @ answer => host.answer = answer
+      reset: next_reset()
+
+
+
+

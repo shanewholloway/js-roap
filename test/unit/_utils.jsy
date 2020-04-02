@@ -1,0 +1,24 @@
+const { assert, expect } = require('chai')
+export @{} assert, expect
+
+export const delay = (ms=1) => 
+  new Promise @ y =>
+    setTimeout @ y, ms, 'timeout'
+
+export const delay_race = (p, ms=1) => 
+  Promise.race @# p, delay(ms)
+
+export function expect_ao_latest(aod) ::
+  expect(aod.done).to.be.false
+  expect(aod.tip).to.be.undefined
+  expect(aod.fence).to.be.a('function')
+
+  expect(aod.init).to.be.undefined
+  expect(aod.update).to.be.undefined
+
+export function expect_ao_api(ao_api) ::
+  expect(ao_api).to.be.a('function')
+  expect(ao_api.update).to.be.equal(ao_api)
+  expect(ao_api.stop).to.be.a('function')
+  expect(ao_api.fin).to.be.a('function')
+

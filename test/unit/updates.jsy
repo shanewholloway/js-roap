@@ -1,0 +1,44 @@
+import {ao_update_ctx} from 'roap'
+
+import @{}
+  assert, expect, delay
+  expect_ao_latest, expect_ao_api
+from './_utils.jsy'
+
+describe @ 'ao_update_ctx', @::
+  it @ 'smoke', @::
+    expect(ao_update_ctx).to.be.a('function')
+
+  it @ 'shape', @::>
+    const xfrm = v => [v, 42]
+    let called, fin
+
+    const aod = ao_update_ctx @=>*
+      called = true
+      try ::
+        yield xfrm
+      finally ::
+        fin = true
+
+    expect_ao_latest(aod)
+    expect(aod.xform).to.be.a('function')
+    expect(aod.xform).to.not.equal(xfrm)
+    expect(aod.ready).to.be.a('promise')
+    expect(called).to.be.true
+    expect(fin).to.be.undefined
+
+    expect @ await aod.ready
+    .to.be.true
+
+    expect(called).to.be.true
+    expect(fin).to.be.undefined
+    expect(aod.xform).to.equal(xfrm)
+
+    await aod.stop()
+
+    expect(called).to.be.true
+
+    // cleanup ordering is not guarenteed
+    await delay(1)
+    expect(fin).to.be.true
+

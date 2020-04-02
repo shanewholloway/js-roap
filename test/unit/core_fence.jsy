@@ -1,0 +1,88 @@
+const { assert, expect } = require('chai')
+import {delay_race} from './_utils.jsy'
+
+import {ao_fence} from 'roap'
+
+describe @ 'core_fence', @::
+  it @ 'shape', @::
+    const res = ao_fence()
+    expect(res).to.be.an('array').of.length(2)
+    expect(res[0]).to.be.a('function')
+    expect(res[1]).to.be.a('function')
+
+
+  it @ 'basic use', @::>
+    const [fence, resume] = ao_fence()
+
+    const p = fence()
+    assert.equal @ 'timeout', await delay_race(p,1)
+
+    resume(1942)
+    assert.equal @ 1942, await delay_race(p,1)
+
+
+  it @ 'only first after', @::>
+    const [fence, resume] = ao_fence()
+    let f
+
+    resume @ 'one'
+    f = fence()
+    resume @ 'two'
+    resume @ 'three'
+
+    assert.equal @ 'two', await f
+
+    resume @ 'four'
+    resume @ 'five'
+    f = fence()
+    resume @ 'six'
+    resume @ 'seven'
+
+    assert.equal @ 'six', await f
+
+
+  it @ 'never blocked on fence', @::>
+    const [fence, resume] = ao_fence()
+
+    resume @ 'one'
+    resume @ 'two'
+    resume @ 'three'
+
+
+  it @ 'exercise fence', @::>
+    const [fence, resume] = ao_fence()
+
+    let v = 'a'
+    expect(v).to.equal('a')
+
+    const p = @!>
+      v = 'b'
+
+      :: const ans = await fence()
+         expect(ans).to.equal('bb')
+
+      v = 'c'
+      :: const ans = await fence()
+         expect(ans).to.equal('cc')
+      v = 'd'
+      return 1942
+
+    assert.equal @ 'timeout', await delay_race(p,1)
+    expect(v).to.equal('b')
+
+    ::
+      const p = resume(v+v)
+      expect(p).to.be.undefined
+
+    expect(v).to.equal('b')
+    assert.equal @ 'timeout', await delay_race(p,1)
+    expect(v).to.equal('c')
+
+    ::
+      const p = resume(v+v)
+      expect(p).to.be.undefined
+
+    expect(v).to.equal('c')
+    assert.equal @ 1942, await delay_race(p,1)
+    expect(v).to.equal('d')
+

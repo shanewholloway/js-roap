@@ -1,0 +1,16 @@
+import {_ret_void} from './_common.jsy'
+
+export function ao_fence() ::
+  let _fp, _resume = _ret_void
+  const _set = y => _resume = y
+
+  const resume = v => ::
+    _fp = undefined
+    _resume(v)
+
+  const fence = @=>
+    undefined !== _fp ? _fp :
+      _fp = new Promise @ _set
+
+  return [fence, resume]
+

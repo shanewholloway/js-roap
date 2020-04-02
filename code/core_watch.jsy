@@ -1,0 +1,15 @@
+import {as_ao_iter_checked} from './core_iters.jsy'
+import {ao_latest} from './core_latest.jsy'
+
+export function ao_watch(ao_iter) ::
+  ao_iter = as_ao_iter_checked(ao_iter)
+
+  const [aod, ao_update] = ao_latest()
+  ao_update.fin @ ao_iter
+  aod.complete = _ao_walk @ ao_iter, ao_update
+  return aod
+
+async function _ao_walk(ao_iter, ao_update) ::
+  for await const ea of ao_iter ::
+    ao_update(ea)
+

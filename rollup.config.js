@@ -6,24 +6,23 @@ export default configs
 
 const sourcemap = true
 const plugins = [ rpi_jsy() ]
-const plugins_web = [ ... plugins, rpi_terser({}) ]
+const plugins_web = null // [ ... plugins, rpi_terser({}) ]
 
 
 add_jsy('index')
-add_jsy('deferred')
-add_jsy('watch')
+add_jsy('core')
 
 
 function add_jsy(src_name, module_name) {
   if (!module_name) module_name = src_name
 
-  configs.push(
-   {input: `code/${src_name}.jsy`,
+  configs.push({
+    input: `code/${src_name}.jsy`,
     output: { file: `esm/${src_name}.mjs`, format: 'es', sourcemap },
-    plugins },
+    plugins })
   
-   {input: `code/${src_name}.jsy`,
+  plugins_web && configs.push({
+    input: `code/${src_name}.jsy`,
     output: { file: `esm/${src_name}.min.mjs`, format: 'es', sourcemap },
-    plugins: plugins_web },
-  )
+    plugins: plugins_web })
 }

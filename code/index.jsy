@@ -1,5 +1,3 @@
-// all > watch > deferred > core
-export * from './watch.jsy'
-
+export * from './core.jsy'
 export * from './dom.jsy'
 export * from './time.jsy'

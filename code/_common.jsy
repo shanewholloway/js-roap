@@ -1,5 +1,19 @@
-
+export const _ret_void = e => {}
 export const _ident = e => e
 export const _is_defined = e => undefined !== e
 export const _e_value = e => e.value
+export const _e_tip = e => e.tip
+
+export function as_fn(fn, absent) ::
+  if ! fn || true === fn ::
+    return absent
+  if 'function' !== typeof fn ::
+    throw new TypeError()
+  return fn
+
+export const deferred = @!
+  const _l=[], _lset = _l.splice.bind(_l, 1, 3)
+  return host => @
+    _l[0] = new Promise(_lset)
+    _l
 

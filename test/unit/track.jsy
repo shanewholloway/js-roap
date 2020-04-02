@@ -1,0 +1,67 @@
+
+import @{}
+  ao_track, ao_track_vec,
+  ao_track_kw, ao_track_entries,
+from 'roap'
+
+import @{}
+  assert, expect, delay
+  expect_ao_latest, expect_ao_api
+from './_utils.jsy'
+
+describe @ 'track', @::
+  it @ 'smoke', @::
+    expect(ao_track).to.be.a('function')
+    expect(ao_track_vec).to.be.a('function')
+    expect(ao_track_entries).to.be.a('function')
+    expect(ao_track_kw).to.be.a('function')
+
+  it @ 'shape ao_track_vec', @::>
+    const aod = ao_track_vec @# 1, 2, 3
+    expect_ao_latest(aod, true)
+
+    for await const v of aod ::
+      expect(v)
+      .to.deep.equal @# 1, 2, 3
+      return
+
+  it @ 'shape ao_track_kw', @::>
+    const aod = ao_track_kw @: a: 1, b: 2, c: 3
+    expect_ao_latest(aod, true)
+
+    for await const v of aod ::
+      expect(v)
+      .to.deep.equal @:
+        a: 1, b: 2, c: 3
+      return
+
+  it @ 'shape ao_track_entries', @::>
+    const aod = ao_track_entries @#
+      ['aa', 1], ['bb', 2], ['cc', 3]
+    expect_ao_latest(aod, true)
+
+    for await const v of aod ::
+      expect(v)
+      .to.deep.equal @:
+        aa: 1, bb: 2, cc: 3
+      return
+
+  it @ 'shape ao_track with vec', @::>
+    const aod = ao_track @# 1, 2, 3
+    expect_ao_latest(aod, true)
+
+    for await const v of aod ::
+      expect(v)
+      .to.deep.equal @# 1, 2, 3
+      return
+
+  it @ 'shape ao_track with kw', @::>
+    const aod = ao_track @: a: 1, b: 2, c: 3
+    expect_ao_latest(aod, true)
+
+    for await const v of aod ::
+      expect(v)
+      .to.deep.equal @:
+        a: 1, b: 2, c: 3
+      return
+

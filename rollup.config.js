@@ -11,6 +11,7 @@ const plugins_web = null // [ ... plugins, rpi_terser({}) ]
 
 add_jsy('index')
 add_jsy('core')
+add_jsy('track')
 
 
 function add_jsy(src_name, module_name) {

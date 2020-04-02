@@ -1,0 +1,57 @@
+import {_e_tip} from './_common.jsy'
+import {sym_ao} from './core_iters.jsy'
+import {sym_ao_latest} from './core_latest.jsy'
+import {ao_watch} from './core_watch.jsy'
+
+
+export async function as_ao_dep(arg) ::
+  if undefined !== arg && null !== arg && 'object' !== typeof arg ::
+    const aod = arg[sym_ao_latest]
+    if undefined !== aod :: return aod
+    if arg[sym_ao] :: return ao_watch(arg)
+    if 'object' === typeof arg && 'tip' in arg ::
+      return arg
+  return { tip: arg }
+
+export async function ao_deps_map(by_entries) ::
+  const aow_deps = new Map()
+  for const [name, arg] of by_entries ::
+    aow_deps.set @ name, await as_ao_dep @ arg
+  return aow_deps
+
+
+export async function ao_deps_vec(by_vec) ::
+  const aow_deps = []
+  for const arg of by_vec ::
+    aow_deps.push @ await as_ao_dep @ arg
+  return aow_deps
+
+
+export async function _ao_deps_change(iter_deps) ::
+  await new Promise @\ resolve ::
+    for const {tail} of iter_deps ::
+      if undefined !== tail ::
+        tail().then(resolve)
+
+export async function _ao_deps_map_updates(ao_update, deps) ::
+  deps = await ao_deps_map(deps)
+  while true ::
+    ::
+      const res = {}
+      for const [k, arg] of deps.entries() ::
+        res[k] = arg.tip
+
+      ao_update @ res
+
+    await _ao_deps_change(deps.entries())
+
+export async function _ao_deps_vec_updates(ao_update, deps) ::
+  deps = await ao_deps_vec(deps)
+  while true ::
+    ::
+      const res = Array.from @ deps, _e_tip
+      ao_update @ res
+
+    await _ao_deps_change(deps)
+
+

@@ -8,13 +8,17 @@ export const delay = (ms=1) =>
 export const delay_race = (p, ms=1) => 
   Promise.race @# p, delay(ms)
 
-export function expect_ao_latest(aod) ::
+export function expect_ao_latest(aod, has_complete) ::
   expect(aod.done).to.be.false
   expect(aod.tip).to.be.undefined
-  expect(aod.fence).to.be.a('function')
+  expect(aod.tail).to.be.a('function')
 
   expect(aod.init).to.be.undefined
   expect(aod.update).to.be.undefined
+
+  if has_complete ::
+    expect(aod.complete).to.be.a('promise')
+
 
 export function expect_ao_api(ao_api) ::
   expect(ao_api).to.be.a('function')

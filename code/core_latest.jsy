@@ -20,25 +20,27 @@ export async function * _ao_iter_latest(aod) ::
     while _cur === (_tip = aod.tip) ::
       if aod.done :: return
 
-      await aod.fence()
+      await aod.tail()
 
     yield _cur = _tip
 
 
+export const sym_ao_latest = Symbol('ao_latest')
 const __ao_latest__ = @{}
+  get [sym_ao_latest]() :: return this
   xform: _ident
   get [sym_ao]() ::
     return _ao_iter_latest.bind(null, this)
 
 
 export function ao_latest() ::
-  const [fence, resume] = ao_fence()
+  const [tail, resume] = ao_fence()
   const [_fin, _do_stop] = deferred()
 
   const aod = @{}
     __proto__: __ao_latest__
     tip: undefined, done: false,
-    fence, stop
+    stop, tail
 
   Object.assign @ update, @{}
     update, stop, 

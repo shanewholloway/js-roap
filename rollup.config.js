@@ -6,7 +6,7 @@ export default configs
 
 const sourcemap = true
 const plugins = [ rpi_jsy() ]
-const plugins_web = null // [ ... plugins, rpi_terser({}) ]
+const plugins_web = [ ... plugins, rpi_terser({}) ]
 
 
 add_jsy('index')

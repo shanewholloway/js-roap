@@ -10,9 +10,14 @@
   async function * as_ao_iter(ao_iterable) {
     yield * ao_iterable;}
 
+  function is_ao_strict(v) {
+    return v !== undefined && v !== null
+      && 'function' === typeof v[sym_ao]}
+
   function is_ao_iterable(v) {
-    return v !== undefined && v !== null &&
-      'function' === typeof (v[sym_ao] || v.next || v[sym_iter])}
+    return v !== undefined && v !== null
+      && 'string' !== typeof v
+      && 'function' === typeof (v[sym_ao] || v.next || v[sym_iter])}
 
   function as_ao_iter_checked(ao_iterable) {
     if (! is_ao_iterable(ao_iterable)) {
@@ -145,12 +150,13 @@
 
     const [aod, ao_update] = ao_latest();
     ao_update.fin(ao_iter);
-    aod.complete = _ao_walk(ao_iter, ao_update);
+    aod.complete = _ao_walk(aod, ao_iter, ao_update);
     return aod}
 
-  async function _ao_walk(ao_iter, fn) {
+  async function _ao_walk(ctrl, ao_iter, fn) {
     for await (const v of ao_iter) {
-      await fn(v);} }
+      await fn(v);
+      if (ctrl.done) {return} } }
 
 
 
@@ -249,6 +255,38 @@
     const [aod, ao_update] = ao_latest();
     aod.complete = _ao_deps_map_updates(ao_update, deps);
     return aod}
+
+  function ao_dyn_namespace(ns = new Map()) {
+    return new Proxy({},{
+      has: (ot, k) => ns.has(k)
+    , get: (ot, k) => ao_dyn_at(k, ns).get()
+    , set: (ot, k, v) => ao_dyn_at(k, ns).set(v)} ) }
+
+
+  function ao_dyn_at(k, ns) {
+    let ao = ns.get(k);
+    if (undefined === ao) {
+      ao = ao_dyn();
+      ns.set(k, ao);}
+    return ao}
+
+
+  function ao_dyn() {
+    const [aod, ao_update] = ao_latest();
+    let ctrl = {};
+    aod.get = (() =>aod);
+    aod.set = _dyn_set;
+    return aod
+
+    function _dyn_set(dyn_val) {
+      ctrl.done = true;
+
+      if (is_ao_strict(dyn_val)) {
+        ctrl = {done: false};
+        _ao_walk(ctrl, dyn_val, ao_update);
+        return}
+
+      ao_update(dyn_val);} }
 
   function _dom_unpack_args(std, elem, dom_args) {
     if ('string' === typeof elem) {
@@ -404,6 +442,7 @@
   exports._ao_deps_map_updates = _ao_deps_map_updates;
   exports._ao_deps_vec_updates = _ao_deps_vec_updates;
   exports._ao_iter_latest = _ao_iter_latest;
+  exports._ao_walk = _ao_walk;
   exports._dom_builtin = _dom_builtin;
   exports._dom_std_args = _dom_std_args;
   exports._dom_std_unpack_args = _dom_std_unpack_args;
@@ -415,6 +454,9 @@
   exports.ao_dom_messages = ao_dom_messages;
   exports.ao_dom_storage = ao_dom_storage;
   exports.ao_dom_updates = ao_dom_updates;
+  exports.ao_dyn = ao_dyn;
+  exports.ao_dyn_at = ao_dyn_at;
+  exports.ao_dyn_namespace = ao_dyn_namespace;
   exports.ao_fence = ao_fence;
   exports.ao_latest = ao_latest;
   exports.ao_pulse = ao_pulse;
@@ -430,6 +472,7 @@
   exports.as_ao_iter_checked = as_ao_iter_checked;
   exports.delay = delay;
   exports.is_ao_iterable = is_ao_iterable;
+  exports.is_ao_strict = is_ao_strict;
   exports.sym_ao = sym_ao;
   exports.sym_ao_latest = sym_ao_latest;
   exports.sym_iter = sym_iter;

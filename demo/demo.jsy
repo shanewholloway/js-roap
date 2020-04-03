@@ -2,6 +2,8 @@ import @{}
   ao_dom, ao_track, ao_push, delay
 from './esm/index.mjs'
 
+window.dyn = roap.ao_dyn_namespace()
+
 roap.ao_dom_messages(window)
   .ao_each @ v => console.log("WINSAY", v)
 

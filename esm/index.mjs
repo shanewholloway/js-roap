@@ -4,9 +4,14 @@ const sym_iter = Symbol.iterator;
 async function * as_ao_iter(ao_iterable) {
   yield * ao_iterable;}
 
+function is_ao_strict(v) {
+  return v !== undefined && v !== null
+    && 'function' === typeof v[sym_ao]}
+
 function is_ao_iterable(v) {
-  return v !== undefined && v !== null &&
-    'function' === typeof (v[sym_ao] || v.next || v[sym_iter])}
+  return v !== undefined && v !== null
+    && 'string' !== typeof v
+    && 'function' === typeof (v[sym_ao] || v.next || v[sym_iter])}
 
 function as_ao_iter_checked(ao_iterable) {
   if (! is_ao_iterable(ao_iterable)) {
@@ -139,12 +144,13 @@ function ao_watch(ao_iter) {
 
   const [aod, ao_update] = ao_latest();
   ao_update.fin(ao_iter);
-  aod.complete = _ao_walk(ao_iter, ao_update);
+  aod.complete = _ao_walk(aod, ao_iter, ao_update);
   return aod}
 
-async function _ao_walk(ao_iter, fn) {
+async function _ao_walk(ctrl, ao_iter, fn) {
   for await (const v of ao_iter) {
-    await fn(v);} }
+    await fn(v);
+    if (ctrl.done) {return} } }
 
 
 
@@ -243,6 +249,38 @@ function ao_track_kw(deps) {
   const [aod, ao_update] = ao_latest();
   aod.complete = _ao_deps_map_updates(ao_update, deps);
   return aod}
+
+function ao_dyn_namespace(ns = new Map()) {
+  return new Proxy({},{
+    has: (ot, k) => ns.has(k)
+  , get: (ot, k) => ao_dyn_at(k, ns).get()
+  , set: (ot, k, v) => ao_dyn_at(k, ns).set(v)} ) }
+
+
+function ao_dyn_at(k, ns) {
+  let ao = ns.get(k);
+  if (undefined === ao) {
+    ao = ao_dyn();
+    ns.set(k, ao);}
+  return ao}
+
+
+function ao_dyn() {
+  const [aod, ao_update] = ao_latest();
+  let ctrl = {};
+  aod.get = (() =>aod);
+  aod.set = _dyn_set;
+  return aod
+
+  function _dyn_set(dyn_val) {
+    ctrl.done = true;
+
+    if (is_ao_strict(dyn_val)) {
+      ctrl = {done: false};
+      _ao_walk(ctrl, dyn_val, ao_update);
+      return}
+
+    ao_update(dyn_val);} }
 
 function _dom_unpack_args(std, elem, dom_args) {
   if ('string' === typeof elem) {
@@ -394,5 +432,5 @@ function ao_pulse(ms, immediate) {
     finally {
       clearInterval(tid); } }).bind(this)) }
 
-export { _ao_deps_change, _ao_deps_map_updates, _ao_deps_vec_updates, _ao_iter_latest, _dom_builtin, _dom_std_args, _dom_std_unpack_args, _dom_unpack_args, ao_animation_frames, ao_deps_map, ao_deps_vec, ao_dom, ao_dom_messages, ao_dom_storage, ao_dom_updates, ao_fence, ao_latest, ao_pulse, ao_push, ao_track, ao_track_entries, ao_track_kw, ao_track_vec, ao_update_ctx, ao_watch, as_ao_dep, as_ao_iter, as_ao_iter_checked, delay, is_ao_iterable, sym_ao, sym_ao_latest, sym_iter };
+export { _ao_deps_change, _ao_deps_map_updates, _ao_deps_vec_updates, _ao_iter_latest, _ao_walk, _dom_builtin, _dom_std_args, _dom_std_unpack_args, _dom_unpack_args, ao_animation_frames, ao_deps_map, ao_deps_vec, ao_dom, ao_dom_messages, ao_dom_storage, ao_dom_updates, ao_dyn, ao_dyn_at, ao_dyn_namespace, ao_fence, ao_latest, ao_pulse, ao_push, ao_track, ao_track_entries, ao_track_kw, ao_track_vec, ao_update_ctx, ao_watch, as_ao_dep, as_ao_iter, as_ao_iter_checked, delay, is_ao_iterable, is_ao_strict, sym_ao, sym_ao_latest, sym_iter };
 //# sourceMappingURL=index.mjs.map

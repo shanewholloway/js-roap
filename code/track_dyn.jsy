@@ -1,0 +1,34 @@
+import {ao_latest, is_ao_strict, _ao_walk} from './basic.jsy'
+
+
+export function ao_dyn_namespace(ns = new Map()) ::
+  return new Proxy @ {}, @{}
+    has: (ot, k) => ns.has(k)
+    get: (ot, k) => ao_dyn_at(k, ns).get()
+    set: (ot, k, v) => ao_dyn_at(k, ns).set(v)
+
+
+export function ao_dyn_at(k, ns) ::
+  let ao = ns.get(k)
+  if undefined === ao ::
+    ao = ao_dyn()
+    ns.set(k, ao)
+  return ao
+
+
+export function ao_dyn() ::
+  const [aod, ao_update] = ao_latest()
+  let ctrl = {}
+  aod.get = @=> aod
+  aod.set = _dyn_set
+  return aod
+
+  function _dyn_set(dyn_val) ::
+    ctrl.done = true
+
+    if is_ao_strict(dyn_val) ::
+      ctrl = {done: false}
+      _ao_walk(ctrl, dyn_val, ao_update)
+      return
+
+    ao_update(dyn_val)

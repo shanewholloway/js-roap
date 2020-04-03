@@ -19,12 +19,13 @@ export function ao_watch(ao_iter) ::
 
   const [aod, ao_update] = ao_latest()
   ao_update.fin @ ao_iter
-  aod.complete = _ao_walk @ ao_iter, ao_update
+  aod.complete = _ao_walk @ aod, ao_iter, ao_update
   return aod
 
-async function _ao_walk(ao_iter, fn) ::
+export async function _ao_walk(ctrl, ao_iter, fn) ::
   for await const v of ao_iter ::
     await fn(v)
+    if ctrl.done :: return
 
 
 

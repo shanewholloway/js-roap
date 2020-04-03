@@ -3,4 +3,5 @@ export * from './basic.jsy'
 
 export * from './track_deps.jsy'
 export * from './track_updates.jsy'
+export * from './track_dyn.jsy'
 

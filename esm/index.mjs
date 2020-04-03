@@ -19,6 +19,13 @@ const _ident = e => e;
 const _e_value = e => e.value;
 const _e_tip = e => e.tip;
 
+function as_fn$1(fn, absent) {
+  if (! fn || true === fn) {
+    return absent}
+  if ('function' !== typeof fn) {
+    throw new TypeError()}
+  return fn}
+
 const deferred = ((() => {
   const _l=[], _lset = _l.splice.bind(_l, 1, 3);
   return host =>(
@@ -41,17 +48,6 @@ function ao_fence() {
     _resume(v);} }
 
 const sym_ao_latest = Symbol('ao_latest');
-
-
-function ao_push(xform) {
-  const [aod, ao_push] = ao_latest();
-  if (undefined !== xform) {
-    aod.xform = as_fn(xform);}
-
-  ao_push.aod = aod;
-  ao_push[sym_ao_latest] = aod;
-  ao_push[sym_ao] = aod[sym_ao];
-  return ao_push}
 
 
 async function * _ao_iter_latest(aod) {
@@ -126,6 +122,32 @@ function _as_fin(fn) {
     return v => fn.return(v)}
   return fn}
 
+function ao_push(xform) {
+  const [aod, ao_push] = ao_latest();
+  if (undefined !== xform) {
+    aod.xform = as_fn(xform);}
+
+  ao_push.aod = aod;
+  ao_push[sym_ao_latest] = aod;
+  ao_push[sym_ao] = aod[sym_ao];
+  return ao_push}
+
+
+
+function ao_watch(ao_iter) {
+  ao_iter = as_ao_iter_checked(ao_iter);
+
+  const [aod, ao_update] = ao_latest();
+  ao_update.fin(ao_iter);
+  aod.complete = _ao_walk(ao_iter, ao_update);
+  return aod}
+
+async function _ao_walk(ao_iter, fn) {
+  for await (const v of ao_iter) {
+    await fn(v);} }
+
+
+
 function ao_update_ctx(ao_ctx_mgr) {
   const [aod, ao_update] = ao_latest();
 
@@ -141,18 +163,6 @@ async function _ao_init(ao_ctx_mgr, aod) {
   if ('function' === typeof xform) {
     aod.xform = xform;}
   return true}
-
-function ao_watch(ao_iter) {
-  ao_iter = as_ao_iter_checked(ao_iter);
-
-  const [aod, ao_update] = ao_latest();
-  ao_update.fin(ao_iter);
-  aod.complete = _ao_walk(ao_iter, ao_update);
-  return aod}
-
-async function _ao_walk(ao_iter, fn) {
-  for await (const v of ao_iter) {
-    await fn(v);} }
 
 async function as_ao_dep(arg) {
   if (undefined !== arg && null !== arg || 'object' !== typeof arg) {
@@ -234,79 +244,83 @@ function ao_track_kw(deps) {
   aod.complete = _ao_deps_map_updates(ao_update, deps);
   return aod}
 
+function _dom_unpack_args(std, elem, dom_args) {
+  if ('string' === typeof elem) {
+    elem = document.querySelector(elem);}
+
+  return ! dom_args || 0 === dom_args.length
+    ? _dom_builtin(std, elem)
+    : _as_dom_arg(elem, dom_args)}
+
+
+function _dom_builtin(std, elem) {
+  let {tagName: tag, type} = elem;
+  tag = `tag:${tag.toLowerCase()}`;
+
+  const dom_args = type && std[`${tag} type:${type.toLowerCase()}`]
+      || std[tag]
+      || std._;
+
+  return 'function' === typeof dom_args
+    ? dom_args.call(std, elem, std)
+    : _as_dom_arg(elem, dom_args)}
+
+
+function _as_dom_arg(elem, dom_args) {
+  return Array.isArray(dom_args)
+    ?{elem, evt_names: dom_args[0], on_evt: dom_args[1]}
+    :{elem, ... dom_args} }
+
 const _en_click = ['click'];
 const _en_input = ['input', 'change'];
 const _e_no_default = e => e.preventDefault();
 const _opt_unpack = ({text, value}) =>({text, value});
+
+
 const _dom_std_args ={
   _:[_en_click]
-, 'input':[_en_input, _e_value]
-, 'output':[_en_input, _e_value]
-, 'input,number':[_en_input, e => e.valueAsNumber]
-, 'input,range':[_en_input, e => e.valueAsNumber]
-, 'input,button':[_en_click, _e_value]
-, 'input,submit':[_en_click, _e_value]
-, 'input,checkbox':[_en_input, e => e.checked]
-, 'input,radio':[_en_input, e => e.checked]
-, 'input,date':[_en_input, e => e.valueAsDate]
-, 'input,time':[_en_input, e => e.valueAsNumber]
-, 'input,file':[_en_input, e => e.multiple ? e.files : e.files[0]]
-, 'textarea':[_en_input, _e_value]
-, 'select':{
+, 'tag:input':[_en_input, _e_value]
+, 'tag:output':[_en_input, _e_value]
+, 'tag:input type:number':[_en_input, e => e.valueAsNumber]
+, 'tag:input type:range':[_en_input, e => e.valueAsNumber]
+, 'tag:input type:button':[_en_click, _e_value]
+, 'tag:input type:submit':[_en_click, _e_value]
+, 'tag:input type:checkbox':[_en_input, e => e.checked]
+, 'tag:input type:radio':[_en_input, e => e.checked]
+, 'tag:input type:date':[_en_input, e => e.valueAsDate]
+, 'tag:input type:time':[_en_input, e => e.valueAsNumber]
+, 'tag:input type:file':[_en_input, e => e.multiple ? e.files : e.files[0]]
+, 'tag:textarea':[_en_input, _e_value]
+, 'tag:select':{
       evt_names: _en_input
     , on_evt(e) {
         const res = Array.from(e.selectedOptions, _opt_unpack);
         return e.multiple ? res : res[0]} }
 
-, 'form':{
+, 'tag:form':{
       evt_names: _en_input
     , on_evt: e => new FormData(e)
     , on_add(e) {e.addEventListener('submit', _e_no_default);} } };
 
 
-function _dom_builtin(std, elem) {
-  let {tagName: tag, type} = elem;
-  tag = tag.toLowerCase();
-
-  const res =
-    type && std[`${tag},${type.toLowerCase()}`]
-    || std[tag] || std._;
-
-  return Array.isArray(res)
-    ?{elem, evt_names: res[0], on_evt: res[1]}
-    :{elem, ... res} }
-
-
-function _dom_unpack_args(std, elem, args) {
-  if ('string' === typeof elem) {
-    elem = document.querySelector(elem);}
-
-  return args && args.length
-    ?{elem, evt_names: args[0], on_evt: args[1]}
-    : _dom_builtin(std, elem)}
-
-
-
 const _dom_std_unpack_args = 
   _dom_unpack_args.bind(null, _dom_std_args);
 
-function ao_dom(elem, ...args) {
-  return _ao_dom_updates(
-    _dom_std_unpack_args(elem, args)) }
-
-
-function _ao_dom_updates({elem, evt_names, on_evt, on_calc, on_add, on_remove}) {
-  if (!Array.isArray(evt_names)) {
+function ao_dom_updates({elem, evt_names, on_evt, on_calc, on_add, on_remove}) {
+  if (! Array.isArray(evt_names)) {
     evt_names = (evt_names || 'click').split(/\s+/);}
 
   const extra = on_evt || {};
   if ('function' !== typeof on_evt) {
-    on_evt = extra.on_evt;}
+    on_evt = 'string' === typeof on_evt 
+      ? fn_getter(on_evt)
+      : as_fn$1(extra.on_evt, _ident);}
 
   return ao_update_ctx ((function * ( ao_update ) {
-    const _update = on_evt
-      ? evt => ao_update(on_evt(elem, evt))
-      : ()=> ao_update(elem);
+    function _update(evt) {
+      evt = on_evt(elem, evt, ao_update);
+      if (undefined !== evt) {
+        ao_update(evt);} }
 
     if (extra.on_add) {
       extra.on_add(elem);}
@@ -315,7 +329,7 @@ function _ao_dom_updates({elem, evt_names, on_evt, on_calc, on_add, on_remove}) 
       elem.addEventListener(e, _update); }
 
     try {
-      _update(elem);
+      _update({});
       yield extra.on_calc;}
 
     finally {
@@ -324,6 +338,10 @@ function _ao_dom_updates({elem, evt_names, on_evt, on_calc, on_add, on_remove}) 
 
       if (extra.on_remove) {
         extra.on_remove(elem);} } }).bind(this)) }
+
+function ao_dom(elem, ...args) {
+  return ao_dom_updates(
+    _dom_std_unpack_args(elem, args)) }
 
 
 function ao_animation_frames() {
@@ -335,6 +353,27 @@ function ao_animation_frames() {
     let rid = requestAnimationFrame(_update);
     try {yield;}
     finally {cancelAnimationFrame(rid);} }).bind(this)) }
+
+
+function ao_dom_storage() {
+  return ao_update_ctx ((function * ( ao_update ) {
+    function _on_stg({storageArea:sa, key:k, newValue:v, url}) {
+      if (undefined === sa) {return}
+      const entry =[k, v];
+      entry.url = url;
+      ao_update(entry);}
+
+    window.addEventListener('storage', _on_stg);
+    try {yield;}
+    finally {
+      window.removeEventListener('storage', _on_stg); } }).bind(this)) }
+
+
+function ao_dom_messages(msg_host, xform=_ident) {
+  return ao_update_ctx ((function * ( ao_update ) {
+    msg_host.onmessage = data => ao_update(data);
+
+    yield xform;}).bind(this)) }
 
 const delay = (...args) =>
   new Promise(y =>
@@ -355,5 +394,5 @@ function ao_pulse(ms, immediate) {
     finally {
       clearInterval(tid); } }).bind(this)) }
 
-export { _ao_deps_change, _ao_deps_map_updates, _ao_deps_vec_updates, _ao_dom_updates, _ao_iter_latest, _dom_builtin, _dom_std_args, _dom_std_unpack_args, _dom_unpack_args, ao_animation_frames, ao_deps_map, ao_deps_vec, ao_dom, ao_fence, ao_latest, ao_pulse, ao_push, ao_track, ao_track_entries, ao_track_kw, ao_track_vec, ao_update_ctx, ao_watch, as_ao_dep, as_ao_iter, as_ao_iter_checked, delay, is_ao_iterable, sym_ao, sym_ao_latest, sym_iter };
+export { _ao_deps_change, _ao_deps_map_updates, _ao_deps_vec_updates, _ao_iter_latest, _dom_builtin, _dom_std_args, _dom_std_unpack_args, _dom_unpack_args, ao_animation_frames, ao_deps_map, ao_deps_vec, ao_dom, ao_dom_messages, ao_dom_storage, ao_dom_updates, ao_fence, ao_latest, ao_pulse, ao_push, ao_track, ao_track_entries, ao_track_kw, ao_track_vec, ao_update_ctx, ao_watch, as_ao_dep, as_ao_iter, as_ao_iter_checked, delay, is_ao_iterable, sym_ao, sym_ao_latest, sym_iter };
 //# sourceMappingURL=index.mjs.map

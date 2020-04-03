@@ -5,17 +5,6 @@ import {ao_fence} from './core_fence.jsy'
 export const sym_ao_latest = Symbol('ao_latest')
 
 
-export function ao_push(xform) ::
-  const [aod, ao_push] = ao_latest()
-  if undefined !== xform ::
-    aod.xform = as_fn(xform)
-
-  ao_push.aod = aod
-  ao_push[sym_ao_latest] = aod
-  ao_push[sym_ao] = aod[sym_ao]
-  return ao_push
-
-
 export async function * _ao_iter_latest(aod) ::
   let _cur
   while true ::

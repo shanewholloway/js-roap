@@ -1,7 +1,5 @@
 import {_e_tip} from './_common.jsy'
-import {sym_ao} from './core_iters.jsy'
-import {sym_ao_latest} from './core_latest.jsy'
-import {ao_watch} from './core_watch.jsy'
+import {sym_ao, sym_ao_latest, ao_watch} from './basic.jsy'
 
 
 export async function as_ao_dep(arg) ::

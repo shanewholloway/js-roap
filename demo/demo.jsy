@@ -2,6 +2,25 @@ import @{}
   ao_dom, ao_track, ao_push, delay
 from './esm/index.mjs'
 
+roap.ao_dom_messages(window)
+  .ao_each @ v => console.log("WINSAY", v)
+
+::
+  const {port1, port2} = window.mpair = new MessageChannel()
+
+  roap.ao_dom_messages(port1)
+    .ao_each @ v => console.log("port 111", v)
+
+  roap.ao_dom_messages(port2)
+    .ao_each @ v => console.log("port 222", v)
+
+  ::!>
+    await delay(1000)
+    port2.postMessage @ 'from port 222'
+    port1.postMessage @ 'from port 111'
+
+roap.ao_dom_storage(localStorage)
+  .ao_each @ v => console.log("localStorage", v)
 
 const fun = window.fun = ao_push()
 fun @ 1942

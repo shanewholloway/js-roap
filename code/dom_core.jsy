@@ -1,0 +1,36 @@
+import {ao_update_ctx} from './basic.jsy'
+import {_ident, as_fn} from './_common.jsy'
+
+export function ao_dom_updates({elem, evt_names, on_evt, on_calc, on_add, on_remove}) ::
+  if ! Array.isArray(evt_names) ::
+    evt_names = (evt_names || 'click').split(/\s+/)
+
+  const extra = on_evt || {}
+  if 'function' !== typeof on_evt ::
+    on_evt = 'string' === typeof on_evt 
+      ? fn_getter(on_evt)
+      : as_fn(extra.on_evt, _ident)
+
+  return ao_update_ctx @\ ao_update ::*
+    function _update(evt) ::
+      evt = on_evt(elem, evt, ao_update)
+      if undefined !== evt ::
+        ao_update(evt)
+
+    if extra.on_add ::
+      extra.on_add(elem)
+
+    for const e of evt_names ::
+      elem.addEventListener @ e, _update
+
+    try ::
+      _update({})
+      yield extra.on_calc
+
+    finally ::
+      for const e of evt_names ::
+        elem.removeEventListener @ e, _update
+
+      if extra.on_remove ::
+        extra.on_remove(elem)
+

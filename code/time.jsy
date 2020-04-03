@@ -1,4 +1,4 @@
-import {ao_update_ctx} from './core_updates.jsy'
+import {ao_update_ctx} from './basic.jsy'
 
 export const delay = (...args) =>
   new Promise @ y =>

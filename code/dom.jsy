@@ -1,97 +1,15 @@
-import {_e_value} from './_common.jsy'
-import {ao_update_ctx} from './core_updates.jsy'
+import {_ident} from './_common.jsy'
+import {ao_update_ctx} from './basic.jsy'
+import {_dom_std_unpack_args} from './dom_std.jsy'
+import {ao_dom_updates} from './dom_core.jsy'
 
+export * from './dom_core.jsy'
+export * from './dom_std.jsy'
 
-const _en_click = ['click']
-const _en_input = ['input', 'change']
-const _e_no_default = e => e.preventDefault()
-const _opt_unpack = ({text, value}) => @: text, value
-export const _dom_std_args = @{}
-  _: @[] _en_click
-  'input': @[] _en_input, _e_value
-  'output': @[] _en_input, _e_value
-  'input,number': @[] _en_input, e => e.valueAsNumber
-  'input,range': @[] _en_input, e => e.valueAsNumber
-  'input,button': @[] _en_click, _e_value
-  'input,submit': @[] _en_click, _e_value
-  'input,checkbox': @[] _en_input, e => e.checked
-  'input,radio': @[] _en_input, e => e.checked
-  'input,date': @[] _en_input, e => e.valueAsDate
-  'input,time': @[] _en_input, e => e.valueAsNumber
-  'input,file': @[] _en_input, e => e.multiple ? e.files : e.files[0]
-  'textarea': @[] _en_input, _e_value
-  'select': @{}
-      evt_names: _en_input
-      on_evt(e) ::
-        const res = Array.from @ e.selectedOptions, _opt_unpack
-        return e.multiple ? res : res[0]
-
-  'form': @{}
-      evt_names: _en_input
-      on_evt: e => new FormData(e)
-      on_add(e) :: e.addEventListener @ 'submit', _e_no_default
-
-
-export function _dom_builtin(std, elem) ::
-  let {tagName: tag, type} = elem
-  tag = tag.toLowerCase()
-
-  const res =
-    type && std[`${tag},${type.toLowerCase()}`]
-    || std[tag] || std._
-
-  return Array.isArray(res)
-    ? @{} elem, evt_names: res[0], on_evt: res[1]
-    : @{} elem, ... res
-
-
-export function _dom_unpack_args(std, elem, args) ::
-  if 'string' === typeof elem ::
-    elem = document.querySelector(elem)
-
-  return args && args.length
-    ? @{} elem, evt_names: args[0], on_evt: args[1]
-    : _dom_builtin(std, elem)
-
-
-
-export const _dom_std_unpack_args = 
-  _dom_unpack_args.bind @ null, _dom_std_args
 
 export function ao_dom(elem, ...args) ::
-  return _ao_dom_updates @
+  return ao_dom_updates @
     _dom_std_unpack_args(elem, args)
-
-
-export function _ao_dom_updates({elem, evt_names, on_evt, on_calc, on_add, on_remove}) ::
-  if !Array.isArray(evt_names) ::
-    evt_names = (evt_names || 'click').split(/\s+/)
-
-  const extra = on_evt || {}
-  if 'function' !== typeof on_evt ::
-    on_evt = extra.on_evt
-
-  return ao_update_ctx @\ ao_update ::*
-    const _update = on_evt
-      ? evt => ao_update @ on_evt(elem, evt)
-      : ()=> ao_update @ elem
-
-    if extra.on_add ::
-      extra.on_add(elem)
-
-    for const e of evt_names ::
-      elem.addEventListener @ e, _update
-
-    try ::
-      _update(elem)
-      yield extra.on_calc
-
-    finally ::
-      for const e of evt_names ::
-        elem.removeEventListener @ e, _update
-
-      if extra.on_remove ::
-        extra.on_remove(elem)
 
 
 export function ao_animation_frames() ::
@@ -103,4 +21,25 @@ export function ao_animation_frames() ::
     let rid = requestAnimationFrame @ _update
     try :: yield
     finally :: cancelAnimationFrame(rid)
+
+
+export function ao_dom_storage() ::
+  return ao_update_ctx @\ ao_update ::*
+    function _on_stg({storageArea:sa, key:k, newValue:v, url}) ::
+      if undefined === sa :: return
+      const entry = @[] k, v
+      entry.url = url
+      ao_update(entry)
+
+    window.addEventListener @ 'storage', _on_stg
+    try :: yield
+    finally ::
+      window.removeEventListener @ 'storage', _on_stg
+
+
+export function ao_dom_messages(msg_host, xform=_ident) ::
+  return ao_update_ctx @\ ao_update ::*
+    msg_host.onmessage = data => ao_update(data)
+
+    yield xform
 

@@ -1,4 +1,6 @@
 export const _ret_void = e => {}
+export const _fn_true = ()=> true
+export const _fn_false = ()=> false
 export const _ident = e => e
 export const _is_defined = e => undefined !== e
 export const _e_value = e => e.value

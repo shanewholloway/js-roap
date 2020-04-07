@@ -1,4 +1,4 @@
-import {_e_tip} from './_common.jsy'
+import {_e_tip, _fn_true} from './_common.jsy'
 import {sym_ao, sym_ao_latest, ao_watch} from './basic.jsy'
 
 
@@ -37,10 +37,12 @@ export async function _ao_deps_change(iter_deps) ::
       if undefined !== tail ::
         tail().then(resolve)
 
-export async function _ao_deps_map_updates(ao_update, deps) ::
-  deps = await ao_deps_map(deps)
+
+export async function _ao_deps_map_updates(ao_update, ...args) ::
+  const deps = await ao_deps_map @ args.pop()
+  const fence = args.shift() || _fn_true
   while true ::
-    ::
+    if await fence() ::
       const snap = {}
       for const [k, arg] of deps.entries() ::
         snap[k] = arg.tip
@@ -49,10 +51,12 @@ export async function _ao_deps_map_updates(ao_update, deps) ::
 
     await _ao_deps_change @ deps.values()
 
-export async function _ao_deps_vec_updates(ao_update, deps) ::
-  deps = await ao_deps_vec(deps)
+
+export async function _ao_deps_vec_updates(ao_update, ...args) ::
+  const deps = await ao_deps_vec @ args.pop()
+  const fence = args.shift() || _fn_true
   while true ::
-    ::
+    if await fence() ::
       const snap = Array.from @ deps, _e_tip
 
       ao_update @ snap

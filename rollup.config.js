@@ -22,6 +22,7 @@ function add_jsy(src_name, module_name) {
     input: `code/${src_name}.jsy`,
     output: [
       { file: `esm/${src_name}.mjs`, format: 'es', sourcemap },
+      { file: `cjs/${src_name}.cjs`, format: 'cjs', sourcemap },
       { file: `umd/${src_name}.js`, name: module_name, format: 'umd', sourcemap },
     ],
     plugins })

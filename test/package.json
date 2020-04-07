@@ -7,8 +7,8 @@
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^7.1.1",
     "roap": "file:..",
-    "rollup": "^2.3.2",
-    "rollup-plugin-jsy": "^1.6.2"
+    "rollup": "^2.3.3",
+    "rollup-plugin-jsy": "^1.6.3"
   },
   "scripts": {
     "prebuild": "test -d ./node_modules || npm -s install",

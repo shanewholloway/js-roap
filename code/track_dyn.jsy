@@ -15,8 +15,11 @@ export function ao_dyn() ::
     if is_ao_iter(dyn_val) ::
       _ctrl = {done: false}
       _ao_walk(_ctrl, dyn_val, ao_update)
+      return true
 
-    else ao_update(dyn_val)
+    else ::
+      ao_update(dyn_val)
+      return true
 
 
 export function ao_dyn_ns(ns = new Map()) ::

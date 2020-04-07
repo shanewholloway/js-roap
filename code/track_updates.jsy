@@ -1,26 +1,32 @@
 import {ao_latest} from './core_latest.jsy'
 import {_ao_deps_map_updates, _ao_deps_vec_updates} from './track_deps.jsy'
 
-export function ao_track(deps) ::
+export function ao_track(...args) ::
   const [aod, ao_update] = ao_latest()
-  aod.complete = Array.isArray(deps) 
-    ? _ao_deps_vec_updates @ ao_update, deps
-    : _ao_deps_map_updates @ ao_update, Object.entries(deps)
+  const deps = args.pop()
+  if Array.isArray(deps) ::
+    args.push @ deps
+    aod.complete = _ao_deps_vec_updates @ ao_update, ... args
+
+  else ::
+    args.push @ Object.entries(deps)
+    aod.complete = _ao_deps_map_updates @ ao_update, ... args
+
   return aod
 
-export function ao_track_vec(deps) ::
+export function ao_track_vec(...args) ::
   const [aod, ao_update] = ao_latest()
-  aod.complete = _ao_deps_vec_updates @ ao_update, deps
+  aod.complete = _ao_deps_vec_updates @ ao_update, ...args
   return aod
 
-export function ao_track_entries(deps) ::
+export function ao_track_entries(...args) ::
   const [aod, ao_update] = ao_latest()
-  aod.complete = _ao_deps_map_updates @ ao_update, deps
+  aod.complete = _ao_deps_map_updates @ ao_update, ...args
   return aod
 
-export function ao_track_kw(deps) ::
-  deps = Object.entries(deps)
+export function ao_track_kw(...args) ::
+  args.push @ Object.entries @ args.pop()
   const [aod, ao_update] = ao_latest()
-  aod.complete = _ao_deps_map_updates @ ao_update, deps
+  aod.complete = _ao_deps_map_updates @ ao_update, ...args
   return aod
 

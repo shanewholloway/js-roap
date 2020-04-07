@@ -10,7 +10,7 @@
   async function * as_ao_iter(ao_iterable) {
     yield * ao_iterable;}
 
-  function is_ao_strict(v) {
+  function is_ao_iter(v) {
     return v !== undefined && v !== null
       && 'function' === typeof v[sym_ao]}
 
@@ -26,6 +26,7 @@
     return as_ao_iter(ao_iterable)}
 
   const _ret_void = e => {};
+  const _fn_true = ()=> true;
   const _ident = e => e;
   const _e_value = e => e.value;
   const _e_tip = e => e.tip;
@@ -211,10 +212,12 @@
         if (undefined !== tail) {
           tail().then(resolve);} } }); }
 
-  async function _ao_deps_map_updates(ao_update, deps) {
-    deps = await ao_deps_map(deps);
+
+  async function _ao_deps_map_updates(ao_update, ...args) {
+    const deps = await ao_deps_map(args.pop());
+    const fence = args.shift() || _fn_true;
     while (true) {
-       {
+      if (await fence()) {
         const snap = {};
         for (const [k, arg] of deps.entries()) {
           snap[k] = arg.tip;}
@@ -223,70 +226,90 @@
 
       await _ao_deps_change(deps.values()); } }
 
-  async function _ao_deps_vec_updates(ao_update, deps) {
-    deps = await ao_deps_vec(deps);
+
+  async function _ao_deps_vec_updates(ao_update, ...args) {
+    const deps = await ao_deps_vec(args.pop());
+    const fence = args.shift() || _fn_true;
     while (true) {
-       {
+      if (await fence()) {
         const snap = Array.from(deps, _e_tip);
 
         ao_update(snap); }
 
       await _ao_deps_change(deps); } }
 
-  function ao_track(deps) {
+  function ao_track(...args) {
     const [aod, ao_update] = ao_latest();
-    aod.complete = Array.isArray(deps) 
-      ? _ao_deps_vec_updates(ao_update, deps)
-      : _ao_deps_map_updates(ao_update, Object.entries(deps));
+    const deps = args.pop();
+    if (Array.isArray(deps)) {
+      args.push(deps);
+      aod.complete = _ao_deps_vec_updates(ao_update, ... args); }
+
+    else {
+      args.push(Object.entries(deps));
+      aod.complete = _ao_deps_map_updates(ao_update, ... args); }
+
     return aod}
 
-  function ao_track_vec(deps) {
+  function ao_track_vec(...args) {
     const [aod, ao_update] = ao_latest();
-    aod.complete = _ao_deps_vec_updates(ao_update, deps);
+    aod.complete = _ao_deps_vec_updates(ao_update, ...args);
     return aod}
 
-  function ao_track_entries(deps) {
+  function ao_track_entries(...args) {
     const [aod, ao_update] = ao_latest();
-    aod.complete = _ao_deps_map_updates(ao_update, deps);
+    aod.complete = _ao_deps_map_updates(ao_update, ...args);
     return aod}
 
-  function ao_track_kw(deps) {
-    deps = Object.entries(deps);
+  function ao_track_kw(...args) {
+    args.push(Object.entries(args.pop()));
     const [aod, ao_update] = ao_latest();
-    aod.complete = _ao_deps_map_updates(ao_update, deps);
+    aod.complete = _ao_deps_map_updates(ao_update, ...args);
     return aod}
-
-  function ao_dyn_namespace(ns = new Map()) {
-    return new Proxy({},{
-      has: (ot, k) => ns.has(k)
-    , get: (ot, k) => ao_dyn_at(k, ns).get()
-    , set: (ot, k, v) => ao_dyn_at(k, ns).set(v)} ) }
-
-
-  function ao_dyn_at(k, ns) {
-    let ao = ns.get(k);
-    if (undefined === ao) {
-      ao = ao_dyn();
-      ns.set(k, ao);}
-    return ao}
-
 
   function ao_dyn() {
+    let _ctrl = {};
+
     const [aod, ao_update] = ao_latest();
-    let ctrl = {};
     aod.get = (() =>aod);
     aod.set = _dyn_set;
     return aod
 
     function _dyn_set(dyn_val) {
-      ctrl.done = true;
+      _ctrl.done = true;
 
-      if (is_ao_strict(dyn_val)) {
-        ctrl = {done: false};
-        _ao_walk(ctrl, dyn_val, ao_update);
-        return}
+      if (is_ao_iter(dyn_val)) {
+        _ctrl = {done: false};
+        _ao_walk(_ctrl, dyn_val, ao_update);
+        return true}
 
-      ao_update(dyn_val);} }
+      else {
+        ao_update(dyn_val);
+        return true} } }
+
+
+  function ao_dyn_ns(ns = new Map()) {
+    return {
+      has: k => ns.has(k)
+    , get: k => ao_dyn_at(k).get()
+    , set: (k, v) => ao_dyn_at(k).set(v)}
+
+    function ao_dyn_at(k) {
+      let ao = ns.get(k);
+      if (undefined === ao) {
+        ao = ao_dyn();
+        ns.set(k, ao);}
+      return ao} }
+
+
+  function ao_dyn_obj(ns = new Map()) {
+    return _ns_obj_proxy(ao_dyn_ns(ns)) }
+
+  function _ns_obj_proxy(ns = new Map()) {
+    return new Proxy({},{
+      has: (ot, k) => ns.has(k)
+    , get: (ot, k) => ns.get(k)
+    , set: (ot, k, v) => ns.set(k, v)} ) }
 
   function _dom_unpack_args(std, elem, dom_args) {
     if ('string' === typeof elem) {
@@ -447,6 +470,7 @@
   exports._dom_std_args = _dom_std_args;
   exports._dom_std_unpack_args = _dom_std_unpack_args;
   exports._dom_unpack_args = _dom_unpack_args;
+  exports._ns_obj_proxy = _ns_obj_proxy;
   exports.ao_animation_frames = ao_animation_frames;
   exports.ao_deps_map = ao_deps_map;
   exports.ao_deps_vec = ao_deps_vec;
@@ -455,8 +479,8 @@
   exports.ao_dom_storage = ao_dom_storage;
   exports.ao_dom_updates = ao_dom_updates;
   exports.ao_dyn = ao_dyn;
-  exports.ao_dyn_at = ao_dyn_at;
-  exports.ao_dyn_namespace = ao_dyn_namespace;
+  exports.ao_dyn_ns = ao_dyn_ns;
+  exports.ao_dyn_obj = ao_dyn_obj;
   exports.ao_fence = ao_fence;
   exports.ao_latest = ao_latest;
   exports.ao_pulse = ao_pulse;
@@ -471,8 +495,8 @@
   exports.as_ao_iter = as_ao_iter;
   exports.as_ao_iter_checked = as_ao_iter_checked;
   exports.delay = delay;
+  exports.is_ao_iter = is_ao_iter;
   exports.is_ao_iterable = is_ao_iterable;
-  exports.is_ao_strict = is_ao_strict;
   exports.sym_ao = sym_ao;
   exports.sym_ao_latest = sym_ao_latest;
   exports.sym_iter = sym_iter;

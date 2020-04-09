@@ -32,7 +32,7 @@ describe @ 'track dynamic', @::
 
   it @ 'ao_dyn_ns exercise', @::>
     const map = new Map()
-    const ns = ao_dyn_ns(map)
+    const ns = ao_dyn_ns(null, map)
 
     expect(map.size).to.equal(0)
 
@@ -73,7 +73,7 @@ describe @ 'track dynamic', @::
 
   it @ 'ao_dyn_obj exercise', @::>
     const map = new Map()
-    const ns_obj = ao_dyn_obj(map)
+    const ns_obj = ao_dyn_obj(null, map)
 
     expect(map.size).to.equal(0)
 

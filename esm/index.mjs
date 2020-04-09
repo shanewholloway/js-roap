@@ -373,9 +373,7 @@ function ao_dom_updates({elem, evt_names, on_evt, on_calc, on_add, on_remove}) {
 
   const extra = on_evt || {};
   if ('function' !== typeof on_evt) {
-    on_evt = 'string' === typeof on_evt 
-      ? fn_getter(on_evt)
-      : as_fn$1(extra.on_evt, _ident);}
+    on_evt = as_fn$1(extra.on_evt, _ident);}
 
   return ao_update_ctx ((function * ( ao_update ) {
     function _update(evt) {

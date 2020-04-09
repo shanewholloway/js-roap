@@ -1,5 +1,3 @@
-import {fn_getter} from './_common.jsy'
-
 
 export function _dom_unpack_args(std, elem, dom_args) ::
   if 'string' === typeof elem ::

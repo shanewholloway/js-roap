@@ -6,15 +6,6 @@ export const _is_defined = e => undefined !== e
 export const _e_value = e => e.value
 export const _e_tip = e => e.tip
 
-const _fn_cache = new WeakMap()
-export function fn_getter(key) ::
-  const name = `getter ${key}`
-  let fn = _fn_cache.get(name)
-  if undefined === fn ::
-    fn = e => e[key]
-    _fn_cache.set(name, fn)
-  return fn
-
 export function as_fn(fn, absent) ::
   if ! fn || true === fn ::
     return absent

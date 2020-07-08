@@ -1,0 +1,15 @@
+import { ao_drive } from './drive.jsy'
+
+export const _ao_pipe_src_api = @{}
+  feed(xsrc) ::
+    return ao_drive(xsrc, this)
+
+  with(xctx) ::
+    if 'function' === xctx ::
+      xctx = xctx(this)
+
+    if xctx && xctx.next ::
+      xctx.next(this)
+      this.after(xctx)
+    return xctx
+

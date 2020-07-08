@@ -1,0 +1,6 @@
+import { ao_split, ao_tap } from './split.jsy'
+
+export const _ao_pipe_out_api = @{}
+  split(xfn) :: return ao_split(this, xfn)
+  tap(xfn) :: return ao_tap(this, xfn)
+

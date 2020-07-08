@@ -1,0 +1,4 @@
+export * from './util.jsy'
+
+export const _obj_assign = Object.assign
+

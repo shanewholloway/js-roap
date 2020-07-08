@@ -1,0 +1,10 @@
+import {_xinvoke} from './util.jsy'
+
+
+export async function ao_drive(gen_in, gen_out) ::
+  gen_out = _xinvoke(gen_out)
+  for await let v of _xinvoke(gen_in) ::
+    if undefined !== gen_out ::
+      let {done} = await gen_out.next(v)
+      if done :: break
+

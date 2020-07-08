@@ -1,45 +1,5 @@
-import {_ident} from './_common.jsy'
-import {ao_update_ctx} from './basic.jsy'
-import {_dom_std_unpack_args} from './dom_std.jsy'
-import {ao_dom_updates} from './dom_core.jsy'
+export * from './index.jsy'
 
-export * from './dom_core.jsy'
-export * from './dom_std.jsy'
-
-
-export function ao_dom(elem, ...args) ::
-  return ao_dom_updates @
-    _dom_std_unpack_args(elem, args)
-
-
-export function ao_animation_frames() ::
-  return ao_update_ctx @\ ao_update ::*
-    function _update(ts) ::
-      ao_update(ts)
-      rid = requestAnimationFrame @ _update
-
-    let rid = requestAnimationFrame @ _update
-    try :: yield
-    finally :: cancelAnimationFrame(rid)
-
-
-export function ao_dom_storage() ::
-  return ao_update_ctx @\ ao_update ::*
-    function _on_stg({storageArea:sa, key:k, newValue:v, url}) ::
-      if undefined === sa :: return
-      const entry = @[] k, v
-      entry.url = url
-      ao_update(entry)
-
-    window.addEventListener @ 'storage', _on_stg
-    try :: yield
-    finally ::
-      window.removeEventListener @ 'storage', _on_stg
-
-
-export function ao_dom_messages(msg_host, xform=_ident) ::
-  return ao_update_ctx @\ ao_update ::*
-    msg_host.onmessage = data => ao_update(data)
-
-    yield xform
+export * from './dom/anim.jsy'
+export * from './dom/events.jsy'
 

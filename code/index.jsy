@@ -1,5 +1,2 @@
-// all > track > basic > core
-export * from './track.jsy'
-
-export * from './dom.jsy'
+export * from './core.jsy'
 export * from './time.jsy'

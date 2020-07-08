@@ -1,21 +1,33 @@
-import {ao_update_ctx} from './basic.jsy'
+import {ao_fence_v, ao_fence_marks} from './core.jsy'
 
-export const delay = (...args) =>
-  new Promise @ y =>
-    setTimeout @ y, ...args
 
-export function ao_pulse(ms, immediate) ::
-  return ao_update_ctx @\ ao_update ::*
-    const ts0 = Date.now()
-    function _pulse() ::
-      ao_update @ Date.now() - ts0
+export async function * ao_interval(opt) ::
+  if Number.isFinite(opt) :: opt = {ms: opt}
 
-    const tid = setInterval @ _pulse, ms
-    try ::
-      if immediate :: _pulse()
+  let tid, [_fence, _reset] = ao_fence_v()
+  try ::
+    tid = setInterval(_reset, opt.ms)
+    yield * ao_fence_marks(_fence, opt.trailing, opt.initial)
+  finally ::
+    clearInterval(tid)
 
-      yield
 
-    finally ::
-      clearInterval @ tid
+export async function * ao_timeout(opt) ::
+  if Number.isFinite(opt) :: opt = {ms: opt}
+
+  let tid, [_fence, _reset] = ao_fence_v()
+  try ::
+    yield * ao_fence_marks(fence, opt.trailing, true)
+  finally ::
+    clearTimeout(tid)
+
+  function fence() ::
+    tid = setTimeout(_reset, opt.ms)
+    return _fence()
+
+
+export async function * ao_times(iterable) ::
+  let ts0 = Date.now()
+  for let v of iterable ::
+    yield Date.now() - ts0
 

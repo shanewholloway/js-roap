@@ -1,0 +1,25 @@
+
+export const _xinvoke = v_fn =>
+  'function' === typeof v_fn
+    ? v_fn()
+    : v_fn
+
+export const _ao_next = g =>
+  g.next.bind(g)
+
+
+export function _wm_pipe_closure(wm_absent) ::
+  let wm = new WeakMap()
+  return pipe => _wm_item(wm, pipe.gsrc || pipe, wm_absent)
+
+export function _wm_closure(wm_absent) ::
+  let wm = new WeakMap()
+  return key => _wm_item(wm, key, wm_absent)
+
+export function _wm_item(wm, wm_key, wm_absent) ::
+  let item = wm.get(wm_key)
+  if undefined === item ::
+    item = wm_absent(wm_key)
+    wm.set(wm_key, item)
+  return item
+

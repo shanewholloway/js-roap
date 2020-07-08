@@ -1,0 +1,33 @@
+
+
+export function ao_fence_v() ::
+  let _p=0, _resume = ()=>{}
+  let _bind = f => _resume = f
+
+  return @[]
+    () => 0 !== _p ? _p
+      : _p = new Promise(_bind)
+
+    v => :: _p = 0; _resume(v)
+
+
+export function ao_fence() ::
+  let v = ao_fence_v()
+  return { fence: v[0], reset: v[1] }
+
+
+export async function * ao_fence_marks(fence, trailing, initial) ::
+  let f = true === initial
+    ? fence() : initial
+
+  while 1 ::
+    if trailing ::
+      await f
+      f = fence()
+
+    else ::
+      f = fence()
+      await f
+
+    yield 1
+

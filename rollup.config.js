@@ -11,8 +11,7 @@ const plugins_web = [ ... plugins, rpi_terser({}) ]
 
 add_jsy('index', 'roap')
 add_jsy('core', 'roap_core')
-add_jsy('basic', 'roap_basic')
-add_jsy('track', 'roap_track')
+add_jsy('dom', 'roap_dom')
 
 
 function add_jsy(src_name, module_name) {
@@ -21,17 +20,17 @@ function add_jsy(src_name, module_name) {
   configs.push({
     input: `code/${src_name}.jsy`,
     output: [
-      { file: `esm/${src_name}.mjs`, format: 'es', sourcemap },
-      { file: `cjs/${src_name}.cjs`, format: 'cjs', sourcemap },
-      { file: `umd/${src_name}.js`, name: module_name, format: 'umd', sourcemap },
+      { file: `esm/${module_name}.mjs`, format: 'es', sourcemap },
+      { file: `cjs/${module_name}.cjs`, format: 'cjs', sourcemap },
+      { file: `umd/${module_name}.js`, name: module_name, format: 'umd', sourcemap },
     ],
     plugins })
   
   plugins_web && configs.push({
     input: `code/${src_name}.jsy`,
     output: [
-      { file: `esm/${src_name}.min.mjs`, format: 'es', sourcemap },
-      { file: `umd/${src_name}.min.js`, name: module_name, format: 'umd', sourcemap },
+      { file: `esm/${module_name}.min.mjs`, format: 'es' },
+      { file: `umd/${module_name}.min.js`, name: module_name, format: 'umd' },
     ],
     plugins: plugins_web })
 }

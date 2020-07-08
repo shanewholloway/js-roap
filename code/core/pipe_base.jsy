@@ -1,0 +1,142 @@
+import {_obj_assign} from './_common.jsy'
+import {_xinvoke} from './util.jsy'
+
+//~~~
+// Pipe base as generator in composed object-functional implementation
+
+export const _ao_pipe_base = @{}
+  xfold: v => v // on push: identity transform
+  xpull() {} // memory: none
+  xemit: _xinvoke // identity transform or invoke if function
+  xinit(gsrc, ag_out) {} // on init: default behavior
+
+  // api_src: {}
+  // xapi_src: {}
+
+  // api_out: {}
+  // xapi_out: {}
+
+
+  get create() ::
+    // as getter to bind class as `this` at access time
+    return (... args) =>
+      _obj_assign @ {__proto__: this},
+        ... args.map(_xinvoke)
+      ._ao_pipe()
+
+  _ao_pipe() ::
+    let fin_lst = []
+    let after = fin_lst.push.bind(fin_lst)
+    let stop = @::
+      this.done = true
+      _fin_pipe(fin_lst)
+      this._resume()
+
+    let gsrc = _obj_assign @
+      after @ this._ao_producer(stop)
+      this.api_src
+      @{} after
+      this.xapi_out
+
+    let ag_out = _obj_assign @
+      after @ this._ao_consumer(stop)
+      this.api_out
+      @{} gsrc, after, stop
+      this.xapi_out
+
+    // allow gsrc to initialize
+    gsrc.next()
+
+    this.xinit(gsrc, ag_out)
+    return ag_out
+
+
+  //~~~
+  // Upstream input generator
+  //   designed for multiple feeders
+
+  *_ao_producer(_finish) ::
+    try ::
+      let v
+      while ! this.done ::
+        v = this.xfold(yield v)
+        this.value = v
+        if 0 !== this._waiting && undefined !== v ::
+          this._resume()
+
+    finally ::
+      _finish()
+
+
+  //~~~
+  // Downstream async output generator
+  //   designed for single consumer.
+
+  async *_ao_consumer(_finish) ::
+    try ::
+      let r
+      while ! this.done ::
+        if 0 !== (r = this._waiting) ::
+          // p0: existing waiters
+          r = await r
+          if this.done :: break
+        else if undefined !== (r = this.value) ::
+          // p1: available value
+          this.value = undefined
+        else if undefined !== (r = this.xpull()) ::
+          // p2: xpull value (e.g. queue memory) 
+        else ::
+          // p3: add new waiter
+          r = await this._bind_waiting()
+          if this.done :: break
+
+        yield this.xemit(r)
+
+    finally ::
+      _finish()
+
+
+  chain(xfold1, xfold0) ::
+    return v => xfold1 @ xfold0 @ v
+
+
+  //~~~
+  // generator-like value/done states
+
+  value: undefined
+  done: false
+
+  //~~~
+  // promise-based fence tailored for ao_pipe usecase
+
+  _waiting: 0
+  _fulfill() ::
+  async _resume() ::
+    if ! this.done :: await this
+
+    let {value, _fulfill} = this
+    if undefined != value || this.done ::
+      this.value = undefined
+      this._waiting = 0
+      _fulfill(value)
+
+  _bind_waiting() ::
+    let _reset = y => this._fulfill = y
+    this._bind_waiting = () => this._waiting || @
+      this._waiting = new Promise(_reset)
+    return this._bind_waiting()
+
+
+export const ao_pipe_base = _ao_pipe_base.create
+
+
+function _fin_pipe(fin_lst) ::
+  while 0 !== fin_lst.length ::
+    let g = fin_lst.pop()
+    try ::
+      if 'function' !== typeof g ::
+        g.return()
+      else g()
+    catch (err) ::
+      console.warn(err)
+

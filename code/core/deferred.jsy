@@ -1,0 +1,11 @@
+
+export const ao_deferred_v = @!
+  let y,n,_lset = (a,b) => { y=a, n=b }
+  return p => @
+    p = new Promise(_lset)
+    [p, y, n]
+
+export const ao_deferred = v => @
+  v = ao_deferred_v()
+  {promise: v[0], resolve: v[1], reject: v[2]}
+

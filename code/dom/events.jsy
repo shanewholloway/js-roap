@@ -15,33 +15,34 @@ export function _ao_dom_events_ctx(gsrc) ::
       : dom_events.with(ns_args)
 
   return gsrc.dom_events = _obj_assign @
-    dom_events,
-    _dom_events_api,
-    @{} 
-      emit: (... args) => gsrc.next(args)
-      wm_elems: new WeakMap()
+    dom_events, _dom_events_api,
+    @{} wm_elems: new WeakMap()
+        emit: info => gsrc.next(info)
 
 
 export const _dom_events_api = @{}
   // wm_elems: new WeakMap()
-  // emit: (... args) => gsrc.next(args)
+  // emit: info => gsrc.next(info)
 
-  listen(elem, evt, xfn, opt) ::
-    let {wm_elems, emit} = this
-    let evt0 = evt.split(/[_.]/, 1)[0]
-    let em = _wm_item(wm_elems, elem, _elem_map_entry)
-    let old_fn = em.get(evt)
+  listen(elem, evt, xfn, evt_opt) ::
+    let {emit} = this
+    ::
+      let em = _wm_item(this.wm_elems, elem, _elem_map_entry)
+      info = @{} ... this.info, ... em.info, dom_event: evt
 
-    elem.addEventListener @ evt0, evt_fn, opt
-    em.set(evt, evt_fn)
+      let old_fn = em.get(evt)
+      let evt0 = evt.split(/[_.]/, 1)[0]
 
-    if undefined !== old_fn ::
-      elem.removeEventListener @ evt0, old_fn
+      elem.addEventListener @ evt0, evt_fn, evt_opt
+      em.set(evt, evt_fn)
 
-    function evt_fn(evt) ::
-      let v = xfn(evt)
+      if undefined !== old_fn ::
+        elem.removeEventListener @ evt0, old_fn
+
+    function evt_fn(e) ::
+      let v = xfn(e, emit)
       if undefined !== v ::
-        emit @ em.name, evt, v
+        emit @: ... info, v
     return this
 
 
@@ -56,39 +57,45 @@ export const _dom_events_api = @{}
 
     else ::
       ev_pairs = keys.map @
-        k => [k, evt_map.get(k)]
+        evt0 => [evt0, evt_map.get(evt0)]
 
-    for let [evt_key, evt_fn] of ev_pairs ::
+    for let [evt0, evt_fn] of ev_pairs ::
       if undefined !== evt_fn ::
-        evt_map.delete(evt_key)
-        elem.removeEventListener(evt_key, evt_fn)
+        evt_map.delete(evt0)
+        elem.removeEventListener(evt0, evt_fn)
     return this
 
-  set_name(el, name) ::
-    _wm_item(wm_elems, el, _elem_map_entry)
-      .name = name
+  set_info(el, info) ::
+    let em = _wm_item(wm_elems, el, _elem_map_entry)
+    _obj_assign(em, info)
     return this
 
   with(... ns_args) ::
-    let {listen, set_name} = this
-    set_name = set_name.bind(this)
+    let {listen, set_info, info} = this
+    set_info = set_info.bind(this)
 
     for let ns of ns_args ::
+      let ns_this = undefined === ns.info ? this :
+        @{} __proto__: this, info: @{} ... info, ... ns.info
+
       let events = @[] ... _iter_event_list(ns)
-      for let elem of _iter_named_elems(ns._, set_name) ::
+      for let elem of _iter_named_elems(ns._, set_info) ::
         for let evt_args of events ::
-          listen(elem, ... evt_args)
+          listen.call(ns_this, elem, ... evt_args)
 
     return this
 
 
 function _elem_map_entry(elem) ::
+  let k = elem.name || elem.id
+    || (elem.type || elem.tagName).toLowerCase()
+
   let m = new Map()
-  m.name = _dom_autoname(elem)
+  m.info = @{} elem_name: k, k
   return m
 
 
-function * _iter_named_elems(lst, set_name) ::
+function * _iter_named_elems(lst, set_info) ::
   lst = Array.isArray(lst) ? lst
     : lst.tagName ? [lst]
     : Object.entries(lst)
@@ -97,19 +104,19 @@ function * _iter_named_elems(lst, set_name) ::
     if ea.tagName ::
       yield ea
 
-    set_name(ea[1], ea[0])
+    set_info(ea[1], {k: ea[0]})
     yield ea[1]
 
 
 function * _iter_event_list(ns) ::
-  for let [k, efn] of Object.entries(ns) ::
-    if ! efn || /[^a-z]/.test(k) ::
+  for let [attr, efn] of Object.entries(ns) ::
+    if ! efn || /[^a-z]/.test(attr) ::
       continue
 
-    k = k.replace('_', '.')
+    attr = attr.replace('_', '.')
     if 'function' === typeof efn ::
-      yield [k, efn, efn.opt]
+      yield [attr, efn, efn.evt_opt]
 
-    else if efn.opt || efn.on ::
-      yield [k, efn.on, efn.opt]
+    else if efn.on_evt || efn.evt_opt ::
+      yield [attr, efn.on_evt, efn.evt_opt]
 

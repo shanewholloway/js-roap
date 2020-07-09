@@ -1,2 +1,9 @@
-export const _obj_assign = Object.assign
+export const {
+  assign: _obj_assign,
+  defineProperties: _obj_props,
+} = Object
+
+export const {
+  isArray: _is_array,
+} = Array
 

@@ -4,17 +4,16 @@
 
 `ao_dom_events(gen_src)` returns an event listener api directed at an `ao_pipe()`.
 
-- `ag_out.gsrc.events()` return an `ao_dom_events` api for the pipe source.
-- `ag_out.gsrc.events(... ns_args)` is an alias for `.events().with(... ns_args)`
-- `ag_out.events` is an alias for `ag_out.gsrc.events`
+- `ag_out.gsrc.dom_events`
+- `ag_out.gsrc.dom_events(... ns_args)` is an alias for `.dom_events.with(... ns_args)`
 
 ##### Event Listener API
 
-- `name(elem, name)`
 - `with(... ns_args)`
 - `listen(elem, evt, xfn, opt)`
 - `remove(elem, evt)`
 - `remove(elem)`
+- `set_name(elem, name)`
 
 #### Animation Frames
 

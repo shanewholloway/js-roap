@@ -1,80 +1,94 @@
+import {_obj_assign} from '../core/_common.jsy'
 import {_wm_pipe_closure, _wm_item} from '../core.jsy'
 
-export const ao_dom_events =
-  _wm_pipe_closure @
-    _ao_dom_events_ctx
+
+export const _ao_dom_events0 =
+  _wm_pipe_closure(_ao_dom_events_ctx)
+
+export function ao_dom_events(gsrc, ... ns_args) ::
+  return _ao_dom_events0(gsrc)(...ns_args)
 
 
-const _rx_evt_sep = /[_.]/
-const _rx_evt_not = /^[^a-z]/
 export function _ao_dom_events_ctx(gsrc) ::
-  let self
-  const wm_elems = new WeakMap()
+  const dom_events = (... ns_args) =>
+    0 === ns_args.length ? dom_events
+      : dom_events.with(ns_args)
 
-  const _elem_map = elem => ::
-    let m = new Map()
-    m.name = _dom_autoname(elem)
-    return m
+  return gsrc.dom_events = _obj_assign @
+    dom_events,
+    _dom_events_api,
+    @{} 
+      emit: (... args) => gsrc.next(args)
+      wm_elems: new WeakMap()
 
-  const _set_name = (el, name) => @
-    _wm_item(wm_elems, el, _elem_map)
+
+export const _dom_events_api = @{}
+  // wm_elems: new WeakMap()
+  // emit: (... args) => gsrc.next(args)
+
+  listen(elem, evt, xfn, opt) ::
+    let {wm_elems, emit} = this
+    let evt0 = evt.split(/[_.]/, 1)[0]
+    let em = _wm_item(wm_elems, elem, _elem_map_entry)
+    let old_fn = em.get(evt)
+
+    elem.addEventListener @ evt0, evt_fn, opt
+    em.set(evt, evt_fn)
+
+    if undefined !== old_fn ::
+      elem.removeEventListener @ evt0, old_fn
+
+    function evt_fn(evt) ::
+      let v = xfn(evt)
+      if undefined !== v ::
+        emit @ em.name, evt, v
+    return this
+
+
+  remove(elem, ... keys) ::
+    let {wm_elems} = this
+    let evt_map = wm_elems.get(elem) || new Map()
+
+    let ev_pairs
+    if 0 === keys.length ::
+      wm_elems.delete(elem)
+      ev_pairs = evt_map.entries()
+
+    else ::
+      ev_pairs = keys.map @
+        k => [k, evt_map.get(k)]
+
+    for let [evt_key, evt_fn] of ev_pairs ::
+      if undefined !== evt_fn ::
+        evt_map.delete(evt_key)
+        elem.removeEventListener(evt_key, evt_fn)
+    return this
+
+  set_name(el, name) ::
+    _wm_item(wm_elems, el, _elem_map_entry)
       .name = name
-    self
+    return this
+
+  with(... ns_args) ::
+    let {listen, set_name} = this
+    set_name = set_name.bind(this)
+
+    for let ns of ns_args ::
+      let events = @[] ... _iter_event_list(ns)
+      for let elem of _iter_named_elems(ns._, set_name) ::
+        for let evt_args of events ::
+          listen(elem, ... evt_args)
+
+    return this
 
 
-  return self = @{}
-    name: _set_name
-
-    with(... ns_args) ::
-      let {listen} = self
-
-      for let ns of ns_args ::
-        let events = @[] ... _iter_event_list(ns)
-        for let elem of _iter_named_elems(ns._, _set_name) ::
-          for let evt_args of events ::
-            listen(elem, ... evt_args)
-
-      return self
+function _elem_map_entry(elem) ::
+  let m = new Map()
+  m.name = _dom_autoname(elem)
+  return m
 
 
-    listen(elem, evt, xfn, opt) ::
-      let evt0 = evt.split(_rx_evt_sep, 1)[0]
-      let em = _wm_item(wm_elems, elem, _elem_map)
-      let old_fn = em.get(evt)
-
-      elem.addEventListener @ evt0, evt_fn, opt
-      em.set(evt, evt_fn)
-
-      if undefined !== old_fn ::
-        elem.removeEventListener @ evt0, old_fn
-
-      function evt_fn(evt) ::
-        let v = xfn(evt)
-        if undefined !== v ::
-          gsrc.next @# em.name, evt_key, v
-      return self
-
-
-    remove(elem, ... keys) ::
-      let evt_map = wm_elems.get(elem) || new Map()
-
-      let ev_pairs
-      if 0 === keys.length ::
-        wm_elems.delete(elem)
-        ev_pairs = evt_map.entries()
-
-      else ::
-        ev_pairs = keys.map @
-          k => [k, evt_map.get(k)]
-
-      for let [evt_key, evt_fn] of ev_pairs ::
-        if undefined !== evt_fn ::
-          evt_map.delete(evt_key)
-          elem.removeEventListener(evt_key, evt_fn)
-      return self
-
-
-function * _iter_named_elems(lst, _set_name) ::
+function * _iter_named_elems(lst, set_name) ::
   lst = Array.isArray(lst) ? lst
     : lst.tagName ? [lst]
     : Object.entries(lst)
@@ -83,13 +97,13 @@ function * _iter_named_elems(lst, _set_name) ::
     if ea.tagName ::
       yield ea
 
-    _set_name(ea[1], ea[0])
+    set_name(ea[1], ea[0])
     yield ea[1]
 
 
 function * _iter_event_list(ns) ::
   for let [k, efn] of Object.entries(ns) ::
-    if ! efn || _rx_evt_not.test(k) ::
+    if ! efn || /[^a-z]/.test(k) ::
       continue
 
     k = k.replace('_', '.')

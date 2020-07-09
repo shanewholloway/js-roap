@@ -1,4 +1,4 @@
-import {_wm_pipe_closure, _wm_item} from './_common.jsy'
+import {_wm_pipe_closure, _wm_item} from '../core.jsy'
 
 export const ao_dom_events =
   _wm_pipe_closure @

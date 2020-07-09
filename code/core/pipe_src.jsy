@@ -1,8 +1,8 @@
+import { _ao_pipe_src_base } from './pipe_base.jsy'
 import { ao_drive } from './drive.jsy'
 
-export const _ao_pipe_src_api = @{}
-  feed(xsrc) ::
-    return ao_drive(xsrc, this)
+export const _ao_pipe_src = @{}
+  __proto__: _ao_pipe_src_base
 
   with(xctx) ::
     if 'function' === xctx ::
@@ -10,6 +10,15 @@ export const _ao_pipe_src_api = @{}
 
     if xctx && xctx.next ::
       xctx.next(this)
-      this.after(xctx)
+      this.on_fin(xctx)
     return xctx
+
+  feed(xsrc, xform) ::
+    return ao_drive(xsrc, this, xform)
+
+  bind_vec(... keys) ::
+    return v => this.next @# ...keys, v
+
+  bind_obj(key, ns) ::
+    return v => this.next @: ...ns, [key]: v
 

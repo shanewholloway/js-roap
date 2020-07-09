@@ -16,18 +16,20 @@ export function ao_fence() ::
   return { fence: v[0], reset: v[1] }
 
 
-export async function * ao_fence_marks(fence, trailing, initial) ::
+const _v_one = () => 1
+export async function * ao_fence_marks(fence, trailing, initial, xform=_v_one) ::
   let f = true === initial
     ? fence() : initial
 
   while 1 ::
+    let v
     if trailing ::
-      await f
+      v = await f
       f = fence()
 
     else ::
       f = fence()
-      await f
+      v = await f
 
-    yield 1
+    yield xform(v)
 

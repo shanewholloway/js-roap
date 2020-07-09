@@ -3,7 +3,8 @@ import {ao_fence_v, ao_fence_marks} from '../core.jsy'
 export async function * ao_dom_animation(opt={}) ::
   let tid, [_fence, _reset] = ao_fence_v()
   try ::
-    yield * ao_fence_marks(fence, opt.trailing, opt.initial)
+    yield * ao_fence_marks @ fence,
+      opt.trailing, opt.initial, opt.xform
   finally ::
     cancelAnimationFrame(tid)
 

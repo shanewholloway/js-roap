@@ -2,22 +2,26 @@ import {ao_fence_v, ao_fence_marks} from './core.jsy'
 
 
 export async function * ao_interval(opt) ::
-  if Number.isFinite(opt) :: opt = {ms: opt}
+  if Number.isFinite(opt) ::
+    opt = {ms: opt}
 
   let tid, [_fence, _reset] = ao_fence_v()
   try ::
     tid = setInterval(_reset, opt.ms)
-    yield * ao_fence_marks(_fence, opt.trailing, opt.initial)
+    yield * ao_fence_marks @ _fence,
+      opt.trailing, opt.initial, opt.xform
   finally ::
     clearInterval(tid)
 
 
 export async function * ao_timeout(opt) ::
-  if Number.isFinite(opt) :: opt = {ms: opt}
+  if Number.isFinite(opt) ::
+    opt = {ms: opt}
 
   let tid, [_fence, _reset] = ao_fence_v()
   try ::
-    yield * ao_fence_marks(fence, opt.trailing, true)
+    yield * ao_fence_marks @ fence,
+      opt.trailing, false, opt.xform
   finally ::
     clearTimeout(tid)
 
@@ -26,8 +30,8 @@ export async function * ao_timeout(opt) ::
     return _fence()
 
 
-export async function * ao_times(iterable) ::
+export async function * ao_times(gen_in) ::
   let ts0 = Date.now()
-  for let v of iterable ::
+  for await let v of gen_in ::
     yield Date.now() - ts0
 

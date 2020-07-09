@@ -4,8 +4,12 @@ export const _xinvoke = v_fn =>
     ? v_fn()
     : v_fn
 
-export const _ao_next = g =>
-  g.next.bind(g)
+export function _xpipesrc(pipe) ::
+  if 'function' === typeof pipe ::
+    pipe = pipe()
+
+  if null != pipe ::
+    return pipe.gsrc || pipe
 
 
 export function _wm_pipe_closure(wm_absent) ::

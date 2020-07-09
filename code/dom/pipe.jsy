@@ -1,0 +1,22 @@
+import {_ao_pipe} from '../core.jsy'
+
+export const _ao_dom_pipe = @{}
+  __proto__: _ao_pipe
+  api_src: @{}
+    ... _ao_pipe.api_src
+    events: _dom_events_api
+
+  api_out: @{}
+    ... _ao_pipe.api_out
+    events: _dom_events_api
+
+export const ao_dom_pipe = _ao_dom_pipe.create
+
+function _dom_events_api(...args) ::
+  let de = ao_dom_events(this)
+  if 0 === ns_args.length ::
+    return de
+
+  de.with(... ns_args)
+  return this
+

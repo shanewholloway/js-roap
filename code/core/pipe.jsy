@@ -1,6 +1,6 @@
 import { _ao_pipe_base } from './pipe_base.jsy'
-import { _ao_pipe_src_api } from './pipe_src.jsy'
-import { _ao_pipe_out_api } from './pipe_out.jsy'
+import { _ao_pipe_src } from './pipe_src.jsy'
+import { _ao_pipe_out } from './pipe_out.jsy'
 
 
 export const _ao_pipe = @{}
@@ -14,11 +14,8 @@ export const _ao_pipe = @{}
   // *xsrc() -- feed with source generator
   // *xctx(gen_src) -- on init: bind event sources
 
-  // xapi_src: {}
-  // xapi_out: {}
-
-  api_src: _ao_pipe_src_api
-  api_out: _ao_pipe_out_api
+  api_src: _ao_pipe_src
+  api_out: _ao_pipe_out
 
 
   xinit(gsrc) ::
@@ -45,7 +42,7 @@ export const _ao_pipe = @{}
 
     this.xgfold = xgfold
     this.xfold = this._fold_gen
-    gsrc.after @ xgfold
+    gsrc.on_fin @ xgfold
 
   _fold_gen() ::
     let {done, value} = this.xgfold.next(v)

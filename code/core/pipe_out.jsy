@@ -1,6 +1,13 @@
+import { _ao_pipe_out_base } from './pipe_base.jsy'
 import { ao_split, ao_tap } from './split.jsy'
+import { ao_run } from './drive.jsy'
 
-export const _ao_pipe_out_api = @{}
+export const _ao_pipe_out = @{}
+  __proto__: _ao_pipe_out_base
+
   split(xfn) :: return ao_split(this, xfn)
   tap(xfn) :: return ao_tap(this, xfn)
+  run(xfn) ::
+    let p = ao_run(this)
+    return xfn ? xfn(p) : p
 

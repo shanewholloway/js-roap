@@ -1,10 +1,16 @@
-import {_xinvoke} from './util.jsy'
+import {_xinvoke, _xpipesrc} from './util.jsy'
 
 
-export async function ao_drive(gen_in, gen_out) ::
-  gen_out = _xinvoke(gen_out)
+export async function ao_run(gen_in) ::
+  for await let v of _xinvoke(gen_in) ::
+
+
+const _r_ident = v => v
+export async function ao_drive(gen_in, gen_out, xform=_r_ident) ::
+  gen_out = _xpipesrc(gen_out)
   for await let v of _xinvoke(gen_in) ::
     if undefined !== gen_out ::
+      v = xform(v)
       let {done} = await gen_out.next(v)
       if done :: break
 

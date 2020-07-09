@@ -1,6 +1,18 @@
 import {_obj_assign} from './_common.jsy'
 import {_xinvoke} from './util.jsy'
 
+
+export const _ao_pipe_src_base = @{}
+  as_pipe_src() :: return this
+  // on_fin(gen)
+
+export const _ao_pipe_out_base = @{}
+  as_pipe_out(ag_out) :: return this
+  // gsrc
+  // on_fin(gen)
+  // stop()
+
+
 //~~~
 // Pipe base as generator in composed object-functional implementation
 
@@ -10,11 +22,8 @@ export const _ao_pipe_base = @{}
   xemit: _xinvoke // identity transform or invoke if function
   xinit(gsrc, ag_out) {} // on init: default behavior
 
-  // api_src: {}
-  // xapi_src: {}
-
-  // api_out: {}
-  // xapi_out: {}
+  api_src: _ao_pipe_src_base
+  api_out: _ao_pipe_out_base
 
 
   get create() ::
@@ -26,23 +35,25 @@ export const _ao_pipe_base = @{}
 
   _ao_pipe() ::
     let fin_lst = []
-    let after = fin_lst.push.bind(fin_lst)
+    let on_fin = fin_lst.push.bind(fin_lst)
     let stop = @::
       this.done = true
       _fin_pipe(fin_lst)
       this._resume()
 
-    let gsrc = _obj_assign @
-      after @ this._ao_producer(stop)
-      this.api_src
-      @{} after
-      this.xapi_out
+    let gsrc =
+      _obj_assign @
+        on_fin @ this._ao_producer(stop)
+        @{} on_fin
+        this.api_src
+      .as_pipe_src()
 
-    let ag_out = _obj_assign @
-      after @ this._ao_consumer(stop)
-      this.api_out
-      @{} gsrc, after, stop
-      this.xapi_out
+    let ag_out =
+      _obj_assign @
+        on_fin @ this._ao_consumer(stop)
+        @{} gsrc, on_fin, stop
+        this.api_out
+      .as_pipe_out()
 
     // allow gsrc to initialize
     gsrc.next()

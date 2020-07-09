@@ -1,7 +1,7 @@
 import {_obj_assign} from './_common.jsy'
 import {_xinvoke} from './util.jsy'
 import {ao_fence_v} from './fence.jsy'
-import {ao_drive} from './drive.jsy'
+import {ao_run} from './drive.jsy'
 
 
 const _ao_tap_api = @{}
@@ -52,7 +52,7 @@ export function ao_split(gen_in, xfn) ::
   let gen = _ao_tap(gen_in)
   let obj = @{}
     __proto__: _ao_fork_proto
-    fin: ao_drive(gen)
+    fin: ao_run(gen)
     fence: gen.fence
 
   if xfn :: xfn(obj)

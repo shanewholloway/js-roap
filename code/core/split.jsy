@@ -42,7 +42,7 @@ export function _ao_tap(gen_in) ::
 
 
 
-const _ao_split_proto = @{}
+const _ao_split = @{}
   ... _ao_tap_api
 
   get chain() :: return fn_chain(this)
@@ -56,7 +56,7 @@ const _ao_split_proto = @{}
 export function ao_split(gen_in, xfn) ::
   let gen = _ao_tap(gen_in)
   let obj = @{}
-    __proto__: _ao_split_proto
+    __proto__: _ao_split
     fin: ao_run(gen)
     fence: gen.fence
 

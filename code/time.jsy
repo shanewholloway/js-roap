@@ -5,11 +5,10 @@ export async function * ao_interval(opt) ::
   if Number.isFinite(opt) ::
     opt = {ms: opt}
 
-  let tid, [_fence, _reset] = ao_fence_v()
+  let [_fence, _reset] = ao_fence_v()
+  let tid = setInterval(_reset, opt.ms)
   try ::
-    tid = setInterval(_reset, opt.ms)
-    yield * ao_fence_marks @ _fence,
-      opt.trailing, opt.initial, opt.xform
+    yield * ao_fence_marks(_fence, opt)
   finally ::
     clearInterval(tid)
 
@@ -20,12 +19,11 @@ export async function * ao_timeout(opt) ::
 
   let tid, [_fence, _reset] = ao_fence_v()
   try ::
-    yield * ao_fence_marks @ fence,
-      opt.trailing, false, opt.xform
+    yield * ao_fence_marks(timeout, opt)
   finally ::
     clearTimeout(tid)
 
-  function fence() ::
+  function timeout() ::
     tid = setTimeout(_reset, opt.ms)
     return _fence()
 

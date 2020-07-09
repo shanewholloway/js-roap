@@ -18,5 +18,5 @@
 #### Animation Frames
 
 Use `async * ao_dom_animation(opt)` to create a generator from `requestAnimationFrame` notifications.
-(with `opt` as `{trailing: boolean, initial: boolean, xform: () => 1}`)
+(with `opt` as `{trailing: boolean, initial: boolean, signal: true}`)
 

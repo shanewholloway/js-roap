@@ -11,13 +11,22 @@ export function ao_fence_v() ::
     v => :: _p = 0; _resume(v)
 
 
+const _ao_fence_api = @{}
+  ao_marks(opt) ::
+    return ao_fence_marks(this.fence, opt)
+
+  [Symbol.asyncIterator]() ::
+    return this.ao_marks()
+
 export function ao_fence() ::
-  let v = ao_fence_v()
-  return { fence: v[0], reset: v[1] }
+  let f = ao_fence_v()
+  return @{}
+    __proto__: _ao_fence_api
+    fence: f[0], reset: f[1]
 
 
-const _v_one = () => 1
-export async function * ao_fence_marks(fence, trailing, initial, xform=_v_one) ::
+export async function * ao_fence_marks(fence, opt) ::
+  let {signal, trailing, initial} = opt || {}
   let f = true === initial
     ? fence() : initial
 
@@ -31,5 +40,9 @@ export async function * ao_fence_marks(fence, trailing, initial, xform=_v_one) :
       f = fence()
       v = await f
 
-    yield xform(v)
+    if 'function' === typeof signal ::
+      yield signal(v)
+    else if signal ::
+      yield signal
+    else yield v
 

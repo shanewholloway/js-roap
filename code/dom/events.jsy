@@ -1,6 +1,13 @@
-import {_obj_assign} from '../core/_common.jsy'
+import {_obj_assign, _is_array} from '../core/_common.jsy'
 import {_wm_pipe_closure, _wm_item} from '../core.jsy'
 
+
+export function with_dom_events(tgt) ::
+  let de = ao_dom_events(tgt)
+  tgt.dom_events = de
+  if tgt.gsrc ::
+    tgt.gsrc.dom_events = de
+  return tgt
 
 export const _ao_dom_events0 =
   _wm_pipe_closure(_ao_dom_events_ctx)
@@ -8,13 +15,12 @@ export const _ao_dom_events0 =
 export function ao_dom_events(gsrc, ... ns_args) ::
   return _ao_dom_events0(gsrc)(...ns_args)
 
-
 export function _ao_dom_events_ctx(gsrc) ::
   const dom_events = (... ns_args) =>
     0 === ns_args.length ? dom_events
       : dom_events.with(ns_args)
 
-  return gsrc.dom_events = _obj_assign @
+  return _obj_assign @
     dom_events, _dom_events_api,
     @{} wm_elems: new WeakMap()
         emit: info => gsrc.next(info)
@@ -66,7 +72,7 @@ export const _dom_events_api = @{}
     return this
 
   set_info(el, info) ::
-    let em = _wm_item(wm_elems, el, _elem_map_entry)
+    let em = _wm_item(this.wm_elems, el, _elem_map_entry)
     _obj_assign(em, info)
     return this
 
@@ -96,16 +102,16 @@ function _elem_map_entry(elem) ::
 
 
 function * _iter_named_elems(lst, set_info) ::
-  lst = Array.isArray(lst) ? lst
+  lst = _is_array(lst) ? lst
     : lst.tagName ? [lst]
     : Object.entries(lst)
 
   for let ea of lst ::
-    if ea.tagName ::
-      yield ea
+    if _is_array(ea) ::
+      set_info(ea[1], {k: ea[0]})
+      yield ea[1]
 
-    set_info(ea[1], {k: ea[0]})
-    yield ea[1]
+    else yield ea
 
 
 function * _iter_event_list(ns) ::

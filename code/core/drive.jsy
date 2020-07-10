@@ -14,3 +14,27 @@ export async function ao_drive(gen_in, gen_out, xform=_r_ident) ::
       let {done} = await gen_out.next(v)
       if done :: break
 
+
+export function * iter(gen_in) ::
+  yield * _xinvoke(gen_in)
+
+export async function * ao_iter(gen_in) ::
+  yield * _xinvoke(gen_in)
+
+
+export function * iter_step(iter) ::
+  let t = {}
+  while 1 ::
+    t = iter.next()
+    if t.done ::
+      return t.value
+    else yield t.value
+
+export async function * ao_step(ao_iter) ::
+  let t = {}
+  while 1 ::
+    t = await ao_iter.next()
+    if t.done ::
+      return t.value
+    else yield t.value
+

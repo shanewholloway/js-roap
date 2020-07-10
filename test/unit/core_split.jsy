@@ -1,0 +1,15 @@
+import {ao_split, ao_tap} from 'roap'
+
+import @{}
+  assert, expect,
+  delay_race, delay,
+from './_utils.jsy'
+
+
+describe @ 'core split', @::
+
+  describe @ 'ao_split', @::
+    it.skip @ 'TODO', @::
+
+  describe @ 'ao_tap', @::
+    it.skip @ 'TODO', @::

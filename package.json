@@ -30,17 +30,20 @@
   "dependencies": {},
   "devDependencies": {
     "qsrv": "^0.1.7",
+    "roap": "file:.",
     "rollup": "^2.21.0",
     "rollup-plugin-jsy": "^1.7.1",
     "rollup-plugin-terser": "^6.1.0",
+    "@rollup/plugin-node-resolve": "^7.1.1",
     "tmex": "^1.0.5"
   },
   "scripts": {
-    "start": "tmex $PWD -rn test watch serve",
-    "serve": "qsrv -p 8082 -- index.html ./esm",
+    "start": "tmex $PWD -l 13 -r -n test watch watchdemo serve",
+    "serve": "qsrv -p 8082 -- index.html ./esm ./demo ./test",
     "clean": "rm -rf ./cjs/* ./esm/* ./umd/*",
     "build": "rollup --config",
     "watch": "npm -s run build -- --watch",
+    "watchdemo": "cd demo; npm -s run watch",
     "pretest": "npm -s run build",
     "test": "cd test; npm -s run test",
     "test:install": "cd test; npm -s install",

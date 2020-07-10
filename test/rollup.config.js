@@ -2,18 +2,14 @@ import rpi_resolve from '@rollup/plugin-node-resolve'
 import rpi_jsy from 'rollup-plugin-jsy'
 
 const sourcemap = 'inline'
-const plugins = [
-  rpi_resolve(),
-]
+const plugins = [ rpi_resolve() ]
 
 const plugins_nodejs = [
   rpi_jsy({defines: {PLAT_NODEJS: true}}),
-  ... plugins,
-]
+  ... plugins ]
 const plugins_web = [
   rpi_jsy({defines: {PLAT_WEB: true}}),
-  ... plugins,
-]
+  ... plugins ]
 
 
 export default [

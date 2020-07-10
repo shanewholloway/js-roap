@@ -1,8 +1,8 @@
 
 export const ao_deferred_v = @!
-  let y,n,_lset = (a,b) => { y=a, n=b }
+  let y,n,_pset = (a,b) => { y=a, n=b }
   return p => @
-    p = new Promise(_lset)
+    p = new Promise(_pset)
     [p, y, n]
 
 export const ao_deferred = v => @

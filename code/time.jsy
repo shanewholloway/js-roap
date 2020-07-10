@@ -2,11 +2,14 @@ import {ao_fence_v, ao_fence_marks} from './core.jsy'
 
 
 export async function * ao_interval(opt) ::
-  if Number.isFinite(opt) ::
-    opt = {ms: opt}
+  opt = Number.isFinite(opt)
+    ? {ms: opt, signal: 1}
+    : {signal: 1, ... opt}
 
   let [_fence, _reset] = ao_fence_v()
-  let tid = setInterval(_reset, opt.ms)
+  let tid = setInterval(_reset, opt.ms || 1000)
+  if tid.unref && ! opt.ref ::
+    tid.unref()
   try ::
     yield * ao_fence_marks(_fence, opt)
   finally ::
@@ -14,8 +17,9 @@ export async function * ao_interval(opt) ::
 
 
 export async function * ao_timeout(opt) ::
-  if Number.isFinite(opt) ::
-    opt = {ms: opt}
+  opt = Number.isFinite(opt)
+    ? {ms: opt, signal: 1}
+    : {signal: 1, ... opt}
 
   let tid, [_fence, _reset] = ao_fence_v()
   try ::
@@ -24,7 +28,9 @@ export async function * ao_timeout(opt) ::
     clearTimeout(tid)
 
   function timeout() ::
-    tid = setTimeout(_reset, opt.ms)
+    tid = setTimeout(_reset, opt.ms || 1000)
+    if tid.unref && ! opt.ref ::
+      tid.unref()
     return _fence()
 
 

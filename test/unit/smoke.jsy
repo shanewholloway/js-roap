@@ -1,8 +1,34 @@
-const { assert } = require('chai')
-import {ao_latest, ao_update_ctx, ao_watch} from 'roap'
+import {assert, is_fn} from './_utils.jsy'
 
-it @ 'smoke', @::
-  assert.equal @ 'function', typeof ao_latest
-  assert.equal @ 'function', typeof ao_update_ctx
-  assert.equal @ 'function', typeof ao_watch
+import {ao_deferred, ao_deferred_v} from 'roap'
+import {ao_fence, ao_fence_v} from 'roap'
+import {iter, ao_iter, ao_step, iter_step} from 'roap'
+import {ao_run, ao_drive} from 'roap'
+import {ao_split, ao_tap} from 'roap'
+import {ao_pipe} from 'roap'
+
+describe @ 'smoke', @::
+  it @ 'deferred', @::
+    is_fn @ ao_deferred
+    is_fn @ ao_deferred_v
+
+  it @ 'fence', @::
+    is_fn @ ao_fence
+    is_fn @ ao_fence_v
+
+  it @ 'drive', @::
+    is_fn @ iter
+    is_fn @ ao_iter
+    is_fn @ iter_step
+    is_fn @ ao_step
+    
+    is_fn @ ao_run
+    is_fn @ ao_drive
+
+  it @ 'split', @::
+    is_fn @ ao_split
+    is_fn @ ao_tap
+
+  it @ 'pipe', @::
+    is_fn @ ao_pipe
 

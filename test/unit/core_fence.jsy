@@ -1,88 +1,144 @@
-const { assert, expect } = require('chai')
-import {delay_race} from './_utils.jsy'
-
-import {ao_fence} from 'roap'
-
-describe @ 'core_fence', @::
-  it @ 'shape', @::
-    const res = ao_fence()
-    expect(res).to.be.an('array').of.length(2)
-    expect(res[0]).to.be.a('function')
-    expect(res[1]).to.be.a('function')
+import {ao_fence, ao_fence_v} from 'roap'
+import @{}
+  assert, expect,
+  delay_race, delay,
+from './_utils.jsy'
 
 
-  it @ 'basic use', @::>
-    const [fence, resume] = ao_fence()
-
-    const p = fence()
-    assert.equal @ 'timeout', await delay_race(p,1)
-
-    resume(1942)
-    assert.equal @ 1942, await delay_race(p,1)
-
-
-  it @ 'only first after', @::>
-    const [fence, resume] = ao_fence()
-    let f
-
-    resume @ 'one'
-    f = fence()
-    resume @ 'two'
-    resume @ 'three'
-
-    assert.equal @ 'two', await f
-
-    resume @ 'four'
-    resume @ 'five'
-    f = fence()
-    resume @ 'six'
-    resume @ 'seven'
-
-    assert.equal @ 'six', await f
+describe @ 'core ao_fence', @::
+  describe @ 'ao_fence_v tuple', @::
+    it @ 'shape', @::
+      const res = ao_fence_v()
+      expect(res).to.be.an('array').of.length(2)
+      expect(res[0]).to.be.a('function')
+      expect(res[1]).to.be.a('function')
 
 
-  it @ 'never blocked on fence', @::>
-    const [fence, resume] = ao_fence()
+    it @ 'basic use', @::>
+      const [fence, resume] = ao_fence_v()
 
-    resume @ 'one'
-    resume @ 'two'
-    resume @ 'three'
+      const p = fence()
+      assert.equal @ 'timeout', await delay_race(p,1)
+
+      resume(1942)
+      assert.equal @ 1942, await delay_race(p,1)
 
 
-  it @ 'exercise fence', @::>
-    const [fence, resume] = ao_fence()
+    it @ 'only first after', @::>
+      const [fence, resume] = ao_fence_v()
+      let f
 
-    let v = 'a'
-    expect(v).to.equal('a')
+      resume @ 'one'
+      f = fence()
+      resume @ 'two'
+      resume @ 'three'
 
-    const p = @!>
-      v = 'b'
+      assert.equal @ 'two', await f
 
-      :: const ans = await fence()
-         expect(ans).to.equal('bb')
+      resume @ 'four'
+      resume @ 'five'
+      f = fence()
+      resume @ 'six'
+      resume @ 'seven'
 
-      v = 'c'
-      :: const ans = await fence()
-         expect(ans).to.equal('cc')
-      v = 'd'
-      return 1942
+      assert.equal @ 'six', await f
 
-    assert.equal @ 'timeout', await delay_race(p,1)
-    expect(v).to.equal('b')
 
-    ::
-      const p = resume(v+v)
-      expect(p).to.be.undefined
+    it @ 'never blocked on fence', @::>
+      const [fence, resume] = ao_fence_v()
 
-    expect(v).to.equal('b')
-    assert.equal @ 'timeout', await delay_race(p,1)
-    expect(v).to.equal('c')
+      resume @ 'one'
+      resume @ 'two'
+      resume @ 'three'
 
-    ::
-      const p = resume(v+v)
-      expect(p).to.be.undefined
 
-    expect(v).to.equal('c')
-    assert.equal @ 1942, await delay_race(p,1)
-    expect(v).to.equal('d')
+    it @ 'exercise fence', @::>
+      const [fence, resume] = ao_fence_v()
+
+      let v = 'a'
+      expect(v).to.equal('a')
+
+      const p = @!>
+        v = 'b'
+
+        :: const ans = await fence()
+           expect(ans).to.equal('bb')
+
+        v = 'c'
+        :: const ans = await fence()
+           expect(ans).to.equal('cc')
+        v = 'd'
+        return 1942
+
+      assert.equal @ 'timeout', await delay_race(p,1)
+      expect(v).to.equal('b')
+
+      ::
+        const p = resume(v+v)
+        expect(p).to.be.undefined
+
+      expect(v).to.equal('b')
+      assert.equal @ 'timeout', await delay_race(p,1)
+      expect(v).to.equal('c')
+
+      ::
+        const p = resume(v+v)
+        expect(p).to.be.undefined
+
+      expect(v).to.equal('c')
+      assert.equal @ 1942, await delay_race(p,1)
+      expect(v).to.equal('d')
+
+
+  describe @ 'ao_fence object', @::
+    it @ 'shape', @::
+      const res = ao_fence()
+      expect(res).to.be.an('object')
+      expect(res.fence).to.be.a('function')
+      expect(res.reset).to.be.a('function')
+      expect(res.ao_marks).to.be.a('function')
+      expect(res[Symbol.asyncIterator]).to.be.a('function')
+
+
+    it @ 'basic use', @::>
+      const res = ao_fence()
+
+      const p = res.fence()
+      assert.equal @ 'timeout', await delay_race(p,1)
+
+      res.reset(1942)
+      assert.equal @ 1942, await delay_race(p,1)
+
+
+    it @ 'async iter use', @::>
+      const res = ao_fence()
+
+      delay().then @=> res.reset('ready')
+
+      for await let v of res ::
+        assert.equal @ 'ready', v
+        break
+
+
+    it @ 'async iter multi use', @::>
+      const res = ao_fence()
+
+      let pa = @!>
+        for await let v of res ::
+          return `pa ${v}`
+
+      let pb = @!>
+        for await let v of res.ao_marks() ::
+          return `pb ${v}`
+
+      let pc = res.fence()
+
+      assert.equal @ 'timeout', await delay_race(pa,1)
+      assert.equal @ 'timeout', await delay_race(pb,1)
+      assert.equal @ 'timeout', await delay_race(pc,1)
+
+      res.reset('ready')
+      assert.equal @ 'pa ready', await delay_race(pa,1)
+      assert.equal @ 'pb ready', await delay_race(pb,1)
+      assert.equal @ 'ready', await delay_race(pc,1)
 

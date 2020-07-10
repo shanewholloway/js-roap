@@ -1,0 +1,41 @@
+import {ao_dom_animation, ao_times} from 'roap/esm/roap_dom.mjs'
+
+import @{}
+  assert, expect,
+  is_gen, is_fn,
+from './_utils.jsy'
+
+
+if 'undefined' !== typeof requestAnimationFrame ::
+  describe @ 'dom animation frames', @::
+    it @ 'shape', @::
+      is_fn @ ao_dom_animation
+
+    it @ 'ao_dom_animation', @::>
+      let g = is_gen @ ao_dom_animation()
+
+      try ::
+        let p = g.next()
+        expect(p).to.be.a('promise')
+
+        let {value} = await p
+        assert(value >= 0)
+
+      finally ::
+        g.return()
+
+    it @ 'ao_times', @::>
+      let g = is_gen @ ao_times @ ao_dom_animation()
+
+      try ::
+        let p = g.next()
+        expect(p).to.be.a('promise')
+
+        let {value: ts1} = await p
+        assert(ts1 >= 0)
+
+        let {value: ts2} = await g.next()
+        assert(ts2 >= ts1)
+
+      finally ::
+        g.return()

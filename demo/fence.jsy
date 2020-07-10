@@ -1,0 +1,54 @@
+import {ao_fence} from 'roap'
+
+let f = ao_fence()
+let tid = setInterval(Boolean, 1000)
+
+::!>
+  let v
+  console.log @ "A start", {v}
+  v = await f.fence()
+  console.log @ "A1", {v}
+  v = await f.fence()
+  console.log @ "A2", {v}
+  v = await f.fence()
+  console.log @ "A3", {v}
+  v = await f.fence()
+  console.log @ "proc A done", {v}
+
+::!>
+  let v
+  console.log @ "M start", {v}
+  v = await f.fence()
+  console.log @ "M1", {v}
+  v = await f.fence()
+  console.log @ "M2", {v}
+  v = await f.fence()
+  console.log @ "M3", {v}
+  v = await f.fence()
+  console.log @ "M4", {v}
+  v = await f.fence()
+  console.log @ "proc M done", {v}
+
+::!>
+  for await let v of f ::
+    console.log @ "G", {v}
+
+  console.log @ "proc G done"
+  tid = clearInterval(tid)
+
+::!>
+  for let i=1; i<10; i++ ::
+    let txt = `S${i}`
+    await txt
+
+    console.log('')
+    console.log(txt)
+    f.reset(txt)
+    console.log('')
+
+  await 0
+  console.log @ "S done"
+  f.fence.done = true
+  f.reset('bye')
+  console.log @ "proc S done"
+

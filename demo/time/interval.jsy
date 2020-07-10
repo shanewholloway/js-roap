@@ -1,0 +1,16 @@
+import {ao_interval, ao_times} from 'roap'
+
+::!>
+  let ivg = ao_interval @:
+    ms: 1000
+
+  for await let v of ivg ::
+    console.log('interval', v)
+
+::!>
+  let ivg = ao_interval @:
+    ms: 1000, trailing: true, initial: false
+
+  for await let ts of ao_times(ivg) ::
+    console.log('ts interval', ts)
+

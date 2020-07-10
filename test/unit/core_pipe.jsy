@@ -1,0 +1,11 @@
+import {ao_pipe} from 'roap'
+
+import @{}
+  assert, expect,
+  delay_race, delay,
+from './_utils.jsy'
+
+
+describe @ 'core ao_pipe', @::
+  it.skip @ 'TODO', @::
+

@@ -1,14 +1,14 @@
 
 
 export function ao_fence_v() ::
-  let _p=0, _resume = ()=>{}
-  let _bind = f => _resume = f
+  let p=0, _resume = ()=>{}
+  let _pset = a => _resume = a
 
   return @[]
-    () => 0 !== _p ? _p
-      : _p = new Promise(_bind)
+    () => 0 !== p ? p
+      : p = new Promise(_pset)
 
-    v => :: _p = 0; _resume(v)
+    v => :: p = 0; _resume(v)
 
 
 const _ao_fence_api = @{}
@@ -30,7 +30,7 @@ export async function * ao_fence_marks(fence, opt) ::
   let f = true === initial
     ? fence() : initial
 
-  while 1 ::
+  while ! fence.done ::
     let v
     if trailing ::
       v = await f

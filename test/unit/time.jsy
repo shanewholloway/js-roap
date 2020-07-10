@@ -1,0 +1,55 @@
+import {ao_interval, ao_timeout, ao_times} from 'roap'
+
+import @{}
+  assert, expect,
+  is_gen, is_fn,
+from './_utils.jsy'
+
+
+describe @ 'time', @::
+  it @ 'shape', @::
+    is_fn @ ao_interval
+    is_fn @ ao_timeout
+    is_fn @ ao_times
+
+  it @ 'ao_interval', @::>
+    let g = is_gen @ ao_interval(10)
+
+    try ::
+      let p = g.next()
+      expect(p).to.be.a('promise')
+
+      let {value} = await p
+      assert.equal(1, value)
+
+    finally ::
+      g.return()
+
+  it @ 'ao_timeout', @::>
+    let g = is_gen @ ao_timeout(10)
+
+    try ::
+      let p = g.next()
+      expect(p).to.be.a('promise')
+
+      let {value} = await p
+      assert.equal(1, value)
+
+    finally ::
+      g.return()
+
+  it @ 'ao_times', @::>
+    let g = is_gen @ ao_times @ ao_interval(10)
+
+    try ::
+      let p = g.next()
+      expect(p).to.be.a('promise')
+
+      let {value: ts1} = await p
+      assert(ts1 >= 0)
+
+      let {value: ts2} = await g.next()
+      assert(ts2 >= ts1)
+
+    finally ::
+      g.return()

@@ -138,9 +138,6 @@ export const _ao_pipe_base = @{}
     return this._bind_waiting()
 
 
-export const ao_pipe_base = _ao_pipe_base.create
-
-
 function _fin_pipe(fin_lst) ::
   while 0 !== fin_lst.length ::
     let g = fin_lst.pop()

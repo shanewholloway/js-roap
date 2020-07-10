@@ -1,0 +1,14 @@
+import {ao_run, ao_drive} from 'roap'
+
+import @{}
+  assert, expect,
+  delay_race, delay,
+from './_utils.jsy'
+
+
+describe @ 'core drive', @::
+
+  it.skip @ 'ao_run', @::
+
+  it.skip @ 'ao_drive', @::
+

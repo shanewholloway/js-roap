@@ -1,0 +1,19 @@
+import {iter, ao_iter} from 'roap'
+import {ao_step, iter_step} from 'roap'
+
+import @{}
+  assert, expect,
+  delay_race, delay,
+from './_utils.jsy'
+
+
+describe @ 'core drive iters', @::
+  it.skip @ 'normal iter', @::
+
+  it.skip @ 'async iter', @::
+
+  it.skip @ 'normal step', @::
+
+  it.skip @ 'async ao_step', @::
+
+

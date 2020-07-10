@@ -1,0 +1,10 @@
+import {ao_timeout, ao_times} from 'roap'
+
+::!>
+  for await let v of ao_timeout(1000) ::
+    console.log('timeout', v)
+
+::!>
+  for await let ts of ao_times(ao_timeout(1000)) ::
+    console.log('ts timeout', ts)
+

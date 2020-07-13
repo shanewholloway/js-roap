@@ -1,4 +1,4 @@
-import {ao_fence, ao_fence_v} from 'roap'
+import {ao_fence_obj, ao_fence_v} from 'roap'
 import @{}
   assert, expect,
   delay_race, delay,
@@ -92,7 +92,7 @@ describe @ 'core ao_fence', @::
 
   describe @ 'ao_fence object', @::
     it @ 'shape', @::
-      const res = ao_fence()
+      const res = ao_fence_obj()
       expect(res).to.be.an('object')
       expect(res.fence).to.be.a('function')
       expect(res.reset).to.be.a('function')
@@ -101,7 +101,7 @@ describe @ 'core ao_fence', @::
 
 
     it @ 'basic use', @::>
-      const res = ao_fence()
+      const res = ao_fence_obj()
 
       const p = res.fence()
       assert.equal @ 'timeout', await delay_race(p,1)
@@ -111,7 +111,7 @@ describe @ 'core ao_fence', @::
 
 
     it @ 'async iter use', @::>
-      const res = ao_fence()
+      const res = ao_fence_obj()
 
       delay().then @=> res.reset('ready')
 
@@ -121,7 +121,7 @@ describe @ 'core ao_fence', @::
 
 
     it @ 'async iter multi use', @::>
-      const res = ao_fence()
+      const res = ao_fence_obj()
 
       let pa = @!>
         for await let v of res ::

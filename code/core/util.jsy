@@ -1,16 +1,26 @@
 import {_obj_assign} from './_common.jsy'
 
 export const _xinvoke = v_fn =>
-  'function' === typeof v_fn
+  'function' === typeof v_fn && ! is_ao_iter(v_fn)
     ? v_fn()
     : v_fn
 
 export function _xpipesrc(pipe) ::
-  if 'function' === typeof pipe ::
-    pipe = pipe()
-
+  pipe = _xinvoke(pipe)
   if null != pipe ::
     return pipe.gsrc || pipe
+
+
+
+export function * iter(gen_in) ::
+  yield * _xinvoke(gen_in)
+
+export async function * ao_iter(gen_in) ::
+  yield * _xinvoke(gen_in)
+
+export const is_ao_iter = g =>
+  null != g[Symbol.asyncIterator]
+
 
 
 export function fn_chain(tail) ::

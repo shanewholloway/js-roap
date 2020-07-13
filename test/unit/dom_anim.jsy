@@ -1,8 +1,8 @@
-import {ao_dom_animation, ao_times} from 'roap/esm/roap_dom.mjs'
+import {ao_dom_animation, ao_times, ao_iter} from 'roap/esm/roap_dom.mjs'
 
 import @{}
   assert, expect,
-  is_gen, is_fn,
+  is_gen, is_fn, is_async_iterable
 from './_utils.jsy'
 
 
@@ -12,7 +12,8 @@ if 'undefined' !== typeof requestAnimationFrame ::
       is_fn @ ao_dom_animation
 
     it @ 'ao_dom_animation', @::>
-      let g = is_gen @ ao_dom_animation()
+      let aot = is_async_iterable @ ao_dom_animation()
+      let g = ao_iter(aot)
 
       try ::
         let p = g.next()

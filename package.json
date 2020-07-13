@@ -38,7 +38,7 @@
     "tmex": "^1.0.5"
   },
   "scripts": {
-    "start": "tmex $PWD -l 13 -r -n test watch watchdemo serve",
+    "start": "tmex $PWD -l 14 -r -n test watch watchdemo test:watch serve",
     "serve": "qsrv -p 8082 -- index.html ./esm ./demo ./test",
     "clean": "rm -rf ./cjs/* ./esm/* ./umd/*",
     "build": "rollup --config",

@@ -1,4 +1,3 @@
-//export * from './core/iters.jsy'
 export * from './core/util.jsy'
 export * from './core/deferred.jsy'
 export * from './core/fence.jsy'

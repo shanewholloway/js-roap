@@ -1,11 +1,12 @@
 import {_xinvoke, _xpipesrc} from './util.jsy'
 
-
-export async function ao_run(gen_in) ::
-  for await let v of _xinvoke(gen_in) ::
-
-
 const _r_ident = v => v
+
+export async function ao_run(gen_in, notify=_r_ident) ::
+  for await let v of _xinvoke(gen_in) ::
+    notify(v)
+
+
 export async function ao_drive(gen_in, gen_out, xform=_r_ident) ::
   gen_out = _xpipesrc(gen_out)
   for await let v of _xinvoke(gen_in) ::
@@ -13,13 +14,6 @@ export async function ao_drive(gen_in, gen_out, xform=_r_ident) ::
       v = xform(v)
       let {done} = await gen_out.next(v)
       if done :: break
-
-
-export function * iter(gen_in) ::
-  yield * _xinvoke(gen_in)
-
-export async function * ao_iter(gen_in) ::
-  yield * _xinvoke(gen_in)
 
 
 export function * iter_step(iter) ::

@@ -1,6 +1,6 @@
-import {ao_fence} from 'roap'
+import {ao_fence_obj} from 'roap'
 
-let f = ao_fence()
+let f = ao_fence_obj()
 let tid = setInterval(Boolean, 1000)
 
 ::!>

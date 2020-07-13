@@ -17,3 +17,8 @@ export function is_gen(g) ::
   is_fn(g.return)
   is_fn(g.throw)
   return g
+
+export function is_async_iterable(o) ::
+  assert @ null != o[Symbol.asyncIterator], 'async iterable'
+  return o
+

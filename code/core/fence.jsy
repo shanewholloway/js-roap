@@ -1,4 +1,4 @@
-import {_obj_assign} from './_common.jsy'
+import {_obj_assign, _is_fn} from './_common.jsy'
 
 
 export function ao_fence_v() ::
@@ -60,7 +60,7 @@ export async function * ao_fence_marks(fence, opt) ::
     if fence.done ::
       return v
 
-    if 'function' === typeof signal ::
+    if _is_fn(signal) ::
       yield signal(v)
     else if signal ::
       yield signal

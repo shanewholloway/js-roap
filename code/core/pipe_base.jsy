@@ -1,4 +1,4 @@
-import {_obj_assign} from './_common.jsy'
+import {_obj_assign, _is_fn} from './_common.jsy'
 import {_xinvoke} from './util.jsy'
 
 
@@ -140,9 +140,8 @@ function _fin_pipe(fin_lst) ::
   while 0 !== fin_lst.length ::
     let g = fin_lst.pop()
     try ::
-      if 'function' !== typeof g ::
-        g.return()
-      else g()
+      if _is_fn(g) :: g()
+      else g.return()
     catch (err) ::
       if err instanceof TypeError ::
         if 'Generator is already running' === err.message ::

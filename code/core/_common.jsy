@@ -7,6 +7,12 @@ export const {
   isArray: _is_array,
 } = Array
 
+export const is_ao_iter = g =>
+  null != g[Symbol.asyncIterator]
+
+export const _is_fn = v_fn =>
+  'function' === typeof v_fn
+    && ! is_ao_iter(v_fn)
 
 export const _ret_void = () => {}
 export const _ret_ident = v => v

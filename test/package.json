@@ -9,11 +9,11 @@
   "scripts": {
     "prebuild": "test -d ./node_modules || npm -s install",
     "build": "npx rollup --config",
-    "clean": "rm -rf ./_out/",
+    "clean": "rm -rf ./out/",
     "watch": "npx rollup --config --watch",
     "pretest": "npm -s run build",
     "test": "npm -s run test:one",
-    "test:one": "NODE_OPTIONS=--enable-source-maps  mocha ./_out/unittest.cjs.js",
-    "test:min": "NODE_OPTIONS=--enable-source-maps  mocha --reporter=min ./_out/unittest.cjs.js"
+    "test:one": "NODE_OPTIONS=--enable-source-maps  mocha ./out/unittest.cjs",
+    "test:min": "NODE_OPTIONS=--enable-source-maps  mocha --reporter=min ./out/unittest.cjs"
   }
 }

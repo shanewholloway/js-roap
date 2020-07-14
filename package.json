@@ -1,6 +1,6 @@
 {
   "name": "roap",
-  "version": "0.2.0-0",
+  "version": "0.2.0",
   "description": "Reactive Observable Async-iterable Programming",
   "license": "BSD-2-Clause",
   "author": "Shane Holloway <shane.holloway@ieee.org>",

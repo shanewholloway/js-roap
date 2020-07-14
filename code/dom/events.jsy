@@ -1,6 +1,8 @@
 import {_obj_assign, _is_array} from '../core/_common.jsy'
-import {_wm_pipe_closure, _wm_item} from '../core.jsy'
+import {ao_pipe, _wm_pipe_closure, _wm_item} from '../core.jsy'
 
+export function ao_dom_pipe(...args) ::
+  return with_dom_events(ao_pipe(...args))
 
 export function with_dom_events(tgt) ::
   let de = ao_dom_events(tgt)

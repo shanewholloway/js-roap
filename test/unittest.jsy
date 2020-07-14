@@ -4,6 +4,7 @@ import './unit/core_fence.jsy'
 import './unit/core_drive.jsy'
 import './unit/core_drive_iters.jsy'
 import './unit/core_split.jsy'
+import './unit/core_pipe_base.jsy'
 import './unit/core_pipe.jsy'
 
 import './unit/time.jsy'

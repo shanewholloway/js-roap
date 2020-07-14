@@ -29,25 +29,27 @@
   },
   "dependencies": {},
   "devDependencies": {
+    "@rollup/plugin-node-resolve": "^7.1.1",
     "qsrv": "^0.1.7",
     "roap": "file:.",
     "rollup": "^2.21.0",
+    "rollup-plugin-dgnotify": "^0.1.7",
     "rollup-plugin-jsy": "^1.7.1",
     "rollup-plugin-terser": "^6.1.0",
-    "@rollup/plugin-node-resolve": "^7.1.1",
     "tmex": "^1.0.5"
   },
   "scripts": {
-    "start": "tmex $PWD -l 14 -r -n test watch watchdemo test:watch serve",
-    "serve": "qsrv -p 8082 -- index.html ./esm ./demo ./test",
+    "start": "tmex $PWD -l 23 -r -n _cli serve watch _w_test _w_demo",
+    "serve": "sleep 2 ; qsrv -p 8082 -- index.html ./esm ./demo ./test",
     "clean": "rm -rf ./cjs/* ./esm/* ./umd/*",
     "build": "rollup --config",
-    "watch": "npm -s run build -- --watch",
-    "watchdemo": "cd demo; npm -s run watch",
+    "watch": "rollup --config --watch",
+    "_w_demo": "cd demo; npm -s run watch",
     "pretest": "npm -s run build",
     "test": "cd test; npm -s run test",
     "test:install": "cd test; npm -s install",
     "test:one": "cd test; npm -s run test:one",
-    "test:watch": "cd test; npm -s run test:watch"
+    "_w_test": "cd test; npm -s run watch",
+    "_cli": "echo $PWD"
   }
 }

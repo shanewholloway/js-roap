@@ -4,9 +4,9 @@ import { ao_split, ao_tap } from './split.jsy'
 import { ao_run } from './drive.jsy'
 
 export const _ao_pipe_out = @{}
-  __proto__: _ao_pipe_out_base
+  ... _ao_pipe_out_base
 
-  get chain() :: return fn_chain(this)
+  chain(fn) :: return fn_chain(this, this)(fn)
 
   split(xfn) :: return ao_split(this, xfn)
   tap(xfn) :: return ao_tap(this, xfn)

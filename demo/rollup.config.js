@@ -1,8 +1,9 @@
 import rpi_resolve from '@rollup/plugin-node-resolve'
+import rpi_dgnotify from 'rollup-plugin-dgnotify'
 import rpi_jsy from 'rollup-plugin-jsy'
 
 const sourcemap = 'inline'
-const _cfg_ = {plugins: [ rpi_resolve(), rpi_jsy() ]}
+const _cfg_ = {plugins: [ rpi_resolve(), rpi_dgnotify(), rpi_jsy() ]}
 
 const configs = []
 export default configs
@@ -10,9 +11,12 @@ export default configs
 
 //demo_jsy('.', 'demo')
 demo_jsy('.', 'fence')
-demo_jsy('dom')
 demo_jsy('time', 'interval')
 demo_jsy('time', 'timeout')
+
+demo_jsy('dom')
+demo_jsy('dom', 'storage')
+demo_jsy('dom', 'channels')
 
 
 function demo_jsy(folder, src_name='index') {

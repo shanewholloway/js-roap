@@ -21,13 +21,12 @@ export const _ao_pipe = @{}
   xinit(gsrc) ::
     let xgfold = this.xgfold
     if undefined !== xgfold ::
-      this._init_xgfold(gsrc)
+      this._init_xgfold(gsrc, xgfold)
 
     this._init_chain(gsrc)
 
 
-  _init_xgfold(gsrc) ::
-    let xgfold = this.xgfold
+  _init_xgfold(gsrc, xgfold) ::
     if undefined === xgfold ::
       return
 
@@ -43,8 +42,9 @@ export const _ao_pipe = @{}
     this.xgfold = xgfold
     this.xfold = this._fold_gen
     gsrc.on_fin @ xgfold
+    return true
 
-  _fold_gen() ::
+  _fold_gen(v) ::
     let {done, value} = this.xgfold.next(v)
     if done :: this.done = true
     return value
@@ -54,6 +54,7 @@ export const _ao_pipe = @{}
     let {xsrc, xctx} = this
     if undefined !== xsrc ::
       gsrc.feed(xsrc)
+        .then @=> gsrc.return()
 
     if undefined !== xctx ::
       gsrc.with(xctx)

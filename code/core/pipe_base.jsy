@@ -7,7 +7,7 @@ export const _ao_pipe_src_base = @{}
   // on_fin(gen)
 
 export const _ao_pipe_out_base = @{}
-  as_pipe_out(ag_out) :: return this
+  as_pipe_out() :: return this
   // gsrc
   // on_fin(gen)
   // stop()
@@ -28,14 +28,16 @@ export const _ao_pipe_base = @{}
 
   get create() ::
     // as getter to bind class as `this` at access time
-    return (... args) =>
+    const create = (... args) =>
       _obj_assign @ {__proto__: this},
         ... args.map(_xinvoke)
       ._ao_pipe()
 
+    return create.create = create
+
   _ao_pipe() ::
     let fin_lst = []
-    let on_fin = fin_lst.push.bind(fin_lst)
+    let on_fin = g => @ fin_lst.push(g), g
     let stop = @::
       this.done = true
       _fin_pipe(fin_lst)
@@ -55,10 +57,10 @@ export const _ao_pipe_base = @{}
         this.api_out
       .as_pipe_out()
 
+    this.xinit(gsrc, ag_out)
+
     // allow gsrc to initialize
     gsrc.next()
-
-    this.xinit(gsrc, ag_out)
     return ag_out
 
 
@@ -107,10 +109,6 @@ export const _ao_pipe_base = @{}
       _finish()
 
 
-  chain(xfold1, xfold0) ::
-    return v => xfold1 @ xfold0 @ v
-
-
   //~~~
   // generator-like value/done states
 
@@ -146,5 +144,8 @@ function _fin_pipe(fin_lst) ::
         g.return()
       else g()
     catch (err) ::
-      console.warn(err)
+      if err instanceof TypeError ::
+        if 'Generator is already running' === err.message ::
+          continue
+      console.error(err)
 

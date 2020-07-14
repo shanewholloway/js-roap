@@ -1,11 +1,213 @@
-import {ao_pipe} from 'roap'
+import {ao_pipe, ao_iter} from 'roap'
 
 import @{}
   assert, expect,
-  delay_race, delay,
+  delay_race, delay, delay_walk,
+  array_from_ao_iter,
+  is_fn, is_gen, is_async_iterable
 from './_utils.jsy'
 
 
-describe @ 'core ao_pipe', @::
-  it.skip @ 'TODO', @::
+describe @ 'core ao_pipe', function() ::
+  it @ 'shape', @::
+    let pipe = is_gen @ ao_pipe()
+    is_gen @ pipe.gsrc
+
+
+  describe @ 'compute', @::
+    it @ 'xfold', @::>
+      let pipe = ao_pipe @:
+        xsrc: delay_walk @# 30,20,10
+        xfold: v => 1000 + v
+
+      let z = array_from_ao_iter(pipe)
+      assert.deepEqual @ await z, @[] 1030, 1020, 1010
+
+
+    it @ '*xgfold', @::>
+      let pipe = ao_pipe @:
+        xsrc: delay_walk @# 30,20,10
+        *xgfold() ::
+          let s = 0
+          while 1 ::
+            let v = yield s
+            s += v + 1000
+
+      let z = array_from_ao_iter(pipe)
+      assert.deepEqual @ await z, @[] 1030, 2050, 3060
+
+
+    it @ 'xsrc', @::>
+      let pipe = ao_pipe @:
+        xsrc: delay_walk @# 30,20,10
+
+      let z = array_from_ao_iter(pipe)
+      assert.deepEqual @ await z, @[] 30,20,10
+
+
+    it @ 'xctx', @::>
+      let log=[]
+
+      let pipe = ao_pipe @:
+        *xctx(gsrc) ::
+          log.push @ 'xctx start'
+          let tid = setTimeout @ 
+            v => gsrc.next(v)
+            1, 'bingo'
+
+          try :: yield
+          finally ::
+            clearTimeout(tid)
+            log.push @ 'xctx fin'
+
+      let z = array_from_ao_iter(pipe)
+
+      assert.deepEqual @ log, @[] 'xctx start'
+
+      await delay(5)
+      pipe.stop()
+
+      assert.deepEqual @ log, @[] 'xctx start', 'xctx fin'
+
+      assert.deepEqual @ await z, @[] 'bingo'
+
+
+  describe @ 'gsrc: source generator feed', @::
+    it @ 'with', @::>
+      let log=[]
+
+      let pipe = ao_pipe()
+
+      pipe.gsrc.with @\ gsrc ::*
+        log.push @ 'gsrc.with start'
+        let tid = setTimeout @ 
+          v => gsrc.next(v)
+          1, 'bingo'
+
+        try :: yield
+        finally ::
+          clearTimeout(tid)
+          log.push @ 'gsrc.with fin'
+
+      let z = array_from_ao_iter(pipe)
+
+      assert.deepEqual @ log, @[] 'gsrc.with start'
+
+      await delay(5)
+      pipe.stop()
+
+      assert.deepEqual @ log, @[] 'gsrc.with start', 'gsrc.with fin'
+
+      assert.deepEqual @ await z, @[] 'bingo'
+
+
+    it @ 'feed', @::>
+      let pipe = ao_pipe()
+      let z = array_from_ao_iter(pipe)
+
+      await pipe.gsrc.feed @
+        delay_walk @# 1942, 2042, 2142
+
+      pipe.stop()
+      assert.deepEqual @ await z, @[] 1942, 2042, 2142
+
+
+    it @ 'bind_vec', @::>
+      let pipe = ao_pipe()
+      let z = ao_iter(pipe).next()
+      let send = pipe.gsrc.bind_vec @ 'a', 'b', 'c'
+      send('bind_vec')
+
+      z = await z
+      assert.deepEqual @ z.value,
+        @[] 'a', 'b', 'c', 'bind_vec'
+
+
+    it @ 'bind_obj', @::>
+      let pipe = ao_pipe()
+      let z = ao_iter(pipe).next()
+      let send = pipe.gsrc.bind_obj @ 'zed', @{}
+        a: 'aaa', b: 'bbb'
+
+      send('bind_obj')
+      z = await z
+      assert.deepEqual @ z.value,
+        @{} a:'aaa', b:'bbb', zed: 'bind_obj'
+
+
+  describe @ 'output async generator', @::
+    it @ 'run', @::>
+      let log=[]
+
+      let p1 = ao_pipe
+        .create @:
+          xsrc: delay_walk @# 30,20,10
+        .run @\ p0 ::>
+          log.push @ `run before`
+          expect(p0).to.be.a('promise')
+          let v = await p0
+          log.push @ `run after ${v}`
+
+      expect(p1).to.be.a('promise')
+      assert.deepEqual @ log, @[] 'run before'
+
+      await p1
+      assert.deepEqual @ log, @[] 'run before', 'run after undefined'
+
+
+    it @ 'tap', @::>
+      let a, b
+      let gs = ao_pipe
+        .create @:
+          xsrc: delay_walk @# 30, 20, 10
+
+        .tap @\ g ::
+          a = array_from_ao_iter(g.ao_fork())
+          b = array_from_ao_iter(g.ao_fork())
+
+      let z = array_from_ao_iter(gs)
+      expect(gs.fence).to.be.a('function')
+
+      expect(a).to.be.a('promise')
+      expect(b).to.be.a('promise')
+      expect(z).to.be.a('promise')
+
+      let p = gs.fence()
+      expect(p).to.be.a('promise')
+      expect(await p).to.equal @ 30
+
+      expect(await z).to.deep.equal @# 30, 20, 10
+      expect(await a).to.deep.equal @# 30, 20, 10
+      expect(await b).to.deep.equal @# 30, 20, 10
+
+
+    it @ 'split', @::>
+      let a, b
+      let gs = ao_pipe
+        .create @:
+          xsrc: delay_walk @# 30, 20, 10
+
+        .split @\ g ::
+          a = array_from_ao_iter(g.ao_fork())
+          b = array_from_ao_iter(g)
+
+      let c = array_from_ao_iter(gs.ao_fork())
+      let z = array_from_ao_iter(gs)
+
+      expect(gs.fence).to.be.a('function')
+      expect(gs.fin).to.be.a('promise')
+
+      expect(a).to.be.a('promise')
+      expect(b).to.be.a('promise')
+      expect(c).to.be.a('promise')
+      expect(z).to.be.a('promise')
+
+      let p = gs.fence()
+      expect(p).to.be.a('promise')
+      expect(await p).to.equal @ 30
+
+      expect(await z).to.deep.equal @# 30, 20, 10
+      expect(await a).to.deep.equal @# 30, 20, 10
+      expect(await b).to.deep.equal @# 30, 20, 10
+      expect(await c).to.deep.equal @# 30, 20, 10
 

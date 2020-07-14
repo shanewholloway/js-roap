@@ -8,6 +8,12 @@ export const delay = (ms=1) =>
 export const delay_race = (p, ms=1) => 
   Promise.race @# p, delay(ms)
 
+export async function * delay_walk(g_in, ms=1) ::
+  await delay(ms)
+  for await let v of g_in ::
+    yield v
+    await delay(ms)
+
 export function is_fn(fn) ::
   assert.equal @ 'function', typeof fn
   return fn
@@ -21,4 +27,10 @@ export function is_gen(g) ::
 export function is_async_iterable(o) ::
   assert @ null != o[Symbol.asyncIterator], 'async iterable'
   return o
+
+export async function array_from_ao_iter(g) ::
+  let res = []
+  for await let v of g ::
+    res.push(v)
+  return res
 

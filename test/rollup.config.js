@@ -1,8 +1,9 @@
 import rpi_resolve from '@rollup/plugin-node-resolve'
+import rpi_dgnotify from 'rollup-plugin-dgnotify'
 import rpi_jsy from 'rollup-plugin-jsy'
 
 const sourcemap = 'inline'
-const plugins = [ rpi_resolve() ]
+const plugins = [ rpi_resolve(), rpi_dgnotify() ]
 
 const plugins_nodejs = [
   rpi_jsy({defines: {PLAT_NODEJS: true}}),

@@ -1,19 +1,62 @@
 import {iter, ao_iter} from 'roap'
-import {ao_step, iter_step} from 'roap'
+import {ao_step_iter, step_iter} from 'roap'
 
 import @{}
   assert, expect,
-  delay_race, delay,
+  array_from_ao_iter,
+  is_gen
 from './_utils.jsy'
 
 
 describe @ 'core drive iters', @::
-  it.skip @ 'normal iter', @::
 
-  it.skip @ 'async iter', @::
+  it @ 'normal iter', @::
+    let g = is_gen @ iter @# 10, 20, 30
+    assert.deepEqual @ {value: 10, done: false}, g.next()
 
-  it.skip @ 'normal step', @::
 
-  it.skip @ 'async ao_step', @::
+  it @ 'async iter', @::>
+    let g = is_gen @ ao_iter @# 10, 20, 30
 
+    let p = g.next()
+    expect(p).to.be.a('promise')
+
+    assert.deepEqual @ {value: 10, done: false}, await p
+
+
+  it @ 'normal step_iter', @::
+    let z = Array.from @
+      zip @
+        [10, 20, 30]
+        ['a', 'b', 'c']
+
+    assert.deepEqual @ z, @[]
+      [10, 'a']
+      [20, 'b']
+      [30, 'c']
+
+    function * zip(a, b) ::
+      b = step_iter(b)
+      for let av of iter(a) ::
+        for let bv of b ::
+          yield [av, bv]
+
+
+  it @ 'async ao_step_iter', @::>
+    let z = await array_from_ao_iter @
+      ao_zip @
+        [10, 20, 30]
+        ['a', 'b', 'c']
+
+    assert.deepEqual @ z, @[]
+      [10, 'a']
+      [20, 'b']
+      [30, 'c']
+
+
+    async function * ao_zip(a, b) ::
+      b = ao_step_iter(b)
+      for await let av of ao_iter(a) ::
+        for await let bv of b ::
+          yield [av, bv]
 

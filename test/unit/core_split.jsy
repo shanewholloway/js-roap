@@ -2,14 +2,77 @@ import {ao_split, ao_tap} from 'roap'
 
 import @{}
   assert, expect,
-  delay_race, delay,
+  delay_race, delay, delay_walk,
+  array_from_ao_iter,
+  is_fn, is_gen, is_async_iterable
 from './_utils.jsy'
 
 
 describe @ 'core split', @::
 
   describe @ 'ao_split', @::
-    it.skip @ 'TODO', @::
+    it @ 'triple', @::>
+      let g = delay_walk @# 1942, 2042, 2142
+      let gs = is_async_iterable @ ao_split(g)
+
+      expect(gs.fin).to.be.a('promise')
+      expect(gs.fence).to.be.a('function')
+
+      let p = gs.fence()
+      expect(p).to.be.a('promise')
+
+      let a = array_from_ao_iter(gs)
+      expect(a).to.be.a('promise')
+      let b = array_from_ao_iter(gs)
+      expect(b).to.be.a('promise')
+      let c = array_from_ao_iter(gs.ao_fork())
+      expect(c).to.be.a('promise')
+
+      assert.equal(await p, 1942)
+
+      p = gs.fence()
+      assert.equal(await p, 2042)
+
+      p = gs.fence()
+      assert.equal(await p, 2142)
+
+      await gs.fin
+      assert.deepEqual @ a = await a, @[] 1942, 2042, 2142
+      assert.deepEqual @ b = await b, @[] 1942, 2042, 2142
+      assert.deepEqual @ c = await c, @[] 1942, 2042, 2142
+
+      assert @ a !== b
+      assert @ a !== c
+      assert @ b !== c
+
 
   describe @ 'ao_tap', @::
-    it.skip @ 'TODO', @::
+    it @ 'triple', @::>
+      let g = delay_walk @# 1942, 2042, 2142
+      let gs = is_async_iterable @ ao_tap(g)
+
+      expect(gs.fence).to.be.a('function')
+
+      let p = gs.fence()
+      expect(p).to.be.a('promise')
+
+      let a = array_from_ao_iter(gs.ao_fork())
+      expect(a).to.be.a('promise')
+      let b = array_from_ao_iter(gs.ao_fork())
+      expect(b).to.be.a('promise')
+      let c = array_from_ao_iter(gs.ao_fork())
+      expect(c).to.be.a('promise')
+
+      assert.equal @ 'timeout', await delay_race(p,1)
+      let z = array_from_ao_iter(gs)
+
+      assert.equal(await p, 1942)
+
+      assert.deepEqual @ a = await a, @[] 1942, 2042, 2142
+      assert.deepEqual @ b = await b, @[] 1942, 2042, 2142
+      assert.deepEqual @ c = await c, @[] 1942, 2042, 2142
+
+      assert @ a !== b
+      assert @ a !== c
+      assert @ b !== c
+

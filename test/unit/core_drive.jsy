@@ -2,13 +2,60 @@ import {ao_run, ao_drive} from 'roap'
 
 import @{}
   assert, expect,
-  delay_race, delay,
+  delay_race, delay, delay_walk
 from './_utils.jsy'
 
 
 describe @ 'core drive', @::
 
-  it.skip @ 'ao_run', @::
+  it @ 'ao_run', @::>
+    let lst = []
+    let g = delay_walk @# 1942, 2042, 2142
+    let p = ao_run @ g, v => lst.push(v)
 
-  it.skip @ 'ao_drive', @::
+    expect(p).to.be.a("promise")
+    assert.deepEqual @ await p, undefined
+    assert.deepEqual @ lst, @[] 1942, 2042, 2142
+
+  it @ 'ao_drive generator', @::>
+    let lst = []
+    let g_tgt = gen_test(lst)
+    g_tgt.next('first')
+    g_tgt.next('second')
+    let g = delay_walk @# 1942, 2042, 2142
+    let p = ao_drive @ g, g_tgt, v => ['xe', v]
+
+    expect(p).to.be.a("promise")
+    assert.deepEqual @ await p, undefined
+    g_tgt.next('final')
+
+    assert.deepEqual @ lst, @[]
+      'second'
+      @[] 'xe', 1942
+      @[] 'xe', 2042
+      @[] 'xe', 2142
+      'final'
+
+    function * gen_test(lst) ::
+      while 1 ::
+        let v = yield
+        lst.push(v)
+
+  it @ 'ao_drive function', @::>
+    let lst = []
+    let g = delay_walk @# 1942, 2042, 2142
+    let p = ao_drive @ g, gen_test, v => ['xe', v]
+
+    expect(p).to.be.a("promise")
+    assert.deepEqual @ await p, undefined
+
+    assert.deepEqual @ lst, @[]
+      @[] 'xe', 1942
+      @[] 'xe', 2042
+      @[] 'xe', 2142
+
+    function * gen_test() ::
+      while 1 ::
+        let v = yield
+        lst.push(v)
 

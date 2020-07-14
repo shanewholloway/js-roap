@@ -35,6 +35,13 @@ export function ao_fence_obj() ::
     fence: f[0], reset: f[1]
 
 
+export async function * ao_fence_fork(fence) ::
+  while ! fence.done ::
+    let v = await fence()
+    if fence.done ::
+      return v
+    yield v
+
 export async function * ao_fence_marks(fence, opt) ::
   let {signal, trailing, initial} = opt || {}
   let f = true === initial
@@ -49,6 +56,9 @@ export async function * ao_fence_marks(fence, opt) ::
     else ::
       f = fence()
       v = await f
+
+    if fence.done ::
+      return v
 
     if 'function' === typeof signal ::
       yield signal(v)

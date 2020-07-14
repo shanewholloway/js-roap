@@ -5,11 +5,16 @@ export const _xinvoke = v_fn =>
     ? v_fn()
     : v_fn
 
-export function _xpipesrc(pipe) ::
-  pipe = _xinvoke(pipe)
-  if null != pipe ::
-    return pipe.gsrc || pipe
+export function _xpipe_tgt(pipe) ::
+  if 'function' === typeof pipe && ! is_ao_iter(pipe) ::
+    pipe = pipe()
+    pipe.next()
+    return pipe
 
+  return pipe.gsrc || pipe
+
+export function _xpipe_feed(pipe) ::
+  return pipe
 
 
 export function * iter(gen_in) ::
@@ -23,12 +28,12 @@ export const is_ao_iter = g =>
 
 
 
-export function fn_chain(tail) ::
+export function fn_chain(tail, ctx) ::
   return _obj_assign @ chain, @{}
     chain, tail: _xinvoke(tail)
 
   function chain(fn) ::
-    chain.tail = fn(chain.tail)
+    chain.tail = fn(chain.tail, ctx)
     return chain
 
 

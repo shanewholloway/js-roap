@@ -7,3 +7,6 @@ export const {
   isArray: _is_array,
 } = Array
 
+
+export const _ret_void = () => {}
+export const _ret_ident = v => v

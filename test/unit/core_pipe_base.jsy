@@ -1,0 +1,93 @@
+import {_ao_pipe_base, ao_drive} from 'roap'
+
+import @{}
+  assert, expect,
+  delay_race, delay, delay_walk
+  array_from_ao_iter,
+  is_fn, is_gen, is_async_iterable
+from './_utils.jsy'
+
+
+describe @ 'core _ao_pipe_base', @::
+  it @ 'shape', @::
+    let pipe = is_gen @ _ao_pipe_base.create()
+    is_gen @ pipe.gsrc
+
+
+  it @ 'example', @::>
+    let pipe = _ao_pipe_base.create()
+    let z = common_ao_pipe_base @ pipe,
+      [1942, 2042, 2142]
+
+    assert.deepEqual @
+      @[] 1942, 2042, 2142
+      await delay_race(z, 50)
+
+  it @ 'xfold', @::>
+    let pipe = _ao_pipe_base.create @::
+      let s = 0
+      return @{} xfold: v => s += v
+
+    let z = common_ao_pipe_base @ pipe,
+      [1942, 2042, 2142]
+
+    assert.deepEqual @
+      @[] 1942, 1942+2042, 1942+2042+2142
+      await delay_race(z, 50)
+
+
+  it @ 'xemit', @::>
+    let pipe = _ao_pipe_base.create @:
+      xemit: v => ['xe', v]
+
+    let z = common_ao_pipe_base @ pipe,
+      [1942, 2042, 2142]
+
+    assert.deepEqual @
+      @[] ['xe', 1942]
+          ['xe', 2042]
+          ['xe', 2142]
+      await delay_race(z, 50)
+
+
+  it @ 'xpull', @::>
+    let pipe = _ao_pipe_base.create @::
+      let mem = []
+      return @{}
+        xfold(v) ::
+          if undefined !== v ::
+            mem.push(v)
+          return mem[0]
+        xpull() ::
+          return mem[0]
+        xemit() ::
+          let tip = mem.shift()
+          let q = mem.slice()
+          return @{} tip, q
+
+    let z = array_from_ao_iter(pipe)
+    for let v of [1942, 2042, 2142] ::
+      pipe.gsrc.next(v)
+
+    await delay(1)
+    pipe.gsrc.return()
+
+    assert.deepEqual @
+      @[]
+        @{} tip: 1942, q: @[] 2042, 2142
+        @{} tip: 2042, q: @[] 2142
+        @{} tip: 2142, q: @[]
+      await z
+
+
+  async function common_ao_pipe_base(pipe, values) ::
+    let z = array_from_ao_iter(pipe)
+
+    await ao_drive @
+      delay_walk(values)
+      pipe.gsrc
+
+    pipe.gsrc.return()
+
+    return z
+

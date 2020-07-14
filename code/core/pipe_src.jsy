@@ -1,14 +1,11 @@
 import { _ao_pipe_src_base } from './pipe_base.jsy'
-import { fn_chain } from './util.jsy'
 import { ao_drive } from './drive.jsy'
 
 export const _ao_pipe_src = @{}
-  __proto__: _ao_pipe_src_base
-
-  get chain() :: return fn_chain(this)
+  ... _ao_pipe_src_base
 
   with(xctx) ::
-    if 'function' === xctx ::
+    if 'function' === typeof xctx ::
       xctx = xctx(this)
 
     if xctx && xctx.next ::

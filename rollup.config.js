@@ -1,11 +1,12 @@
 import rpi_jsy from 'rollup-plugin-jsy'
+import rpi_dgnotify from 'rollup-plugin-dgnotify'
 import { terser as rpi_terser } from 'rollup-plugin-terser'
 
 const configs = []
 export default configs
 
 const sourcemap = true
-const plugins = [ rpi_jsy() ]
+const plugins = [ rpi_jsy(), rpi_dgnotify() ]
 const plugins_web = [ ... plugins, rpi_terser({}) ]
 
 

@@ -1,34 +1,37 @@
-import {_xinvoke, _xpipesrc} from './util.jsy'
+import {_ret_ident} from './_common.jsy'
+import {iter, ao_iter, _xinvoke, _xpipe_tgt} from './util.jsy'
 
-const _r_ident = v => v
 
-export async function ao_run(gen_in, notify=_r_ident) ::
+export async function ao_run(gen_in, notify=_ret_ident) ::
   for await let v of _xinvoke(gen_in) ::
     notify(v)
 
 
-export async function ao_drive(gen_in, gen_out, xform=_r_ident) ::
-  gen_out = _xpipesrc(gen_out)
+export async function ao_drive(gen_in, gen_tgt, xform=_ret_ident) ::
+  gen_tgt = _xpipe_tgt(gen_tgt)
   for await let v of _xinvoke(gen_in) ::
-    if undefined !== gen_out ::
+    if undefined !== gen_tgt ::
       v = xform(v)
-      let {done} = await gen_out.next(v)
+      let {done} = await gen_tgt.next(v)
       if done :: break
 
 
-export function * iter_step(iter) ::
-  let t = {}
-  while 1 ::
-    t = iter.next()
-    if t.done ::
-      return t.value
-    else yield t.value
+export function ao_step_iter(iterable, multiple) ::
+  iterable = ao_iter(iterable)
+  return @{}
+    async * [Symbol.asyncIterator]() ::
+      do ::
+        let {value} = await iterable.next()
+        yield value
+      while multiple
 
-export async function * ao_step(ao_iter) ::
-  let t = {}
-  while 1 ::
-    t = await ao_iter.next()
-    if t.done ::
-      return t.value
-    else yield t.value
+
+export function step_iter(iterable, multiple) ::
+  iterable = iter(iterable)
+  return @{}
+    *[Symbol.iterator]() ::
+      do ::
+        let {value} = iterable.next()
+        yield value
+      while multiple
 

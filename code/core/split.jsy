@@ -1,20 +1,15 @@
 import {_obj_assign, _obj_props} from './_common.jsy'
 import {_xinvoke, fn_chain} from './util.jsy'
-import {ao_fence_v} from './fence.jsy'
+import {ao_fence_v, ao_fence_fork} from './fence.jsy'
 import {ao_run} from './drive.jsy'
 
 
 const _ao_tap_api = @{}
-  * fork() ::
-    let {fence} = this
-    while ! fence.done ::
-      yield fence()
-
-  async * ao_fork() ::
-    yield * this.fork()
+  ao_fork() ::
+    return ao_fence_fork(this.fence)
 
 const _ao_tap_props = @{}
-  chain: @{} get() :: return fn_chain(this)
+  chain: @{} get() :: return fn_chain(this, this)
 
 export function ao_tap(gen_in, xfn) ::
   let obj = _obj_assign @
@@ -36,6 +31,7 @@ export function _ao_tap(gen_in) ::
         yield v
     finally ::
       fence.done = true
+      reset()
 
   gen.fence = fence
   return gen
@@ -45,10 +41,7 @@ export function _ao_tap(gen_in) ::
 const _ao_split = @{}
   ... _ao_tap_api
 
-  get chain() :: return fn_chain(this)
-
-  [Symbol.iterator]() ::
-    return this.fork()
+  get chain() :: return fn_chain(this, this)
 
   [Symbol.asyncIterator]() ::
     return this.ao_fork()

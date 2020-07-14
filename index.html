@@ -7,6 +7,7 @@
 
   <link rel='icon' href='data:image/png;base64,' />
   <link rel='stylesheet' crossorigin='anonymous' href='https://cdn.jsdelivr.net/npm/shoelace-css@1.0.0-beta24/dist/shoelace.css' />
+
   <style>
     body>main {
       max-width: 40em;
@@ -28,23 +29,14 @@
     }
   </style>
 
+  <link href='https://cdn.jsdelivr.net/npm/prismjs@1.20.0/themes/prism.css' rel='stylesheet' />
+  <script src='https://cdn.jsdelivr.net/npm/prism-jsy/umd/prism-jsy.js' rel='stylesheet' />
+
   <script src='./umd/roap.js'></script>
 </head>
 
 <body>
   <main>
-    <form id=frm>
-      <label>A <input id=aaa type=range min=0 max=1000 value=500 /></label>
-      <label>B <input id=bbb type=range min=0 max=1000 value=100 /></label>
-      <label>C <input id=ccc type=range min=0 max=1000 value=900 /></label>
-    </form>
-
-    <div class='color_grid'>
-      <div id=tgt_rgb>RGB</div>
-      <div id=tgt_hsl>HSL</div>
-    </div>
-
-    <br />
     <p>
       Let me sum up; wait, there is too much.
       <ul>
@@ -52,6 +44,21 @@
         <li><a href='./demo/index.html'>Small demo examples</a></li>
       </ul>
     </p>
+
+    <hr/>
+
+    <form id=frm>
+      <label>A <input id=aaa type=range min=0 max=1000 value=300 /></label>
+      <label>B <input id=bbb type=range min=0 max=1000 value=500 /></label>
+      <label>C <input id=ccc type=range min=0 max=1000 value=700 /></label>
+    </form>
+
+    <div class='color_grid'>
+      <div id=tgt_rgb>RGB</div>
+      <div id=tgt_hsl>HSL</div>
+    </div>
+
+    <pre data-src='./demo/dom_input.jsy'></pre>
   </main>
   <script src='./demo/esm/dom_input.mjs'></script>
 </body>

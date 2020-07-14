@@ -27,6 +27,8 @@
       padding: 5px;
     }
   </style>
+  <link href='https://cdn.jsdelivr.net/npm/prismjs@1.20.0/themes/prism.css' rel='stylesheet' />
+  <script src='https://cdn.jsdelivr.net/npm/prism-jsy/umd/prism-jsy.js' rel='stylesheet' />
 
   <script src='../umd/roap.js'></script>
   <script src='/livereload.js'></script>
@@ -35,15 +37,18 @@
 <body>
   <main>
     <form id=frm>
-      <label>A <input id=aaa type=range min=0 max=1000 value=500 /></label>
-      <label>B <input id=bbb type=range min=0 max=1000 value=100 /></label>
-      <label>C <input id=ccc type=range min=0 max=1000 value=900 /></label>
+      <label>A <input id=aaa type=range min=0 max=1000 value=300 /></label>
+      <label>B <input id=bbb type=range min=0 max=1000 value=500 /></label>
+      <label>C <input id=ccc type=range min=0 max=1000 value=700 /></label>
     </form>
 
     <div class='color_grid'>
       <div id=tgt_rgb>RGB</div>
       <div id=tgt_hsl>HSL</div>
     </div>
+
+    <hr />
+    <pre data-src='./dom_input.jsy'></pre>
   </main>
 
   <script src='./esm/dom_input.mjs'></script>

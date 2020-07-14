@@ -22,12 +22,19 @@ ao_dom_events(ao_tgt).with @:
 
 const ao_tgt_rgb = @*>
   for await {a,b,c} of ao_tgt ::
-    yield `rgb(${(a.value*.255).toFixed(1)}, ${(b.value*.255).toFixed(1)}, ${(c.value*.255).toFixed(1)})`
+    let _r = (a.value*.255).toFixed(1)
+    let _g = (b.value*.255).toFixed(1)
+    let _b = (c.value*.255).toFixed(1)
+    yield `rgb(${_r}, ${_g}, ${_b})`
       
 
 const ao_tgt_hsl = @*>
   for await {a,b,c} of ao_tgt ::
-    yield `hsl(${(a.value*0.36).toFixed(1)}, ${(b.value/10).toFixed(1)}%, ${(c.value/10).toFixed(1)}%)`
+    let _h = (a.value*0.36).toFixed(1)
+    let _s = (b.value/10).toFixed(1)
+    let _l = (c.value/10).toFixed(1)
+    
+    yield `hsl(${_h}, ${_s}%, ${_l}%)`
 
 
 ::!>

@@ -5,10 +5,10 @@ let demo_duration = setTimeout @ Boolean, 15000
 ::!>
   let i = 0
   for await let v of ao_interval(1000) ::
-    console.log('interval', {v, i: i++})
+    console.log @ 'ao_interval', @{} v, i: i++
 
 ::!>
   let i = 0
   for await let ts of ao_times @ ao_interval(1000) ::
-    console.log('ao_time interval', {ts, i: i++})
+    console.log @ 'ao_time ao_interval', @{} ts, i: i++
 

@@ -19,7 +19,7 @@ export const _dom_events_api = @{}
     let {emit, info} = this
     ::
       let em = _wm_item(this.wm_elems, elem, _elem_map_entry)
-      info = @{} ... info, ... em.info, dom_event: evt
+      info = @{} ... info, ... em.info, evt
 
       let evt0 = evt.split(/[_.]/, 1)[0]
       if 'init' === evt0 ::

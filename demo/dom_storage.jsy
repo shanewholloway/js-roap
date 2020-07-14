@@ -1,0 +1,27 @@
+import {ao_interval, ao_times} from 'roap'
+import {ao_pipe, ao_dom_events} from 'roap'
+
+const ao_tgt = ao_pipe()
+
+ao_dom_events(ao_tgt).with @:
+  $: window
+  storage(evt) ::
+    let {key, oldValue, newValue, url} = evt
+    return @{} key, oldValue, newValue, url
+
+
+::!>
+  let el_output = document.querySelector('output')
+  for await let e of ao_tgt ::
+    console.log @ 'ao_tgt:', e
+
+    let el_pre = document.createElement('pre')
+    el_pre.textContent = JSON.stringify(e, null, 2)
+    el_output.appendChild(el_pre)
+
+
+::!>
+  let tab_id = Math.random().toString(36).slice(2)
+  for await let ts of ao_times @ ao_interval(1000) ::
+    localStorage.setItem @ tab_id, @[] tab_id, ts
+

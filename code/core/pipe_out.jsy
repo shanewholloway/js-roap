@@ -11,5 +11,6 @@ export function _ao_pipe_out(ag_out, self, kind) ::
   let ao_wrap = _ao_pipe_out_kinds[kind]
   if undefined === ao_wrap ::
     throw new Error(`Unknonwn ao_pipe_out kind "${kind}"`)
+
   return _obj_assign @ ao_wrap(ag_out), self
 

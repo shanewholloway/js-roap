@@ -1,6 +1,6 @@
 {
   "name": "roap",
-  "version": "0.1.0-0",
+  "version": "0.2.0-0",
   "description": "Reactive Observable Async-iterable Programming",
   "license": "BSD-2-Clause",
   "author": "Shane Holloway <shane.holloway@ieee.org>",
@@ -14,7 +14,9 @@
   },
   "files": [
     "code/",
-    "esm/"
+    "cjs/",
+    "esm/",
+    "umd/"
   ],
   "type": "module",
   "main": "./cjs/roap.cjs",
@@ -22,6 +24,7 @@
   "browser": "./umd/roap.min.js",
   "exports": {
     "./": "./",
+    "./esm/": "./esm/",
     ".": {
       "import": "./esm/roap.mjs",
       "require": "./cjs/roap.cjs"
@@ -29,9 +32,8 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "@rollup/plugin-node-resolve": "^7.1.1",
+    "@rollup/plugin-node-resolve": "^8.4.0",
     "qsrv": "^0.1.7",
-    "roap": "file:.",
     "rollup": "^2.21.0",
     "rollup-plugin-dgnotify": "^0.1.7",
     "rollup-plugin-jsy": "^1.7.1",
@@ -39,7 +41,7 @@
     "tmex": "^1.0.5"
   },
   "scripts": {
-    "start": "tmex $PWD -l 23 -r -n _cli serve watch _w_test _w_demo",
+    "start": "npx tmex $PWD -l 23 -r -n _cli serve watch _w_test _w_demo",
     "serve": "qsrv -p 8082 -- index.html ./esm ./demo ./test",
     "clean": "rm -rf ./cjs/* ./esm/* ./umd/*",
     "build": "rollup --config",

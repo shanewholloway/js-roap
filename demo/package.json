@@ -1,9 +1,11 @@
 {
   "private": true,
-  "dependencies": {},
+  "dependencies": {
+    "roap": "file:.."
+  },
   "devDependencies": {},
   "scripts": {
-    "watch": "rollup --config --watch",
-    "build": "rollup --config"
+    "watch": "npx rollup --config --watch",
+    "build": "npx rollup --config"
   }
 }

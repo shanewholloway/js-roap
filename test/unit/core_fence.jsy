@@ -96,7 +96,7 @@ describe @ 'core ao_fence', @::
       expect(res).to.be.an('object')
       expect(res.fence).to.be.a('function')
       expect(res.reset).to.be.a('function')
-      expect(res.ao_marks).to.be.a('function')
+      expect(res.ao_fork).to.be.a('function')
       expect(res[Symbol.asyncIterator]).to.be.a('function')
 
 
@@ -128,7 +128,7 @@ describe @ 'core ao_fence', @::
           return `pa ${v}`
 
       let pb = @!>
-        for await let v of res.ao_marks() ::
+        for await let v of res.ao_fork() ::
           return `pb ${v}`
 
       let pc = res.fence()

@@ -1,0 +1,14 @@
+import {ao_interval, ao_times} from 'roap'
+
+let demo_duration = setTimeout @ Boolean, 15000
+
+::!>
+  let i = 0
+  for await let v of ao_interval(1000) ::
+    console.log('interval', {v, i: i++})
+
+::!>
+  let i = 0
+  for await let ts of ao_times @ ao_interval(1000) ::
+    console.log('ao_time interval', {ts, i: i++})
+

@@ -1,4 +1,4 @@
-import {ao_dom_animation, ao_times, ao_iter} from 'roap/esm/roap_dom.mjs'
+import {ao_dom_animation, ao_times, ao_iter} from 'roap'
 
 import @{}
   assert, expect,
@@ -6,10 +6,11 @@ import @{}
 from './_utils.jsy'
 
 
-if 'undefined' !== typeof requestAnimationFrame ::
-  describe @ 'dom animation frames', @::
-    it @ 'shape', @::
-      is_fn @ ao_dom_animation
+describe @ 'dom animation frames', @::
+  it @ 'shape', @::
+    is_fn @ ao_dom_animation
+
+  if 'undefined' !== typeof requestAnimationFrame ::
 
     it @ 'ao_dom_animation', @::>
       let aot = is_async_iterable @ ao_dom_animation()

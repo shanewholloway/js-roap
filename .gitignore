@@ -6,3 +6,5 @@ node_modules/
 npm-debug.log
 __unittest*
 .hggitignore
+demo/package-lock.json
+all-docs.json

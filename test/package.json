@@ -2,14 +2,15 @@
   "private": true,
   "dependencies": {
     "chai": "^4.2.0",
-    "mocha": "^7.1.1"
+    "mocha": "^7.1.1",
+    "roap": "file:.."
   },
   "devDependencies": {},
   "scripts": {
     "prebuild": "test -d ./node_modules || npm -s install",
-    "build": "rollup --config",
+    "build": "npx rollup --config",
     "clean": "rm ./__unittest.*",
-    "watch": "rollup --config --watch",
+    "watch": "npx rollup --config --watch",
     "pretest": "npm -s run build",
     "test": "npm -s run test:one",
     "test:one": "NODE_OPTIONS=--enable-source-maps  mocha ./__unittest.cjs.js",

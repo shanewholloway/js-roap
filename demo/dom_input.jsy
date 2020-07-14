@@ -1,0 +1,43 @@
+import {ao_pipe, ao_dom_events} from 'roap'
+
+const ao_tgt = ao_pipe @:
+  * xgfold() ::
+    let ns = {}
+    while 1 ::
+      let e = yield ns
+      ns[e.k] = e.v
+
+  xemit: ns => @: ...ns
+
+
+ao_dom_events(ao_tgt).with @:
+  $: @{}
+    a: document.querySelector('#aaa')
+    b: document.querySelector('#bbb')
+    c: document.querySelector('#ccc')
+
+  init: target => @: value: target.valueAsNumber
+  input: evt => @: value: evt.target.valueAsNumber
+
+
+const ao_tgt_rgb = @*>
+  for await {a,b,c} of ao_tgt ::
+    yield `rgb(${(a.value*.255).toFixed(1)}, ${(b.value*.255).toFixed(1)}, ${(c.value*.255).toFixed(1)})`
+      
+
+const ao_tgt_hsl = @*>
+  for await {a,b,c} of ao_tgt ::
+    yield `hsl(${(a.value*0.36).toFixed(1)}, ${(b.value/10).toFixed(1)}%, ${(c.value/10).toFixed(1)}%)`
+
+
+::!>
+  let el_rgb = document.querySelector('#tgt_rgb')
+  for await let rgb of ao_tgt_rgb ::
+    el_rgb.textContent = rgb
+    el_rgb.style.backgroundColor = rgb
+
+::!>
+  let el_hsl = document.querySelector('#tgt_hsl')
+  for await let hsl of ao_tgt_hsl ::
+    el_hsl.textContent = hsl
+    el_hsl.style.backgroundColor = hsl

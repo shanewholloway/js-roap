@@ -12,7 +12,6 @@ const plugins_web = [ ... plugins, rpi_terser({}) ]
 
 add_jsy('index', 'roap')
 add_jsy('core', 'roap_core')
-add_jsy('dom', 'roap_dom')
 
 
 function add_jsy(src_name, module_name) {

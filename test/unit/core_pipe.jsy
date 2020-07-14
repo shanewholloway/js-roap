@@ -11,7 +11,7 @@ from './_utils.jsy'
 describe @ 'core ao_pipe', function() ::
   it @ 'shape', @::
     let pipe = is_gen @ ao_pipe()
-    is_gen @ pipe.gsrc
+    is_gen @ pipe.g_in
 
 
   describe @ 'compute', @::
@@ -49,10 +49,10 @@ describe @ 'core ao_pipe', function() ::
       let log=[]
 
       let pipe = ao_pipe @:
-        *xctx(gsrc) ::
+        *xctx(g_in) ::
           log.push @ 'xctx start'
           let tid = setTimeout @ 
-            v => gsrc.next(v)
+            v => g_in.next(v)
             1, 'bingo'
 
           try :: yield
@@ -72,31 +72,31 @@ describe @ 'core ao_pipe', function() ::
       assert.deepEqual @ await z, @[] 'bingo'
 
 
-  describe @ 'gsrc: source generator feed', @::
+  describe @ 'g_in: source generator feed', @::
     it @ 'with', @::>
       let log=[]
 
       let pipe = ao_pipe()
 
-      pipe.gsrc.with @\ gsrc ::*
-        log.push @ 'gsrc.with start'
+      pipe.g_in.with_ctx @\ g_in ::*
+        log.push @ 'g_in.with start'
         let tid = setTimeout @ 
-          v => gsrc.next(v)
+          v => g_in.next(v)
           1, 'bingo'
 
         try :: yield
         finally ::
           clearTimeout(tid)
-          log.push @ 'gsrc.with fin'
+          log.push @ 'g_in.with fin'
 
       let z = array_from_ao_iter(pipe)
 
-      assert.deepEqual @ log, @[] 'gsrc.with start'
+      assert.deepEqual @ log, @[] 'g_in.with start'
 
       await delay(5)
       pipe.stop()
 
-      assert.deepEqual @ log, @[] 'gsrc.with start', 'gsrc.with fin'
+      assert.deepEqual @ log, @[] 'g_in.with start', 'g_in.with fin'
 
       assert.deepEqual @ await z, @[] 'bingo'
 
@@ -105,7 +105,7 @@ describe @ 'core ao_pipe', function() ::
       let pipe = ao_pipe()
       let z = array_from_ao_iter(pipe)
 
-      await pipe.gsrc.feed @
+      await pipe.g_in.feed @
         delay_walk @# 1942, 2042, 2142
 
       pipe.stop()
@@ -115,7 +115,7 @@ describe @ 'core ao_pipe', function() ::
     it @ 'bind_vec', @::>
       let pipe = ao_pipe()
       let z = ao_iter(pipe).next()
-      let send = pipe.gsrc.bind_vec @ 'a', 'b', 'c'
+      let send = pipe.g_in.bind_vec @ 'a', 'b', 'c'
       send('bind_vec')
 
       z = await z
@@ -126,7 +126,7 @@ describe @ 'core ao_pipe', function() ::
     it @ 'bind_obj', @::>
       let pipe = ao_pipe()
       let z = ao_iter(pipe).next()
-      let send = pipe.gsrc.bind_obj @ 'zed', @{}
+      let send = pipe.g_in.bind_obj @ 'zed', @{}
         a: 'aaa', b: 'bbb'
 
       send('bind_obj')

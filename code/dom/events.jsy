@@ -1,20 +1,14 @@
 import {_obj_assign, _is_array} from '../core/_common.jsy'
 import {ao_pipe, _wm_pipe_closure, _wm_item} from '../core.jsy'
 
-export function ao_dom_events(tgt) ::
-  let de = _ao_dom_events(tgt)
-  tgt.dom_events = de
-  if tgt.gsrc ::
-    tgt.gsrc.dom_events = de
-  return tgt
 
 export const _ao_dom_events0 =
   _wm_pipe_closure(_ao_dom_events_ctx)
 
-export function _ao_dom_events(gsrc, ... ns_args) ::
-  return _ao_dom_events0(gsrc)(...ns_args)
+export function ao_dom_events(g_in, ... ns_args) ::
+  return _ao_dom_events0(g_in)(...ns_args)
 
-export function _ao_dom_events_ctx(gsrc) ::
+export function _ao_dom_events_ctx(g_in) ::
   const dom_events = (... ns_args) =>
     0 === ns_args.length ? dom_events
       : dom_events.with(... ns_args)
@@ -22,12 +16,12 @@ export function _ao_dom_events_ctx(gsrc) ::
   return _obj_assign @
     dom_events, _dom_events_api,
     @{} wm_elems: new WeakMap()
-        emit: info => gsrc.next(info)
+        emit: info => g_in.next(info)
 
 
 export const _dom_events_api = @{}
   // wm_elems: new WeakMap()
-  // emit: info => gsrc.next(info)
+  // emit: info => g_in.next(info)
 
   listen(elem, evt, xfn, evt_opt) ::
     let {emit, info} = this
@@ -35,8 +29,12 @@ export const _dom_events_api = @{}
       let em = _wm_item(this.wm_elems, elem, _elem_map_entry)
       info = @{} ... info, ... em.info, dom_event: evt
 
-      let old_fn = em.get(evt)
       let evt0 = evt.split(/[_.]/, 1)[0]
+      if 'init' === evt0 ::
+        evt_fn(elem)
+        return this
+
+      let old_fn = em.get(evt)
 
       elem.addEventListener @ evt0, evt_fn, evt_opt
       em.set(evt, evt_fn)
@@ -48,7 +46,7 @@ export const _dom_events_api = @{}
         elem.start()
 
     function evt_fn(e) ::
-      let v = xfn(e, emit)
+      let v = xfn(e, emit, info)
       if undefined !== v ::
         emit @: ... info, v
     return this
@@ -88,7 +86,7 @@ export const _dom_events_api = @{}
         @{} __proto__: this, info: @{} ... info, ... ns.info
 
       let events = @[] ... _iter_event_list(ns)
-      for let elem of _iter_named_elems(ns._, set_info) ::
+      for let elem of _iter_named_elems(ns.$, set_info) ::
         for let evt_args of events ::
           listen.call(ns_this, elem, ... evt_args)
 

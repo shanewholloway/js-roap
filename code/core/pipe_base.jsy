@@ -2,13 +2,13 @@ import {_obj_assign, _is_fn} from './_common.jsy'
 import {_xinvoke} from './util.jsy'
 
 
-export const _ao_pipe_src_base = @{}
-  as_pipe_src() :: return this
+export const _ao_pipe_in_base = @{}
+  as_pipe_in() :: return this
   // on_fin(gen)
 
 export const _ao_pipe_out_base = @{}
   as_pipe_out() :: return this
-  // gsrc
+  // g_in
   // on_fin(gen)
   // stop()
 
@@ -20,9 +20,9 @@ export const _ao_pipe_base = @{}
   xfold: v => v // on push: identity transform
   xpull() {} // memory: none
   xemit: _xinvoke // identity transform or invoke if function
-  xinit(gsrc, ag_out) {} // on init: default behavior
+  xinit(g_in, ag_out) {} // on init: default behavior
 
-  api_src: _ao_pipe_src_base
+  api_in: _ao_pipe_in_base
   api_out: _ao_pipe_out_base
 
 
@@ -43,24 +43,24 @@ export const _ao_pipe_base = @{}
       _fin_pipe(fin_lst)
       this._resume()
 
-    let gsrc =
+    let g_in =
       _obj_assign @
-        on_fin @ this._ao_producer(stop)
+        on_fin @ this._ao_pipe_in(stop)
         @{} on_fin
-        this.api_src
-      .as_pipe_src()
+        this.api_in
+      .as_pipe_in()
 
     let ag_out =
       _obj_assign @
-        on_fin @ this._ao_consumer(stop)
-        @{} gsrc, on_fin, stop
+        on_fin @ this._ao_pipe_out(stop)
+        @{} g_in, on_fin, stop
         this.api_out
       .as_pipe_out()
 
-    this.xinit(gsrc, ag_out)
+    this.xinit(g_in, ag_out)
 
-    // allow gsrc to initialize
-    gsrc.next()
+    // allow g_in to initialize
+    g_in.next()
     return ag_out
 
 
@@ -68,7 +68,7 @@ export const _ao_pipe_base = @{}
   // Upstream input generator
   //   designed for multiple feeders
 
-  *_ao_producer(_finish) ::
+  *_ao_pipe_in(_finish) ::
     try ::
       let v
       while ! this.done ::
@@ -85,7 +85,7 @@ export const _ao_pipe_base = @{}
   // Downstream async output generator
   //   designed for single consumer.
 
-  async *_ao_consumer(_finish) ::
+  async *_ao_pipe_out(_finish) ::
     try ::
       let r
       while ! this.done ::

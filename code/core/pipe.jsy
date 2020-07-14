@@ -1,6 +1,6 @@
 import { _is_fn } from './_common.jsy'
 import { _ao_pipe_base } from './pipe_base.jsy'
-import { _ao_pipe_src } from './pipe_src.jsy'
+import { _ao_pipe_in } from './pipe_in.jsy'
 import { _ao_pipe_out } from './pipe_out.jsy'
 
 
@@ -15,19 +15,19 @@ export const _ao_pipe = @{}
   // *xsrc() -- feed with source generator
   // *xctx(gen_src) -- on init: bind event sources
 
-  api_src: _ao_pipe_src
+  api_in: _ao_pipe_in
   api_out: _ao_pipe_out
 
 
-  xinit(gsrc) ::
+  xinit(g_in) ::
     let xgfold = this.xgfold
     if undefined !== xgfold ::
-      this._init_xgfold(gsrc, xgfold)
+      this._init_xgfold(g_in, xgfold)
 
-    this._init_chain(gsrc)
+    this._init_chain(g_in)
 
 
-  _init_xgfold(gsrc, xgfold) ::
+  _init_xgfold(g_in, xgfold) ::
     if undefined === xgfold ::
       return
 
@@ -42,7 +42,7 @@ export const _ao_pipe = @{}
 
     this.xgfold = xgfold
     this.xfold = this._fold_gen
-    gsrc.on_fin @ xgfold
+    g_in.on_fin @ xgfold
     return true
 
   _fold_gen(v) ::
@@ -51,14 +51,14 @@ export const _ao_pipe = @{}
     return value
 
 
-  _init_chain(gsrc) ::
+  _init_chain(g_in) ::
     let {xsrc, xctx} = this
     if undefined !== xsrc ::
-      gsrc.feed(xsrc)
-        .then @=> gsrc.return()
+      g_in.feed(xsrc)
+        .then @=> g_in.return()
 
     if undefined !== xctx ::
-      gsrc.with(xctx)
+      g_in.with_ctx(xctx)
 
 
 export const ao_pipe = _ao_pipe.create

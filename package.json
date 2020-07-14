@@ -40,7 +40,7 @@
   },
   "scripts": {
     "start": "tmex $PWD -l 23 -r -n _cli serve watch _w_test _w_demo",
-    "serve": "sleep 2 ; qsrv -p 8082 -- index.html ./esm ./demo ./test",
+    "serve": "qsrv -p 8082 -- index.html ./esm ./demo ./test",
     "clean": "rm -rf ./cjs/* ./esm/* ./umd/*",
     "build": "rollup --config",
     "watch": "rollup --config --watch",

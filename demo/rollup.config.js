@@ -15,8 +15,9 @@ demo_jsy('time', 'interval')
 demo_jsy('time', 'timeout')
 
 demo_jsy('dom')
-demo_jsy('dom', 'storage')
+demo_jsy('dom', 'input')
 demo_jsy('dom', 'channels')
+demo_jsy('dom', 'storage')
 
 
 function demo_jsy(folder, src_name='index') {

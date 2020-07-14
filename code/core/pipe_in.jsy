@@ -1,11 +1,11 @@
 import { _is_fn } from './_common.jsy'
-import { _ao_pipe_src_base } from './pipe_base.jsy'
+import { _ao_pipe_in_base } from './pipe_base.jsy'
 import { ao_drive } from './drive.jsy'
 
-export const _ao_pipe_src = @{}
-  ... _ao_pipe_src_base
+export const _ao_pipe_in = @{}
+  ... _ao_pipe_in_base
 
-  with(xctx) ::
+  with_ctx(xctx) ::
     if _is_fn(xctx) ::
       xctx = xctx(this)
 

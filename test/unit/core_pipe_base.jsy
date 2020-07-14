@@ -11,7 +11,7 @@ from './_utils.jsy'
 describe @ 'core _ao_pipe_base', @::
   it @ 'shape', @::
     let pipe = is_gen @ _ao_pipe_base.create()
-    is_gen @ pipe.gsrc
+    is_gen @ pipe.g_in
 
 
   it @ 'example', @::>
@@ -67,10 +67,10 @@ describe @ 'core _ao_pipe_base', @::
 
     let z = array_from_ao_iter(pipe)
     for let v of [1942, 2042, 2142] ::
-      pipe.gsrc.next(v)
+      pipe.g_in.next(v)
 
     await delay(1)
-    pipe.gsrc.return()
+    pipe.g_in.return()
 
     assert.deepEqual @
       @[]
@@ -85,9 +85,9 @@ describe @ 'core _ao_pipe_base', @::
 
     await ao_drive @
       delay_walk(values)
-      pipe.gsrc
+      pipe.g_in
 
-    pipe.gsrc.return()
+    pipe.g_in.return()
 
     return z
 

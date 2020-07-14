@@ -11,7 +11,7 @@ export function _xpipe_tgt(pipe) ::
     pipe.next()
     return pipe
 
-  return pipe.gsrc || pipe
+  return pipe.g_in || pipe
 
 export function * iter(gen_in) ::
   yield * _xinvoke(gen_in)
@@ -33,11 +33,16 @@ export function fn_chain(tail, ctx) ::
 
 export function _wm_pipe_closure(wm_absent) ::
   let wm = new WeakMap()
-  return pipe => _wm_item(wm, pipe.gsrc || pipe, wm_absent)
+  return pipe =>
+    _wm_item @ wm,
+      pipe.g_in || pipe,
+      wm_absent
 
 export function _wm_closure(wm_absent) ::
   let wm = new WeakMap()
-  return key => _wm_item(wm, key, wm_absent)
+  return key =>
+    _wm_item @ wm,
+      key, wm_absent
 
 export function _wm_item(wm, wm_key, wm_absent) ::
   let item = wm.get(wm_key)

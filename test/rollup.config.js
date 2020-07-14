@@ -15,8 +15,8 @@ const plugins_web = [
 
 export default [
   { input: `./unittest.jsy`, plugins: plugins_nodejs,
-    output: { file: './__unittest.cjs.js', format: 'cjs', sourcemap } },
+    output: { file: './_out/unittest.cjs.js', format: 'cjs', sourcemap } },
 
   { input: `./unittest.jsy`, context: 'window', plugins: plugins_web,
-    output: { file: './__unittest.iife.js', format: 'iife', name: `unittest`, sourcemap } },
+    output: { file: './_out/unittest.iife.js', format: 'iife', name: `unittest`, sourcemap } },
 ]

@@ -4,7 +4,7 @@ umd/
 dist/
 node_modules/
 npm-debug.log
-__unittest*
+test/_out/unittest.cjs.js
 .hggitignore
 demo/package-lock.json
 all-docs.json

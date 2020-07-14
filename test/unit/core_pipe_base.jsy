@@ -10,7 +10,7 @@ from './_utils.jsy'
 
 describe @ 'core _ao_pipe_base', @::
   it @ 'shape', @::
-    let pipe = is_gen @ _ao_pipe_base.create()
+    let pipe = is_async_iterable @ _ao_pipe_base.create()
     is_gen @ pipe.g_in
 
 

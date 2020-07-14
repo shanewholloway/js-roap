@@ -1,17 +1,7 @@
 import {_obj_assign, _is_fn} from './_common.jsy'
 import {_xinvoke} from './util.jsy'
 
-
-export const _ao_pipe_in_base = @{}
-  as_pipe_in() :: return this
-  // on_fin(gen)
-
-export const _ao_pipe_out_base = @{}
-  as_pipe_out() :: return this
-  // g_in
-  // on_fin(gen)
-  // stop()
-
+const _as_pipe_end = (g,ns) => _obj_assign(g, ns)
 
 //~~~
 // Pipe base as generator in composed object-functional implementation
@@ -21,10 +11,6 @@ export const _ao_pipe_base = @{}
   xpull() {} // memory: none
   xemit: _xinvoke // identity transform or invoke if function
   xinit(g_in, ag_out) {} // on init: default behavior
-
-  api_in: _ao_pipe_in_base
-  api_out: _ao_pipe_out_base
-
 
   get create() ::
     // as getter to bind class as `this` at access time
@@ -37,25 +23,22 @@ export const _ao_pipe_base = @{}
 
   _ao_pipe() ::
     let fin_lst = []
-    let on_fin = g => @ fin_lst.push(g), g
-    let stop = @::
-      this.done = true
-      _fin_pipe(fin_lst)
-      this._resume()
+    let self = @{}
+      on_fin: g => @
+        fin_lst.push(g)
+        g
 
-    let g_in =
-      _obj_assign @
-        on_fin @ this._ao_pipe_in(stop)
-        @{} on_fin
-        this.api_in
-      .as_pipe_in()
+      stop: @::
+        this.done = true
+        _fin_pipe(fin_lst)
+        this._resume()
 
-    let ag_out =
-      _obj_assign @
-        on_fin @ this._ao_pipe_out(stop)
-        @{} g_in, on_fin, stop
-        this.api_out
-      .as_pipe_out()
+    let {kind} = this
+    let g_in = self.on_fin @ this._ao_pipe_in @ self.stop
+    let ag_out = self.on_fin @ this._ao_pipe_out @ self.stop
+
+    self.g_in = g_in = this._as_pipe_in @ g_in, self, kind
+    ag_out = this._as_pipe_out @ ag_out, self, kind
 
     this.xinit(g_in, ag_out)
 
@@ -63,6 +46,8 @@ export const _ao_pipe_base = @{}
     g_in.next()
     return ag_out
 
+  _as_pipe_in: _as_pipe_end
+  _as_pipe_out: _as_pipe_end
 
   //~~~
   // Upstream input generator

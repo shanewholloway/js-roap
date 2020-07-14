@@ -15,11 +15,14 @@ export function ao_fence_v() ::
 const _ao_fence_api = @{}
   stop() :: this.fence.done = true
 
+  ao_fork() ::
+    return ao_fence_fork(this.fence)
+
   ao_marks(opt) ::
     return ao_fence_marks(this.fence, opt)
 
   [Symbol.asyncIterator]() ::
-    return this.ao_marks()
+    return this.ao_fork()
 
 export function ao_fence_fn(tgt) ::
   let f = ao_fence_v()
@@ -27,12 +30,10 @@ export function ao_fence_fn(tgt) ::
   tgt.fence = _obj_assign @ tgt, _ao_fence_api
   return f
 
-export function ao_fence_obj() ::
-  let f = ao_fence_v()
-  f[0].fence = _obj_assign @ f[0], _ao_fence_api
-  return @{}
-    __proto__: _ao_fence_api
-    fence: f[0], reset: f[1]
+export function ao_fence_obj(tgt) ::
+  let f = ao_fence_fn(tgt)
+  return @{} __proto__: _ao_fence_api
+    fence: tgt || f[0], reset: f[1]
 
 
 export async function * ao_fence_fork(fence) ::

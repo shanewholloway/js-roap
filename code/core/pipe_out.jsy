@@ -1,17 +1,15 @@
-import { _is_fn } from './_common.jsy'
-import { _ao_pipe_out_base } from './pipe_base.jsy'
-import { fn_chain } from './util.jsy'
+import { _obj_assign } from './_common.jsy'
 import { ao_split, ao_tap } from './split.jsy'
-import { ao_run } from './drive.jsy'
 
-export const _ao_pipe_out = @{}
-  ... _ao_pipe_out_base
+export const _ao_pipe_out_kinds = @{}
+  ao_raw: g => g
+  ao_split: ao_split
+  ao_tap: ao_tap
 
-  chain(xfn) :: return fn_chain(this, this)(xfn)
-
-  split(xfn) :: return ao_split(this, xfn)
-  tap(xfn) :: return ao_tap(this, xfn)
-  run(xfn) ::
-    let p = ao_run(this)
-    return xfn ? xfn(p) : p
+export function _ao_pipe_out(ag_out, self, kind) ::
+  kind = /^ao_/.test(kind) ? kind : 'ao_'+kind
+  let ao_wrap = _ao_pipe_out_kinds[kind]
+  if undefined === ao_wrap ::
+    throw new Error(`Unknonwn ao_pipe_out kind "${kind}"`)
+  return _obj_assign @ ao_wrap(ag_out), self
 

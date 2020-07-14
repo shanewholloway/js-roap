@@ -1,4 +1,4 @@
-import { _is_fn } from './_common.jsy'
+import { _is_fn, _obj_assign } from './_common.jsy'
 import { _ao_pipe_base } from './pipe_base.jsy'
 import { _ao_pipe_in } from './pipe_in.jsy'
 import { _ao_pipe_out } from './pipe_out.jsy'
@@ -15,9 +15,9 @@ export const _ao_pipe = @{}
   // *xsrc() -- feed with source generator
   // *xctx(gen_src) -- on init: bind event sources
 
-  api_in: _ao_pipe_in
-  api_out: _ao_pipe_out
-
+  kind: 'split'
+  _as_pipe_in: _ao_pipe_in
+  _as_pipe_out: _ao_pipe_out
 
   xinit(g_in) ::
     let xgfold = this.xgfold

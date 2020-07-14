@@ -1,9 +1,8 @@
-import { _is_fn } from './_common.jsy'
-import { _ao_pipe_in_base } from './pipe_base.jsy'
+import { _is_fn, _obj_assign } from './_common.jsy'
 import { ao_drive } from './drive.jsy'
 
-export const _ao_pipe_in = @{}
-  ... _ao_pipe_in_base
+export const _ao_pipe_in_api = @{}
+  as_pipe_in(self, g_in) ::
 
   with_ctx(xctx) ::
     if _is_fn(xctx) ::
@@ -22,4 +21,7 @@ export const _ao_pipe_in = @{}
 
   bind_obj(key, ns) ::
     return v => this.next @: ...ns, [key]: v
+
+export function _ao_pipe_in(g_in, self) ::
+  return _obj_assign(g_in, _ao_pipe_in_api, self)
 

@@ -4,29 +4,23 @@ import {ao_fence_v, ao_fence_fork} from './fence.jsy'
 import {ao_run} from './drive.jsy'
 
 
-const _ao_tap_api = @{}
-  ao_fork() ::
-    return ao_fence_fork(this.fence)
+function ao_fork() ::
+  return ao_fence_fork(this.fence)
 
 const _ao_tap_props = @{}
-  chain: @{} get() :: return fn_chain(this, this)
+  ao_fork: @{} value: ao_fork
+  chain: @{} get() ::
+    return fn_chain(this, this)
 
-export function ao_tap(gen_in, xfn) ::
-  let obj = _obj_assign @
-    _obj_props @
-      _ao_tap(gen_in),
-      _ao_tap_props
-    _ao_tap_api
+export function ao_tap(ag_out) ::
+  return _obj_props @ _ao_tap(ag_out), _ao_tap_props
 
-  if xfn :: xfn(obj)
-  return obj
-
-export function _ao_tap(gen_in) ::
+export function _ao_tap(ag_out) ::
   let [fence, reset] = ao_fence_v()
   let gen = @!>*
     fence.done = false
     try ::
-      for await let v of _xinvoke(gen_in) ::
+      for await let v of _xinvoke(ag_out) ::
         reset(v)
         yield v
     finally ::
@@ -38,21 +32,16 @@ export function _ao_tap(gen_in) ::
 
 
 
-const _ao_split = @{}
-  ... _ao_tap_api
+const _ao_split_api = @{}
+  get chain() ::
+    return fn_chain(this, this)
+  [Symbol.asyncIterator]: ao_fork
+  ao_fork
 
-  get chain() :: return fn_chain(this, this)
-
-  [Symbol.asyncIterator]() ::
-    return this.ao_fork()
-
-export function ao_split(gen_in, xfn) ::
-  let gen = _ao_tap(gen_in)
-  let obj = @{}
-    __proto__: _ao_split
+export function ao_split(ag_out) ::
+  let gen = _ao_tap(ag_out)
+  return @{}
+    __proto__: _ao_split_api
     fin: ao_run(gen)
     fence: gen.fence
-
-  if xfn :: xfn(obj)
-  return obj
 

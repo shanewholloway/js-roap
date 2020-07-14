@@ -1,4 +1,4 @@
-import {ao_pipe, ao_iter} from 'roap'
+import {ao_pipe, ao_iter, ao_run} from 'roap'
 
 import @{}
   assert, expect,
@@ -10,7 +10,7 @@ from './_utils.jsy'
 
 describe @ 'core ao_pipe', function() ::
   it @ 'shape', @::
-    let pipe = is_gen @ ao_pipe()
+    let pipe = is_async_iterable @ ao_pipe()
     is_gen @ pipe.g_in
 
 
@@ -136,34 +136,34 @@ describe @ 'core ao_pipe', function() ::
 
 
   describe @ 'output async generator', @::
-    it @ 'run', @::>
-      let log=[]
-
-      let p1 = ao_pipe
-        .create @:
+    it @ 'raw', @::>
+      let gs = is_gen @
+        ao_pipe @:
           xsrc: delay_walk @# 30,20,10
-        .run @\ p0 ::>
-          log.push @ `run before`
-          expect(p0).to.be.a('promise')
-          let v = await p0
-          log.push @ `run after ${v}`
+          kind: 'raw'
 
-      expect(p1).to.be.a('promise')
-      assert.deepEqual @ log, @[] 'run before'
+      let v0 = gs.next()
+      expect(v0).to.be.a('promise')
 
-      await p1
-      assert.deepEqual @ log, @[] 'run before', 'run after undefined'
+      let p = ao_run(gs)
+      expect(p).to.be.a('promise')
+      expect(await p).to.be.undefined
+
+      let v1 = gs.next()
+      expect(v1).to.be.a('promise')
+
+      expect(await v0).to.deep.equal @: value: 30, done: false
+      expect(await v1).to.deep.equal @: value: undefined, done: true
 
 
     it @ 'tap', @::>
-      let a, b
-      let gs = ao_pipe
-        .create @:
+      let gs = is_async_iterable @
+        ao_pipe @:
           xsrc: delay_walk @# 30, 20, 10
+          kind: 'tap'
 
-        .tap @\ g ::
-          a = array_from_ao_iter(g.ao_fork())
-          b = array_from_ao_iter(g.ao_fork())
+      let a = array_from_ao_iter(gs.ao_fork())
+      let b = array_from_ao_iter(gs.ao_fork())
 
       let z = array_from_ao_iter(gs)
       expect(gs.fence).to.be.a('function')
@@ -182,16 +182,13 @@ describe @ 'core ao_pipe', function() ::
 
 
     it @ 'split', @::>
-      let a, b
-      let gs = ao_pipe
-        .create @:
+      let gs = is_async_iterable @
+        ao_pipe @:
           xsrc: delay_walk @# 30, 20, 10
+          kind: 'split'
 
-        .split @\ g ::
-          a = array_from_ao_iter(g.ao_fork())
-          b = array_from_ao_iter(g)
-
-      let c = array_from_ao_iter(gs.ao_fork())
+      let a = array_from_ao_iter(gs)
+      let b = array_from_ao_iter(gs.ao_fork())
       let z = array_from_ao_iter(gs)
 
       expect(gs.fence).to.be.a('function')
@@ -199,7 +196,6 @@ describe @ 'core ao_pipe', function() ::
 
       expect(a).to.be.a('promise')
       expect(b).to.be.a('promise')
-      expect(c).to.be.a('promise')
       expect(z).to.be.a('promise')
 
       let p = gs.fence()
@@ -209,5 +205,4 @@ describe @ 'core ao_pipe', function() ::
       expect(await z).to.deep.equal @# 30, 20, 10
       expect(await a).to.deep.equal @# 30, 20, 10
       expect(await b).to.deep.equal @# 30, 20, 10
-      expect(await c).to.deep.equal @# 30, 20, 10
 

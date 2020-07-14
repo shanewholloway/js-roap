@@ -1,22 +1,14 @@
-import {_obj_assign, _is_array} from '../core/_common.jsy'
+import {_obj_assign, _is_array, _is_fn} from '../core/_common.jsy'
 import {ao_pipe, _wm_pipe_closure, _wm_item} from '../core.jsy'
 
 
-export const _ao_dom_events0 =
+export const ao_dom_events =
   _wm_pipe_closure(_ao_dom_events_ctx)
 
-export function ao_dom_events(g_in, ... ns_args) ::
-  return _ao_dom_events0(g_in)(...ns_args)
-
 export function _ao_dom_events_ctx(g_in) ::
-  const dom_events = (... ns_args) =>
-    0 === ns_args.length ? dom_events
-      : dom_events.with(... ns_args)
-
-  return _obj_assign @
-    dom_events, _dom_events_api,
-    @{} wm_elems: new WeakMap()
-        emit: info => g_in.next(info)
+  return @{} __proto__: _dom_events_api
+    wm_elems: new WeakMap()
+    emit: info => g_in.next(info)
 
 
 export const _dom_events_api = @{}
@@ -42,14 +34,15 @@ export const _dom_events_api = @{}
       if undefined !== old_fn ::
         elem.removeEventListener @ evt0, old_fn
 
-      if 'message' === evt0 && elem.start ::
+      if 'message' === evt0 && _is_fn(elem.start) ::
         elem.start()
+
+    return this
 
     function evt_fn(e) ::
       let v = xfn(e, emit, info)
       if undefined !== v ::
         emit @: ... info, v
-    return this
 
 
   remove(elem, ... keys) ::

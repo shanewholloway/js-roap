@@ -6,7 +6,8 @@ import { ao_run } from './drive.jsy'
 export const _ao_pipe_out = @{}
   ... _ao_pipe_out_base
 
-  chain(fn) :: return fn_chain(this, this)(fn)
+  chain(xfn) :: return fn_chain(this, this)(xfn)
+  with(xfn) :: return xfn(this)
 
   split(xfn) :: return ao_split(this, xfn)
   tap(xfn) :: return ao_tap(this, xfn)

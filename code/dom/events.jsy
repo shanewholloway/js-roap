@@ -1,11 +1,8 @@
 import {_obj_assign, _is_array} from '../core/_common.jsy'
 import {ao_pipe, _wm_pipe_closure, _wm_item} from '../core.jsy'
 
-export function ao_dom_pipe(...args) ::
-  return with_dom_events(ao_pipe(...args))
-
-export function with_dom_events(tgt) ::
-  let de = ao_dom_events(tgt)
+export function ao_dom_events(tgt) ::
+  let de = _ao_dom_events(tgt)
   tgt.dom_events = de
   if tgt.gsrc ::
     tgt.gsrc.dom_events = de
@@ -14,13 +11,13 @@ export function with_dom_events(tgt) ::
 export const _ao_dom_events0 =
   _wm_pipe_closure(_ao_dom_events_ctx)
 
-export function ao_dom_events(gsrc, ... ns_args) ::
+export function _ao_dom_events(gsrc, ... ns_args) ::
   return _ao_dom_events0(gsrc)(...ns_args)
 
 export function _ao_dom_events_ctx(gsrc) ::
   const dom_events = (... ns_args) =>
     0 === ns_args.length ? dom_events
-      : dom_events.with(ns_args)
+      : dom_events.with(... ns_args)
 
   return _obj_assign @
     dom_events, _dom_events_api,
@@ -33,10 +30,10 @@ export const _dom_events_api = @{}
   // emit: info => gsrc.next(info)
 
   listen(elem, evt, xfn, evt_opt) ::
-    let {emit} = this
+    let {emit, info} = this
     ::
       let em = _wm_item(this.wm_elems, elem, _elem_map_entry)
-      info = @{} ... this.info, ... em.info, dom_event: evt
+      info = @{} ... info, ... em.info, dom_event: evt
 
       let old_fn = em.get(evt)
       let evt0 = evt.split(/[_.]/, 1)[0]
@@ -46,6 +43,9 @@ export const _dom_events_api = @{}
 
       if undefined !== old_fn ::
         elem.removeEventListener @ evt0, old_fn
+
+      if 'message' === evt0 && elem.start ::
+        elem.start()
 
     function evt_fn(e) ::
       let v = xfn(e, emit)
@@ -73,9 +73,10 @@ export const _dom_events_api = @{}
         elem.removeEventListener(evt0, evt_fn)
     return this
 
+
   set_info(el, info) ::
     let em = _wm_item(this.wm_elems, el, _elem_map_entry)
-    _obj_assign(em, info)
+    _obj_assign(em.info, info)
     return this
 
   with(... ns_args) ::
@@ -96,16 +97,17 @@ export const _dom_events_api = @{}
 
 function _elem_map_entry(elem) ::
   let k = elem.name || elem.id
-    || (elem.type || elem.tagName).toLowerCase()
+    || (elem.type || elem.tagName || '').toLowerCase()
+    || elem[Symbol.toStringTag]
 
   let m = new Map()
-  m.info = @{} elem_name: k, k
+  m.info = @{} dom_item: k, k
   return m
 
 
 function * _iter_named_elems(lst, set_info) ::
   lst = _is_array(lst) ? lst
-    : lst.tagName ? [lst]
+    : lst.addEventListener ? [lst]
     : Object.entries(lst)
 
   for let ea of lst ::

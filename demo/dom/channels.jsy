@@ -1,0 +1,28 @@
+const {port1, port2} = window.mpair = new MessageChannel()
+
+const ao_tgt = roap_dom.ao_pipe()
+  .with @ roap_dom.ao_dom_events
+
+setTimeout @
+  @:: ao_tgt.dom_events().remove(port1, 'message')
+  3000
+
+ao_tgt.dom_events @:
+  _: @{}
+    my_named_port: port1
+    other_port_name: port2
+
+  message: evt => evt.data
+
+
+::!>
+  for await e of ao_tgt ::
+    console.log @ 'ao_tgt:', e
+
+::!>
+  for await let t of roap_dom.ao_interval(1000) ::
+    port1.postMessage @ `from port 111: ${new Date}`
+
+::!>
+  for await let t of roap_dom.ao_interval(1200) ::
+    port2.postMessage @ `from port 222: ${new Date}`

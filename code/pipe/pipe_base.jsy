@@ -23,37 +23,40 @@ export const _ao_pipe_base = @{}
 
   _ao_pipe() ::
     let fin_lst = []
-    let self = @{}
-      on_fin: g => @
-        fin_lst.push(g)
-        g
 
-      stop: @::
-        this.done = true
-        _fin_pipe(fin_lst)
-        this._resume()
+    let on_fin = this.on_fin =
+      g => @ fin_lst.push(g), g
 
-    let {kind} = this
-    let g_in = self.on_fin @ this._ao_pipe_in @ self.stop
-    let ag_out = self.on_fin @ this._ao_pipe_out @ self.stop
+    let stop = this.stop = @::
+      this.done = true
+      _fin_pipe(fin_lst)
+      this._resume()
 
-    self.g_in = g_in = this._as_pipe_in @ g_in, self, kind
-    ag_out = this._as_pipe_out @ ag_out, self, kind
 
-    this.xinit(g_in, ag_out)
+    let g_in = on_fin @
+      this._ao_pipe_in()
+
+    let ag_out = on_fin @
+      this._ao_pipe_out()
+
+    // adapt ag_out by api and kind
+    let self = {stop, on_fin, g_in}
+    ag_out = this._as_pipe_out @
+      ag_out, self, this.kind
+
+    ag_out = this.xinit(g_in, ag_out) || ag_out
 
     // allow g_in to initialize
     g_in.next()
     return ag_out
 
-  _as_pipe_in: _as_pipe_end
   _as_pipe_out: _as_pipe_end
 
   //~~~
   // Upstream input generator
   //   designed for multiple feeders
 
-  *_ao_pipe_in(_finish) ::
+  *_ao_pipe_in() ::
     try ::
       let v
       while ! this.done ::
@@ -63,14 +66,14 @@ export const _ao_pipe_base = @{}
           this._resume()
 
     finally ::
-      _finish()
+      this.stop()
 
 
   //~~~
   // Downstream async output generator
   //   designed for single consumer.
 
-  async *_ao_pipe_out(_finish) ::
+  async *_ao_pipe_out() ::
     try ::
       let r
       while ! this.done ::
@@ -91,7 +94,7 @@ export const _ao_pipe_base = @{}
         yield this.xemit(r)
 
     finally ::
-      _finish()
+      this.stop()
 
 
   //~~~

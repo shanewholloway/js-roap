@@ -35,7 +35,7 @@ describe @ 'dom events', @::
           port1.postMessage @ `from msg port1: ${m}`
           await delay(1)
 
-        ao_tgt.g_in.stop()
+        ao_tgt.g_in.return()
 
 
       let expected = @[]

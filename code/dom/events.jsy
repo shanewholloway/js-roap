@@ -1,5 +1,6 @@
 import {_obj_assign, _is_array, _is_fn} from '../core/_common.jsy'
-import {ao_pipe, _wm_pipe_closure, _wm_item} from '../core.jsy'
+import {_wm_pipe_closure, _wm_item} from '../core.jsy'
+import {ao_pipe} from '../pipe.jsy'
 
 
 export const ao_dom_events =

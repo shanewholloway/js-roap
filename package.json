@@ -43,7 +43,7 @@
   "scripts": {
     "start": "npx tmex $PWD -l 23 -r -n _cli serve watch _w_test _w_demo",
     "serve": "qsrv -p 8082 -- index.html ./esm ./demo ./test",
-    "clean": "rm -rf ./cjs/* ./esm/* ./umd/*",
+    "clean": "rm -rf ./cjs/* ./esm/* ./umd/* ./demo/esm/* ./test/out/",
     "build": "rollup --config",
     "watch": "rollup --config --watch",
     "_w_demo": "cd demo; npm -s run watch",

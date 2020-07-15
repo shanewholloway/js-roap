@@ -1,6 +1,7 @@
 import { _is_fn, _obj_assign } from '../core/_common.jsy'
+import { ao_drive } from '../core/drive.jsy'
 import { _ao_pipe_base } from './pipe_base.jsy'
-import { _ao_pipe_in } from './pipe_in.jsy'
+//import { _ao_pipe_in } from './pipe_in.jsy'
 import { _ao_pipe_out } from './pipe_out.jsy'
 
 
@@ -16,10 +17,10 @@ export const _ao_pipe = @{}
   // *xctx(gen_src) -- on init: bind event sources
 
   kind: 'split'
-  _as_pipe_in: _ao_pipe_in
+  //_as_pipe_in: _ao_pipe_in
   _as_pipe_out: _ao_pipe_out
 
-  xinit(g_in) ::
+  xinit(g_in, ag_out) ::
     let xgfold = this.xgfold
     if undefined !== xgfold ::
       this._init_xgfold(g_in, xgfold)
@@ -42,7 +43,7 @@ export const _ao_pipe = @{}
 
     this.xgfold = xgfold
     this.xfold = this._fold_gen
-    g_in.on_fin @ xgfold
+    this.on_fin @ xgfold
     return true
 
   _fold_gen(v) ::
@@ -54,12 +55,20 @@ export const _ao_pipe = @{}
   _init_chain(g_in) ::
     let {xsrc, xctx} = this
     if undefined !== xsrc ::
-      g_in.feed(xsrc)
+      ao_drive(xsrc, g_in)
         .then @=> g_in.return()
 
     if undefined !== xctx ::
-      g_in.with_ctx(xctx)
+      this._with_ctx(g_in, xctx)
 
+  _with_ctx(g_in, xctx) ::
+    if _is_fn(xctx) ::
+      xctx = xctx(g_in)
+
+    if xctx && xctx.next ::
+      xctx.next(g_in)
+      this.on_fin(xctx)
+    return xctx
 
 export const ao_pipe = _ao_pipe.create
 

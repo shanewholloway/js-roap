@@ -8,7 +8,7 @@ import @{}
 from './_utils.jsy'
 
 
-describe @ 'core _ao_pipe_base', @::
+describe @ 'ao_pipe base', @::
   it @ 'shape', @::
     let pipe = is_async_iterable @ _ao_pipe_base.create()
     is_gen @ pipe.g_in

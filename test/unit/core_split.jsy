@@ -10,8 +10,7 @@ from './_utils.jsy'
 
 describe @ 'core split', @::
 
-  describe @ 'ao_split', @::
-    it @ 'triple', @::>
+  it @ 'ao_split triple', @::>
       let g = delay_walk @# 1942, 2042, 2142
       let gs = is_async_iterable @ ao_split(g)
 
@@ -46,8 +45,7 @@ describe @ 'core split', @::
       assert @ b !== c
 
 
-  describe @ 'ao_tap', @::
-    it @ 'triple', @::>
+  it @ 'ao_tap triple', @::>
       let g = delay_walk @# 1942, 2042, 2142
       let gs = is_async_iterable @ ao_tap(g)
 

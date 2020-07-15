@@ -8,7 +8,7 @@ import @{}
 from './_utils.jsy'
 
 
-describe @ 'core ao_pipe', function() ::
+describe @ 'ao_pipe', function() ::
   it @ 'shape', @::
     let pipe = is_async_iterable @ ao_pipe()
     is_gen @ pipe.g_in
@@ -70,69 +70,6 @@ describe @ 'core ao_pipe', function() ::
       assert.deepEqual @ log, @[] 'xctx start', 'xctx fin'
 
       assert.deepEqual @ await z, @[] 'bingo'
-
-
-  describe @ 'g_in: source generator feed', @::
-    it @ 'with', @::>
-      let log=[]
-
-      let pipe = ao_pipe()
-
-      pipe.g_in.with_ctx @\ g_in ::*
-        log.push @ 'g_in.with start'
-        let tid = setTimeout @ 
-          v => g_in.next(v)
-          1, 'bingo'
-
-        try :: yield
-        finally ::
-          clearTimeout(tid)
-          log.push @ 'g_in.with fin'
-
-      let z = array_from_ao_iter(pipe)
-
-      assert.deepEqual @ log, @[] 'g_in.with start'
-
-      await delay(5)
-      pipe.stop()
-
-      assert.deepEqual @ log, @[] 'g_in.with start', 'g_in.with fin'
-
-      assert.deepEqual @ await z, @[] 'bingo'
-
-
-    it @ 'feed', @::>
-      let pipe = ao_pipe()
-      let z = array_from_ao_iter(pipe)
-
-      await pipe.g_in.feed @
-        delay_walk @# 1942, 2042, 2142
-
-      pipe.stop()
-      assert.deepEqual @ await z, @[] 1942, 2042, 2142
-
-
-    it @ 'bind_vec', @::>
-      let pipe = ao_pipe()
-      let z = ao_iter(pipe).next()
-      let send = pipe.g_in.bind_vec @ 'a', 'b', 'c'
-      send('bind_vec')
-
-      z = await z
-      assert.deepEqual @ z.value,
-        @[] 'a', 'b', 'c', 'bind_vec'
-
-
-    it @ 'bind_obj', @::>
-      let pipe = ao_pipe()
-      let z = ao_iter(pipe).next()
-      let send = pipe.g_in.bind_obj @ 'zed', @{}
-        a: 'aaa', b: 'bbb'
-
-      send('bind_obj')
-      z = await z
-      assert.deepEqual @ z.value,
-        @{} a:'aaa', b:'bbb', zed: 'bind_obj'
 
 
   describe @ 'output async generator', @::

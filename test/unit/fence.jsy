@@ -1,11 +1,11 @@
-import {ao_fence_obj, ao_fence_v} from 'roap'
+import {ao_fence_v, ao_fence_fn, ao_fence_obj} from 'roap'
 import @{}
   assert, expect,
   delay_race, delay,
 from './_utils.jsy'
 
 
-describe @ 'core ao_fence', @::
+describe @ 'ao_fence', @::
   describe @ 'ao_fence_v tuple', @::
     it @ 'shape', @::
       const res = ao_fence_v()
@@ -90,7 +90,61 @@ describe @ 'core ao_fence', @::
       expect(v).to.equal('d')
 
 
-  describe @ 'ao_fence object', @::
+  describe @ 'ao_fence_fn', @::
+    it @ 'shape', @::
+      const res = ao_fence_fn()
+
+      expect(res).to.be.an('array').of.length(2)
+      expect(res[0]).to.be.a('function')
+      expect(res[1]).to.be.a('function')
+      expect(res[0].ao_fork).to.be.a('function')
+      expect(res[0][Symbol.asyncIterator]).to.be.a('function')
+
+
+    it @ 'basic use', @::>
+      const [fence, reset] = ao_fence_fn()
+
+      const p = fence()
+      assert.equal @ 'timeout', await delay_race(p,1)
+
+      reset(1942)
+      assert.equal @ 1942, await delay_race(p,1)
+
+
+    it @ 'async iter use', @::>
+      const [fence, reset] = ao_fence_fn()
+
+      delay().then @=> reset('ready')
+
+      for await let v of fence ::
+        assert.equal @ 'ready', v
+        break
+
+
+    it @ 'async iter multi use', @::>
+      const [fence, reset] = ao_fence_fn()
+
+      let pa = @!>
+        for await let v of fence ::
+          return `pa ${v}`
+
+      let pb = @!>
+        for await let v of fence.ao_fork() ::
+          return `pb ${v}`
+
+      let pc = fence()
+
+      assert.equal @ 'timeout', await delay_race(pa,1)
+      assert.equal @ 'timeout', await delay_race(pb,1)
+      assert.equal @ 'timeout', await delay_race(pc,1)
+
+      reset('ready')
+      assert.equal @ 'pa ready', await delay_race(pa,1)
+      assert.equal @ 'pb ready', await delay_race(pb,1)
+      assert.equal @ 'ready', await delay_race(pc,1)
+
+
+  describe @ 'ao_fence_obj', @::
     it @ 'shape', @::
       const res = ao_fence_obj()
       expect(res).to.be.an('object')

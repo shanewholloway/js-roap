@@ -1,22 +1,69 @@
 ### ROAP DOM
 
-#### Event Listeners
+### Events
 
-`ao_dom_events(gen_src)` returns an event listener api directed at an `ao_pipe()`.
+`ao_dom_events(pipe)` returns an event listener api directed at an `ao_pipe()`.
+Multiple calls on the same pipe return the DOM events api object through a `WeakRef` cache.
 
-- `ag_out.gsrc.dom_events`
-- `ag_out.gsrc.dom_events(... ns_args)` is an alias for `.dom_events.with(... ns_args)`
 
-##### Event Listener API
+##### `listen(elem, evt, xfn, opt)`
 
-- `with(... ns_args)`
-- `listen(elem, evt, xfn, opt)`
-- `remove(elem, evt)`
-- `remove(elem)`
-- `set_name(elem, name)`
+A wrapped form of `elem.addEventListener(evt0, wrapped(xfn), opt)`
+
+```
+let some_pipe = ao_pipe()
+
+ao_dom_events(some_pipe)
+  .listen(document.querySelector('input'), 'change', evt => evt.value)
+```
+
+##### `remove(elem, evt)`
+
+```
+ao_dom_events(some_pipe)
+  .remove(document.querySelector('input'), 'change')
+```
+
+##### `remove(elem)`
+
+```
+ao_dom_events(some_pipe)
+  .remove(document.querySelector('input'))
+```
+
+##### `set_name(elem, name)`
+
+```
+ao_dom_events(some_pipe)
+  .remove(document.querySelector('input'))
+```
+
+##### `with(... ns_args)`
+
+```
+ao_dom_events(some_pipe)
+  .with(
+    { $: document.querySelector('input'),
+      change: evt => evt.value
+    },
+
+    { $: {
+        name_aaa: document.querySelector('#aaa'),
+        name_bbb: document.querySelector('#bbb'),
+      },
+      change: evt => evt.value
+    },
+
+    { $: [
+        ['name_aaa', document.querySelector('#aaa')],
+        ['name_bbb', document.querySelector('#bbb')],
+      ],
+      change: evt => evt.value
+    })
+
+```
 
 #### Animation Frames
 
-Use `async * ao_dom_animation(opt)` to create a generator from `requestAnimationFrame` notifications.
-(with `opt` as `{trailing: boolean, initial: boolean, signal: true}`)
+Use `async * ao_dom_animation()` to create a `ao_fence` generator from `requestAnimationFrame` notifications.
 

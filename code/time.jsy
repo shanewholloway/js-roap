@@ -1,4 +1,4 @@
-import {ao_fence_fn} from './core.jsy'
+import {ao_fence_fn, _xinvoke} from './core.jsy'
 
 export function ao_interval(ms=1000) ::
   let [_fence, _reset] = ao_fence_fn()
@@ -24,9 +24,15 @@ export function ao_debounce(ms=300, gen_in) ::
   let tid, [_fence, _reset] = ao_fence_fn()
 
   _fence.fin = @!>
+    let p
     for await let v of _xinvoke(gen_in) ::
       clearTimeout(tid)
+      if _fence.done :: return
+      p = _fence()
       tid = setTimeout(_reset, ms, v)
+
+    await p
+    _fence.done = true
 
   return _fence
 

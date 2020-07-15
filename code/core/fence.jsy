@@ -1,4 +1,4 @@
-import {_obj_assign, _is_fn} from './_common.jsy'
+import {_obj_assign, _is_fn, _ret_ident} from './_common.jsy'
 
 
 export function ao_fence_v() ::
@@ -10,6 +10,7 @@ export function ao_fence_v() ::
       : p = new Promise(_pset)
 
     v => :: p = 0; _resume(v)
+
 
 
 const _ao_fence_api = @{}
@@ -39,6 +40,13 @@ export async function * ao_fence_fork(fence) ::
     if fence.done ::
       return v
     yield v
+
+
+export async function * _ao_fence_loop(fence, reset, xform=_ret_ident) ::
+  while ! fence.done ::
+    reset @
+      xform @
+        yield await fence()
 
 
 // export async function * ao_fence_marks(fence, opt) ::

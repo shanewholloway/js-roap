@@ -1,0 +1,11 @@
+import {_ao_fence_loop, ao_fence_v} from './core.jsy'
+
+export function ao_queue(xform) ::
+  let f0 = ao_fence_v(), f1 = ao_fence_v()
+  let ag_out = _ao_fence_loop(f0[0], f1[1])
+  ag_out.g_in = _ao_fence_loop(f1[0], f0[1], xform)
+
+  // allow g_in to initialize
+  ag_out.g_in.next() ; f0[1]()
+  return ag_out
+

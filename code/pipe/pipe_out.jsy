@@ -1,5 +1,5 @@
-import { _obj_assign } from './_common.jsy'
-import { ao_split, ao_tap } from './split.jsy'
+import { _obj_assign } from '../core/_common.jsy'
+import { ao_split, ao_tap } from '../core/split.jsy'
 
 export const _ao_pipe_out_kinds = @{}
   ao_raw: g => g

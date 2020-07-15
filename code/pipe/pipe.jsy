@@ -1,4 +1,4 @@
-import { _is_fn, _obj_assign } from './_common.jsy'
+import { _is_fn, _obj_assign } from '../core/_common.jsy'
 import { _ao_pipe_base } from './pipe_base.jsy'
 import { _ao_pipe_in } from './pipe_in.jsy'
 import { _ao_pipe_out } from './pipe_out.jsy'

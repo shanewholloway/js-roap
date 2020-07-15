@@ -1,5 +1,5 @@
-import {_obj_assign, _is_fn} from './_common.jsy'
-import {_xinvoke} from './util.jsy'
+import {_obj_assign, _is_fn} from '../core/_common.jsy'
+import {_xinvoke} from '../core/util.jsy'
 
 const _as_pipe_end = (g,ns) => _obj_assign(g, ns)
 

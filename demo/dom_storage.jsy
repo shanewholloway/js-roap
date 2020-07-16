@@ -1,11 +1,11 @@
 import {ao_interval, ao_times} from 'roap'
-import {ao_pipe, ao_dom_events} from 'roap'
+import {ao_dom_listen} from 'roap'
 
-const ao_tgt = ao_pipe()
+const ao_tgt = ao_dom_listen()
 
-ao_dom_events(ao_tgt).with @:
-  $: window
-  storage(evt) ::
+ao_tgt
+  .with_dom @ window
+  .listen @ 'storage', evt => ::
     let {key, oldValue, newValue, url} = evt
     return @{} key, oldValue, newValue, url
 

@@ -1,11 +1,13 @@
+import {_obj_props} from './core/_common.jsy'
 import {_ao_fence_loop, ao_fence_v} from './core.jsy'
 
 export function ao_queue(xform) ::
-  let f0 = ao_fence_v(), f1 = ao_fence_v()
-  let ag_out = _ao_fence_loop(f0[0], f1[1])
-  ag_out.g_in = _ao_fence_loop(f1[0], f0[1], xform)
+  let [out_fence, out_reset] = ao_fence_v()
+  let [in_fence, in_reset] = ao_fence_v()
+
+  let ag_out = _ao_fence_loop(out_fence, in_reset)
+  ag_out.g_in = _ao_fence_loop(in_fence, out_reset, xform)
 
   // allow g_in to initialize
-  ag_out.g_in.next() ; f0[1]()
+  ag_out.g_in.next() ; in_reset()
   return ag_out
-

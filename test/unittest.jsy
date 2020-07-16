@@ -8,5 +8,7 @@ import './unit/pipe_base.jsy'
 import './unit/pipe.jsy'
 
 import './unit/time.jsy'
-import './unit/dom_events.jsy'
+import './unit/queue.jsy'
+
 import './unit/dom_anim.jsy'
+import './unit/dom_listen.jsy'

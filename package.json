@@ -41,7 +41,7 @@
     "tmex": "^1.0.5"
   },
   "scripts": {
-    "start": "npx tmex $PWD -l 23 -r -n _cli serve watch _w_test _w_demo",
+    "start": "npx tmex $PWD -l 23 -r -n _cli watch _w_test _w_demo serve",
     "serve": "qsrv -p 8082 -- index.html ./esm ./demo ./test",
     "clean": "rm -rf ./cjs/* ./esm/* ./umd/* ./demo/esm/* ./test/out/",
     "build": "rollup --config",

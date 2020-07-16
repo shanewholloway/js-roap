@@ -1,0 +1,47 @@
+import {ao_queue, ao_drive} from 'roap'
+
+import @{}
+  assert, expect,
+  is_gen, is_fn, is_async_iterable
+  delay_walk, array_from_ao_iter,
+from './_utils.jsy'
+
+
+describe @ 'queue', @::
+  it @ 'shape', @::
+    is_fn @ ao_queue
+
+    let aot = is_async_iterable @
+      ao_queue()
+
+    is_gen(aot.g_in)
+
+  it @ 'singles', @::>
+    let aot = ao_queue()
+
+    let p_out1 = aot.next()
+    expect(p_out1).to.be.a('promise')
+
+    let p_in1 = aot.g_in.next @ 'first'
+    expect(p_in1).to.be.a('promise')
+
+    expect(await p_out1).to.deep.equal @:
+      value: 'first', done: false
+
+  it @ 'vec', @::>
+    let aot = ao_queue @
+      async v => 1000+v
+
+    let out = array_from_ao_iter(aot)
+
+    let p = ao_drive @
+      delay_walk @# 25, 50, 75, 100
+      aot.g_in
+
+    await p
+
+    await aot.g_in.return()
+
+    expect(await out).to.deep.equal @#
+      1025, 1050, 1075, 1100
+

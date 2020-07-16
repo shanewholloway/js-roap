@@ -1,0 +1,51 @@
+import {ao_dom_listen, ao_pipe} from 'roap'
+
+import @{}
+  assert, expect,
+  delay,
+  is_gen, is_fn, is_async_iterable
+  array_from_ao_iter
+from './_utils.jsy'
+
+
+describe @ 'dom events', @::
+  it @ 'shape', @::
+    is_fn @ ao_dom_listen
+
+    let de = is_gen @ ao_dom_listen()
+    is_gen @ de.g_in
+    is_fn @ de.with_dom
+
+
+  it @ 'shape of with_dom', @::
+    let e_ctx = ao_dom_listen().with_dom()
+    is_fn @ e_ctx.with_dom
+    is_fn @ e_ctx.listen
+
+
+  if 'undefined' !== typeof MessageChannel ::
+
+    it @ 'message channels', @::>
+      const {port1, port2} = new MessageChannel()
+
+      const ao_tgt = ao_dom_listen()
+      let z = array_from_ao_iter(ao_tgt)
+
+      ao_tgt
+        .with_dom @ port2, void port2.start()
+        .listen @ 'message', evt => @: test_name: evt.data
+
+      ::!>
+        for let m of ['a', 'b', 'c'] ::
+          port1.postMessage @ `from msg port1: ${m}`
+          await delay(1)
+
+        ao_tgt.g_in.return()
+
+      let expected = @[]
+        @{} test_name: 'from msg port1: a'
+        @{} test_name: 'from msg port1: b'
+        @{} test_name: 'from msg port1: c'
+
+      expect(await z).to.deep.equal(expected)
+

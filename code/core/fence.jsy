@@ -1,5 +1,6 @@
 import {_obj_assign, _is_fn, _ret_ident} from './_common.jsy'
 
+export const ao_sym_done = Symbol('ao_done')
 
 export function ao_fence_v() ::
   let p=0, _resume = ()=>{}
@@ -42,11 +43,20 @@ export async function * ao_fence_fork(fence) ::
     yield v
 
 
-export async function * _ao_fence_loop(fence, reset, xform=_ret_ident) ::
-  while ! fence.done ::
-    reset @
-      xform @
-        yield await fence()
+export async function * _ao_fence_loop(fence, reset, xform) ::
+  try ::
+    let v
+    while ! fence.done ::
+      v = await fence()
+      if v === ao_sym_done ::
+        return
+
+      v = yield v
+      if undefined !== xform ::
+        v = await xform(v)
+      reset @ v
+  finally ::
+    reset(ao_sym_done)
 
 
 // export async function * ao_fence_marks(fence, opt) ::

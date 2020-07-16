@@ -12,36 +12,26 @@ const ao_tgt = ao_pipe @:
 
 ao_dom_listen(ao_tgt)
   .with_dom @
-    document.querySelector('#aaa')
-    (elem, evt) => @: k: 'a', v: elem.valueAsNumber
-  .listen @ 'input', 'change',
-
-  .with_dom @
-    document.querySelector('#bbb')
-    elem => @: k: 'b', v: elem.valueAsNumber
-  .listen @ 'input', 'change',
-
-  .with_dom @
-    document.querySelector('#ccc')
-    elem => @: k: 'c', v: elem.valueAsNumber
+    document.querySelectorAll('input[type=range]')
+    (elem, evt) => @: k: elem.id, v: elem.valueAsNumber
   .listen @ 'input', 'change',
 
 
 const ao_tgt_rgb = @*>
-  for await {a,b,c} of ao_tgt ::
-    let _r = (a*.255).toFixed(1)
-    let _g = (b*.255).toFixed(1)
-    let _b = (c*.255).toFixed(1)
-    yield `rgb(${_r}, ${_g}, ${_b})`
+  for await {aaa, bbb, ccc} of ao_tgt ::
+    let r = (aaa*.255).toFixed(1)
+    let g = (bbb*.255).toFixed(1)
+    let b = (ccc*.255).toFixed(1)
+    yield `rgb(${r}, ${g}, ${b})`
       
 
 const ao_tgt_hsl = @*>
-  for await {a,b,c} of ao_tgt ::
-    let _h = (a*0.36).toFixed(1)
-    let _s = (b/10).toFixed(1)
-    let _l = (c/10).toFixed(1)
+  for await {aaa, bbb, ccc} of ao_tgt ::
+    let h = (aaa*0.36).toFixed(1)
+    let s = (bbb/10).toFixed(1)
+    let l = (ccc/10).toFixed(1)
     
-    yield `hsl(${_h}, ${_s}%, ${_l}%)`
+    yield `hsl(${h}, ${s}%, ${l}%)`
 
 
 ::!>
@@ -55,3 +45,9 @@ const ao_tgt_hsl = @*>
   for await let hsl of ao_tgt_hsl ::
     el_hsl.textContent = hsl
     el_hsl.style.backgroundColor = hsl
+
+
+::!>
+  for await let e of ao_tgt ::
+    console.log @ 'ao_tgt', e
+

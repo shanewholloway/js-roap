@@ -1,6 +1,6 @@
 {
   "name": "roap",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Reactive Observable Async-iterable Programming",
   "license": "BSD-2-Clause",
   "author": "Shane Holloway <shane.holloway@ieee.org>",
@@ -24,7 +24,6 @@
   "browser": "./umd/roap.min.js",
   "exports": {
     "./": "./",
-    "./esm/": "./esm/",
     ".": {
       "import": "./esm/roap.mjs",
       "require": "./cjs/roap.cjs"

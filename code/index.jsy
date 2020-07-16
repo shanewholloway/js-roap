@@ -1,5 +1,10 @@
 export * from './core.jsy'
-export * from './pipe.jsy'
-export * from './time.jsy'
-export * from './dom.jsy'
+
 export * from './queue.jsy'
+
+export * from './pipe.jsy'
+
+export * from './time.jsy'
+
+export * from './dom.jsy'
+

@@ -1,0 +1,25 @@
+
+export async function * ao_fence_marks(fence, opt) ::
+  let {signal, trailing, initial} = opt || {}
+  let f = true === initial
+    ? fence() : initial
+
+  while ! fence.done ::
+    let v
+    if trailing ::
+      v = await f
+      f = fence()
+
+    else ::
+      f = fence()
+      v = await f
+
+    if fence.done ::
+      return v
+
+    if _is_fn(signal) ::
+      yield signal(v)
+    else if signal ::
+      yield signal
+    else yield v
+

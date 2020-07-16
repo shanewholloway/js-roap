@@ -3,42 +3,60 @@ import {ao_queue} from '../queue.jsy'
 
 const _evt_init = Promise.resolve({type:'init'})
 export function ao_dom_listen(pipe = ao_queue()) ::
-  const self = @{}
-    with_dom(dom, fn) ::
-      let _on_evt
-      if _is_fn(fn) ::
-        _evt_init.then @
-          _on_evt = _bind(dom, 0, fn)
+  let with_dom = (dom, fn) =>
+    dom.addEventListener
+      ? _ao_with_dom(_bind, fn, dom)
+      : _ao_with_dom_vec(_bind, fn, dom)
 
-      return @{}
-        __proto__: self
-        listen(...args) ::
-          let opt, evt_fn = _on_evt
-
-          let last = args.pop()
-          if 'function' === typeof last ::
-            evt_fn = _bind(dom, last)
-            last = args.pop()
-            
-          if 'string' === typeof last ::
-            args.push(last)
-          else opt = last
-
-          for let evt of args ::
-            dom.addEventListener @
-              evt, evt_fn, opt
-
-          return this
-
-  pipe.with_dom = self.with_dom
+  _bind.self = {pipe, with_dom}
+  pipe.with_dom = with_dom
   return pipe
 
   function _bind(dom, fn_evt, fn_dom) ::
     return evt => ::
       let v = fn_evt
-        ? fn_evt(evt, dom)
+        ? fn_evt(evt, dom, fn_dom)
         : fn_dom(dom, evt)
 
-      if undefined !== v ::
+      if null != v ::
         pipe.g_in.next(v)
+
+
+function _ao_with_dom(_bind, fn, dom) ::
+  let _on_evt
+  if _is_fn(fn) ::
+    _evt_init.then @
+      _on_evt = _bind(dom, void 0, fn)
+
+  return @{}
+    __proto__: _bind.self
+    listen(...args) ::
+      let opt, evt_fn = _on_evt
+
+      let last = args.pop()
+      if 'function' === typeof last ::
+        evt_fn = _bind(dom, last, _on_evt)
+        last = args.pop()
+        
+      if 'string' === typeof last ::
+        args.push(last)
+      else opt = last
+
+      for let evt of args ::
+        dom.addEventListener @
+          evt, evt_fn, opt
+
+      return this
+
+
+function _ao_with_dom_vec(_bind, fn, ectx_list) ::
+  ectx_list = Array.from @ ectx_list,
+    dom => _ao_with_dom(_bind, fn, dom)
+
+  return @{}
+    __proto__: _bind.self
+    listen(...args) ::
+      for let ectx of ectx_list ::
+        ectx.listen(...args)
+      return this
 

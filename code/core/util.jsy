@@ -13,41 +13,17 @@ export function _xpipe_tgt(pipe) ::
 
   return pipe.g_in || pipe
 
+
+export {is_ao_iter}
 export function * iter(gen_in) ::
   yield * _xinvoke(gen_in)
-
 export async function * ao_iter(gen_in) ::
   yield * _xinvoke(gen_in)
 
-export {is_ao_iter}
-
 
 export function fn_chain(tail, ctx) ::
-  return _obj_assign @ chain, @{}
-    chain, tail: _xinvoke(tail)
-
+  return _obj_assign @ chain, {chain, tail}
   function chain(fn) ::
     chain.tail = fn(chain.tail, ctx)
     return chain
-
-
-export function _wm_pipe_closure(wm_absent) ::
-  let wm = new WeakMap()
-  return pipe =>
-    _wm_item @ wm,
-      pipe.g_in || pipe,
-      wm_absent
-
-export function _wm_closure(wm_absent) ::
-  let wm = new WeakMap()
-  return key =>
-    _wm_item @ wm,
-      key, wm_absent
-
-export function _wm_item(wm, wm_key, wm_absent) ::
-  let item = wm.get(wm_key)
-  if undefined === item ::
-    item = wm_absent(wm_key)
-    wm.set(wm_key, item)
-  return item
 

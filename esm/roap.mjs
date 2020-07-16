@@ -3,10 +3,6 @@ const {
   defineProperties: _obj_props,
 } = Object;
 
-const {
-  isArray: _is_array,
-} = Array;
-
 const is_ao_iter = g =>
   null != g[Symbol.asyncIterator];
 
@@ -15,7 +11,7 @@ const _is_fn = v_fn =>
     && ! is_ao_iter(v_fn);
 const _ret_ident = v => v;
 
-const _xinvoke$1 = v_fn =>
+const _xinvoke = v_fn =>
   _is_fn(v_fn)
     ? v_fn()
     : v_fn;
@@ -27,42 +23,17 @@ function _xpipe_tgt(pipe) {
     return pipe}
 
   return pipe.g_in || pipe}
-
 function * iter(gen_in) {
-  yield * _xinvoke$1(gen_in);}
-
+  yield * _xinvoke(gen_in);}
 async function * ao_iter(gen_in) {
-  yield * _xinvoke$1(gen_in);}
+  yield * _xinvoke(gen_in);}
 
 
 function fn_chain(tail, ctx) {
-  return _obj_assign(chain,{
-    chain, tail: _xinvoke$1(tail)} )
-
+  return _obj_assign(chain, {chain, tail})
   function chain(fn) {
     chain.tail = fn(chain.tail, ctx);
     return chain} }
-
-
-function _wm_pipe_closure(wm_absent) {
-  let wm = new WeakMap();
-  return pipe =>
-    _wm_item(wm,
-      pipe.g_in || pipe,
-      wm_absent) }
-
-function _wm_closure(wm_absent) {
-  let wm = new WeakMap();
-  return key =>
-    _wm_item(wm,
-      key, wm_absent) }
-
-function _wm_item(wm, wm_key, wm_absent) {
-  let item = wm.get(wm_key);
-  if (undefined === item) {
-    item = wm_absent(wm_key);
-    wm.set(wm_key, item);}
-  return item}
 
 const ao_deferred_v = ((() => {
   let y,n,_pset = (a,b) => { y=a, n=b; };
@@ -74,6 +45,8 @@ const ao_deferred = v =>(
   v = ao_deferred_v()
 , {promise: v[0], resolve: v[1], reject: v[2]});
 
+const ao_sym_done = Symbol('ao_done');
+
 function ao_fence_v() {
   let p=0, _resume = ()=>{};
   let _pset = a => _resume = a;
@@ -83,6 +56,7 @@ function ao_fence_v() {
       : p = new Promise(_pset)
 
   , v => {p = 0; _resume(v);} ] }
+
 
 
 const _ao_fence_api ={
@@ -109,43 +83,34 @@ function ao_fence_obj(tgt) {
 async function * ao_fence_fork(fence) {
   while (! fence.done) {
     let v = await fence();
-    if (fence.done) {
+    if (fence.done || v === ao_sym_done) {
       return v}
     yield v;} }
 
 
-// export async function * ao_fence_marks(fence, opt) ::
-//   let {signal, trailing, initial} = opt || {}
-//   let f = true === initial
-//     ? fence() : initial
-//
-//   while ! fence.done ::
-//     let v
-//     if trailing ::
-//       v = await f
-//       f = fence()
-//
-//     else ::
-//       f = fence()
-//       v = await f
-//
-//     if fence.done ::
-//       return v
-//
-//     if _is_fn(signal) ::
-//       yield signal(v)
-//     else if signal ::
-//       yield signal
-//     else yield v
+async function * _ao_fence_loop(fence, reset, xform) {
+  try {
+    let v;
+    while (! fence.done) {
+      v = await fence();
+      if (v === ao_sym_done) {
+        return}
+
+      v = yield v;
+      if (undefined !== xform) {
+        v = await xform(v);}
+      reset(v); } }
+  finally {
+    reset(ao_sym_done);} }
 
 async function ao_run(gen_in, notify=_ret_ident) {
-  for await (let v of _xinvoke$1(gen_in)) {
+  for await (let v of _xinvoke(gen_in)) {
     notify(v);} }
 
 
 async function ao_drive(gen_in, gen_tgt, xform=_ret_ident) {
   gen_tgt = _xpipe_tgt(gen_tgt);
-  for await (let v of _xinvoke$1(gen_in)) {
+  for await (let v of _xinvoke(gen_in)) {
     if (undefined !== gen_tgt) {
       v = xform(v);
       let {done} = await gen_tgt.next(v);
@@ -187,7 +152,7 @@ function _ao_tap(ag_out) {
   let gen = ((async function * () {
     fence.done = false;
     try {
-      for await (let v of _xinvoke$1(ag_out)) {
+      for await (let v of _xinvoke(ag_out)) {
         reset(v);
         yield v;} }
     finally {
@@ -212,6 +177,17 @@ function ao_split(ag_out) {
   , fin: ao_run(gen)
   , fence: gen.fence} }
 
+function ao_queue(xform) {
+  let [fence, out_reset] = ao_fence_fn();
+  let [in_fence, in_reset] = ao_fence_v();
+
+  let ag_out = _ao_fence_loop(fence, in_reset);
+  let g_in = _ao_fence_loop(in_fence, out_reset, xform);
+
+  // allow g_in to initialize
+  g_in.next() ; in_reset();
+  return _obj_assign(ag_out, {fence, g_in}) }
+
 const _as_pipe_end = (g,ns) => _obj_assign(g, ns);
 
 //~~~
@@ -220,51 +196,54 @@ const _as_pipe_end = (g,ns) => _obj_assign(g, ns);
 const _ao_pipe_base ={
   xfold: v => v // on push: identity transform
 , xpull() {} // memory: none
-, xemit: _xinvoke$1 // identity transform or invoke if function
+, xemit: _xinvoke // identity transform or invoke if function
 , xinit(g_in, ag_out) {} // on init: default behavior
 
 , get create() {
     // as getter to bind class as `this` at access time
     const create = (... args) =>
       _obj_assign({__proto__: this},
-        ... args.map(_xinvoke$1))
+        ... args.map(_xinvoke))
       ._ao_pipe();
 
     return create.create = create}
 
 , _ao_pipe() {
     let fin_lst = [];
-    let self ={
-      on_fin: g =>(
-        fin_lst.push(g)
-      , g)
 
-    , stop: (() => {
-        this.done = true;
-        _fin_pipe(fin_lst);
-        this._resume();}) };
+    let on_fin = this.on_fin =
+      g =>(fin_lst.push(g), g);
 
-    let {kind} = this;
-    let g_in = self.on_fin(this._ao_pipe_in(self.stop));
-    let ag_out = self.on_fin(this._ao_pipe_out(self.stop));
+    let stop = this.stop = (() => {
+      this.done = true;
+      _fin_pipe(fin_lst);
+      this._resume();});
 
-    self.g_in = g_in = this._as_pipe_in(g_in, self, kind);
-    ag_out = this._as_pipe_out(ag_out, self, kind);
 
-    this.xinit(g_in, ag_out);
+    let g_in = on_fin(
+      this._ao_pipe_in());
+
+    let ag_out = on_fin(
+      this._ao_pipe_out());
+
+    // adapt ag_out by api and kind
+    let self = {stop, on_fin, g_in};
+    ag_out = this._as_pipe_out(
+      ag_out, self, this.kind);
+
+    ag_out = this.xinit(g_in, ag_out) || ag_out;
 
     // allow g_in to initialize
     g_in.next();
     return ag_out}
 
-, _as_pipe_in: _as_pipe_end
 , _as_pipe_out: _as_pipe_end
 
 , //~~~
   // Upstream input generator
   //   designed for multiple feeders
 
-  *_ao_pipe_in(_finish) {
+  *_ao_pipe_in() {
     try {
       let v;
       while (! this.done) {
@@ -274,14 +253,14 @@ const _ao_pipe_base ={
           this._resume();} } }
 
     finally {
-      _finish();} }
+      this.stop();} }
 
 
 , //~~~
   // Downstream async output generator
   //   designed for single consumer.
 
-  async *_ao_pipe_out(_finish) {
+  async *_ao_pipe_out() {
     try {
       let r;
       while (! this.done) {
@@ -302,7 +281,7 @@ const _ao_pipe_base ={
         yield this.xemit(r);} }
 
     finally {
-      _finish();} }
+      this.stop();} }
 
 
 , //~~~
@@ -344,30 +323,6 @@ function _fin_pipe(fin_lst) {
           continue} }
       console.error(err);} } }
 
-const _ao_pipe_in_api ={
-  as_pipe_in(self, g_in) {}
-
-, with_ctx(xctx) {
-    if (_is_fn(xctx)) {
-      xctx = xctx(this);}
-
-    if (xctx && xctx.next) {
-      xctx.next(this);
-      this.on_fin(xctx);}
-    return xctx}
-
-, feed(xsrc, xform) {
-    return ao_drive(xsrc, this, xform)}
-
-, bind_vec(... keys) {
-    return v => this.next([...keys, v]) }
-
-, bind_obj(key, ns) {
-    return v => this.next({...ns, [key]: v}) } };
-
-function _ao_pipe_in(g_in, self) {
-  return _obj_assign(g_in, _ao_pipe_in_api, self)}
-
 const _ao_pipe_out_kinds ={
   ao_raw: g => g
 , ao_split: ao_split
@@ -393,10 +348,10 @@ const _ao_pipe ={
   // *xctx(gen_src) -- on init: bind event sources
 
   kind: 'split'
-, _as_pipe_in: _ao_pipe_in
-, _as_pipe_out: _ao_pipe_out
+, //_as_pipe_in: _ao_pipe_in
+  _as_pipe_out: _ao_pipe_out
 
-, xinit(g_in) {
+, xinit(g_in, ag_out) {
     let xgfold = this.xgfold;
     if (undefined !== xgfold) {
       this._init_xgfold(g_in, xgfold);}
@@ -419,7 +374,7 @@ const _ao_pipe ={
 
     this.xgfold = xgfold;
     this.xfold = this._fold_gen;
-    g_in.on_fin(xgfold);
+    this.on_fin(xgfold);
     return true}
 
 , _fold_gen(v) {
@@ -431,12 +386,20 @@ const _ao_pipe ={
 , _init_chain(g_in) {
     let {xsrc, xctx} = this;
     if (undefined !== xsrc) {
-      g_in.feed(xsrc)
+      ao_drive(xsrc, g_in)
         .then (() =>g_in.return()); }
 
     if (undefined !== xctx) {
-      g_in.with_ctx(xctx);} } };
+      this._with_ctx(g_in, xctx);} }
 
+, _with_ctx(g_in, xctx) {
+    if (_is_fn(xctx)) {
+      xctx = xctx(g_in);}
+
+    if (xctx && xctx.next) {
+      xctx.next(g_in);
+      this.on_fin(xctx);}
+    return xctx} };
 
 const ao_pipe = _ao_pipe.create;
 
@@ -464,9 +427,15 @@ function ao_debounce(ms=300, gen_in) {
   let tid, [_fence, _reset] = ao_fence_fn();
 
   _fence.fin = ((async () => {
+    let p;
     for await (let v of _xinvoke(gen_in)) {
       clearTimeout(tid);
-      tid = setTimeout(_reset, ms, v);} })());
+      if (_fence.done) {return}
+      p = _fence();
+      tid = setTimeout(_reset, ms, v);}
+
+    await p;
+    _fence.done = true;})());
 
   return _fence}
 
@@ -487,124 +456,64 @@ function ao_dom_animation() {
     tid = requestAnimationFrame(_reset);
     return _fence()} }
 
-const ao_dom_events =
-  _wm_pipe_closure(_ao_dom_events_ctx);
+const _evt_init = Promise.resolve({type:'init'});
+function ao_dom_listen(pipe = ao_queue()) {
+  let with_dom = (dom, fn) =>
+    dom.addEventListener
+      ? _ao_with_dom(_bind, fn, dom)
+      : _ao_with_dom_vec(_bind, fn, dom);
 
-function _ao_dom_events_ctx(g_in) {
-  return {__proto__: _dom_events_api
-  , wm_elems: new WeakMap()
-  , emit: info => g_in.next(info)} }
+  _bind.self = {pipe, with_dom};
+  pipe.with_dom = with_dom;
+  return pipe
 
+  function _bind(dom, fn_evt, fn_dom) {
+    return evt => {
+      let v = fn_evt
+        ? fn_evt(evt, dom, fn_dom)
+        : fn_dom(dom, evt);
 
-const _dom_events_api ={
-  // wm_elems: new WeakMap()
-  // emit: info => g_in.next(info)
-
-  listen(elem, evt, xfn, evt_opt) {
-    let {emit, info} = this;
-     {
-      let em = _wm_item(this.wm_elems, elem, _elem_map_entry);
-      info ={... info, ... em.info, evt};
-
-      let evt0 = evt.split(/[_.]/, 1)[0];
-      if ('init' === evt0) {
-        evt_fn(elem);
-        return this}
-
-      let old_fn = em.get(evt);
-
-      elem.addEventListener(evt0, evt_fn, evt_opt);
-      em.set(evt, evt_fn);
-
-      if (undefined !== old_fn) {
-        elem.removeEventListener(evt0, old_fn); }
-
-      if ('message' === evt0 && _is_fn(elem.start)) {
-        elem.start();} }
-
-    return this
-
-    function evt_fn(e) {
-      let v = xfn(e, emit, info);
-      if (undefined !== v) {
-        emit({... info, v}); } } }
+      if (null != v) {
+        pipe.g_in.next(v);} } } }
 
 
-, remove(elem, ... keys) {
-    let {wm_elems} = this;
-    let evt_map = wm_elems.get(elem) || new Map();
+function _ao_with_dom(_bind, fn, dom) {
+  let _on_evt;
+  if (_is_fn(fn)) {
+    _evt_init.then(
+      _on_evt = _bind(dom, void 0, fn)); }
 
-    let ev_pairs;
-    if (0 === keys.length) {
-      wm_elems.delete(elem);
-      ev_pairs = evt_map.entries();}
+  return {
+    __proto__: _bind.self
+  , listen(...args) {
+      let opt, evt_fn = _on_evt;
 
-    else {
-      ev_pairs = keys.map(
-        evt0 => [evt0, evt_map.get(evt0)]); }
+      let last = args.pop();
+      if ('function' === typeof last) {
+        evt_fn = _bind(dom, last, _on_evt);
+        last = args.pop();}
 
-    for (let [evt0, evt_fn] of ev_pairs) {
-      if (undefined !== evt_fn) {
-        evt_map.delete(evt0);
-        elem.removeEventListener(evt0, evt_fn);} }
-    return this}
+      if ('string' === typeof last) {
+        args.push(last);}
+      else opt = last;
 
+      for (let evt of args) {
+        dom.addEventListener(
+          evt, evt_fn, opt); }
 
-, set_info(el, info) {
-    let em = _wm_item(this.wm_elems, el, _elem_map_entry);
-    _obj_assign(em.info, info);
-    return this}
-
-, with(... ns_args) {
-    let {listen, set_info, info} = this;
-    set_info = set_info.bind(this);
-
-    for (let ns of ns_args) {
-      let ns_this = undefined === ns.info ? this :
-        {__proto__: this, info:{... info, ... ns.info}};
-
-      let events =[... _iter_event_list(ns)];
-      for (let elem of _iter_named_elems(ns.$, set_info)) {
-        for (let evt_args of events) {
-          listen.call(ns_this, elem, ... evt_args);} } }
-
-    return this} };
+      return this} } }
 
 
-function _elem_map_entry(elem) {
-  let k = elem.name || elem.id
-    || (elem.type || elem.tagName || '').toLowerCase()
-    || elem[Symbol.toStringTag];
+function _ao_with_dom_vec(_bind, fn, ectx_list) {
+  ectx_list = Array.from(ectx_list,
+    dom => _ao_with_dom(_bind, fn, dom));
 
-  let m = new Map();
-  m.info ={dom_item: k, k};
-  return m}
+  return {
+    __proto__: _bind.self
+  , listen(...args) {
+      for (let ectx of ectx_list) {
+        ectx.listen(...args);}
+      return this} } }
 
-
-function * _iter_named_elems(lst, set_info) {
-  lst = _is_array(lst) ? lst
-    : lst.addEventListener ? [lst]
-    : Object.entries(lst);
-
-  for (let ea of lst) {
-    if (_is_array(ea)) {
-      set_info(ea[1], {k: ea[0]});
-      yield ea[1];}
-
-    else yield ea;} }
-
-
-function * _iter_event_list(ns) {
-  for (let [attr, efn] of Object.entries(ns)) {
-    if (! efn || /[^a-z]/.test(attr)) {
-      continue}
-
-    attr = attr.replace('_', '.');
-    if ('function' === typeof efn) {
-      yield [attr, efn, efn.evt_opt];}
-
-    else if (efn.on_evt || efn.evt_opt) {
-      yield [attr, efn.on_evt, efn.evt_opt];} } }
-
-export { _ao_dom_events_ctx, _ao_pipe, _ao_pipe_base, _ao_pipe_in, _ao_pipe_in_api, _ao_pipe_out, _ao_pipe_out_kinds, _ao_tap, _dom_events_api, _wm_closure, _wm_item, _wm_pipe_closure, _xinvoke$1 as _xinvoke, _xpipe_tgt, ao_debounce, ao_deferred, ao_deferred_v, ao_dom_animation, ao_dom_events, ao_drive, ao_fence_fn, ao_fence_fork, ao_fence_obj, ao_fence_v, ao_interval, ao_iter, ao_pipe, ao_run, ao_split, ao_step_iter, ao_tap, ao_timeout, ao_times, fn_chain, is_ao_iter, iter, step_iter };
+export { _ao_fence_loop, _ao_pipe, _ao_pipe_base, _ao_pipe_out, _ao_pipe_out_kinds, _ao_tap, _xinvoke, _xpipe_tgt, ao_debounce, ao_deferred, ao_deferred_v, ao_dom_animation, ao_dom_listen, ao_drive, ao_fence_fn, ao_fence_fork, ao_fence_obj, ao_fence_v, ao_interval, ao_iter, ao_pipe, ao_queue, ao_run, ao_split, ao_step_iter, ao_sym_done, ao_tap, ao_timeout, ao_times, fn_chain, is_ao_iter, iter, step_iter };
 //# sourceMappingURL=roap.mjs.map

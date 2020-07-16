@@ -18,7 +18,12 @@ describe @ 'dom events', @::
 
 
   it @ 'shape of with_dom', @::
-    let e_ctx = ao_dom_listen().with_dom()
+    let mock = @{}
+      addEventListener(evt, fn, opt) ::
+
+    let e_ctx = ao_dom_listen()
+      .with_dom(mock)
+
     is_fn @ e_ctx.with_dom
     is_fn @ e_ctx.listen
 

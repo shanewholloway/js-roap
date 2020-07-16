@@ -38,7 +38,7 @@ export function ao_fence_obj(tgt) ::
 export async function * ao_fence_fork(fence) ::
   while ! fence.done ::
     let v = await fence()
-    if fence.done ::
+    if fence.done || v === ao_sym_done ::
       return v
     yield v
 
@@ -57,29 +57,4 @@ export async function * _ao_fence_loop(fence, reset, xform) ::
       reset @ v
   finally ::
     reset(ao_sym_done)
-
-
-// export async function * ao_fence_marks(fence, opt) ::
-//   let {signal, trailing, initial} = opt || {}
-//   let f = true === initial
-//     ? fence() : initial
-//
-//   while ! fence.done ::
-//     let v
-//     if trailing ::
-//       v = await f
-//       f = fence()
-//
-//     else ::
-//       f = fence()
-//       v = await f
-//
-//     if fence.done ::
-//       return v
-//
-//     if _is_fn(signal) ::
-//       yield signal(v)
-//     else if signal ::
-//       yield signal
-//     else yield v
 

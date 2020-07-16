@@ -1,3 +1,11 @@
+### ROAP Queue
+
+Use `ao_queue(xform)` to create a 1:1 input:output async generator stream.
+In contrast to `ao_pipe()`, a queue emits every input and does not "fold" the inputs.
+However, this may require memory when the queue input exceeds the queue output.
+Queue memory comes from the async generator behavior of the JavaScript VM.
+
+
 ### ROAP Pipe
 
 A pipe is the core abstraction of ROAP composed of three aspects: input generator, folding compute, and output generator.
@@ -18,31 +26,19 @@ The fold operation may itself be a closure or a generator to accomodate more adv
 
 ##### Details of `ao_pipe(... args)`
 
+- `kind` -- default: 'split'; one of `['raw', 'split', 'tap']`
 - `xfold(v)` -- called on push. Commonly just a `v => v` identity transform.
 - `xpull()` -- called during async output iteration when no value is ready. Use to pull from memory: queue, sampler, etc.
 - `xemit(v)` -- called during async output iteration after a value is emitted. Commonly set to `_xinvoke`.
 
 - `*xgfold()` -- generator or closure defined xfold.
-- `*xsrc()` -- feed input from a source generator
 - `*xctx(gen_src)` -- on init: bind event sources
-
-
-##### Details of `ag_out.gsrc`
-
-- `on_fin(gen)`
-- `with(xctx)`
-- `feed(xsrc, xform)`
-- `bind_vec(... keys)`
-- `bind_obj(key, ns)`
+- `*xsrc()` -- feed input from a source generator and end the pipe output stream.
 
 
 ##### Details of `ag_out`
 
-- `gsrc`
-- `stop()`
-- `on_fin(gen)`
-- `split(xfn)`
-- `tap(xfn)`
-- `run(xfn)`
-
+- `g_in` -- input generator for feeding values
+- `stop()` -- stop all associated generators
+- `on_fin(gen)` -- associate a generator lifetime
 

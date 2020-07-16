@@ -7,7 +7,6 @@ These functions function asynchronously pull from `gen_in` and uses an `ao_fence
 The `ao_split(gen_in)` function returns a promise for when `gen_in` is done.
 The `ao_tap(gen_in)` function yields the values to create a pass-through generator.
 
-- `split().fork()` and `tap().fork()` returns an iterator of fenced promises.
 - `split().ao_fork()` and `tap().ao_fork()` returns an async iterator of fenced promises.
 
 Note the fork iterators may drop values compared to the source stream.
@@ -25,13 +24,21 @@ The `gen_out` or `gen_in` parameters are evaluated via `_xinvoke` to accomodate 
 
 #### Fenced Promises
 
-A fence returns one deferred promise. A call to `reset` fulfills the deferred
-promise and ratchets to a new promise for fence to return.
+A fence is a resetable deferred promise mechanism.
+Calling `fence()` returns a deferred promise.
+Calling `reset(value)` fulfills the existing deferred promise and ratchets `fence` to return a new deferred promise.
 
-- `ao_fence()` returns a fence object `{fence() : promise, reset(value) : void}`. Used for repeated waiters
-- `ao_fence_v()` returns a fence list `[fence() : promise, reset(value) : void]`
-- `async * ao_fence_marks(fence, trailing, initial, xform)` is a generator gated by promises returned by `fence()`.
+- `ao_fence_v()` is the minimal version, return a list of two functions: `[fence() : promise, reset(value) : void]`.
+- `ao_fence_fn()` returns a list of `[fence, reset]` where `fence` supports the Fence API.
+- `ao_fence_obj()` returns an object of `{fence, reset}` supporting the Fence API.
+- `async * ao_fence_fork(fence)` is a generator gated by promises returned by `fence()`.
     (See `ao_timeout`, `ao_interval`, and `ao_dom_animation`)
+
+##### Fence API
+
+- `stop()` marks the fence done, stopping async generators at next check.
+- `ao_fork()` is an alias for `ao_fence_fork(this.fence)`
+- `[Symbol.asyncIterator]()` is an alias for `ao_fence_fork(this.fence)`
 
 
 #### Deferred Promises
@@ -44,11 +51,14 @@ A deferred is a `Promise` that exposes the closure `(resolve, reject)` parameter
 
 #### Misc Utilities
 
+Use `ao_iter(iterable)` to adapt any iterable (array, DOM element, sync iterator) to an async iterator protocol.
+Similarly, `iter(iterable)` adapts any non-async iterable (array, DOM element) to a normal iterator protocol.
+
+Chain expressions can be evaluated using `fn_chain(100).chain(v => v*2).chain(v => v+35).tail === 235`
+
 Functions as value closures are evaluated by `_xinvoke(v_fn)`; if `v_fn` is a function, `v_fn()` is invoked, otherwise `v_fn` is returned as a value.
 
 Pipe generators as closures are evaluated by `_xpipesrc(pipe)`; if `pipe` is a function, `pipe = pipe()` is invoked; `pipe.gsrc || pipe` is returned.
-
-Closures and accessors backed by `WeakMap` are access with `_wm_closure`, `_wm_pipe_closure`, and `_wm_item`. 
 
 (See `core/util.jsy` for details.)
 

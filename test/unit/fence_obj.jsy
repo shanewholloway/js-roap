@@ -1,0 +1,52 @@
+import {ao_fence_obj} from 'roap'
+import {assert, expect, is_fence_full, delay_race, delay} from './_utils.jsy'
+
+
+describe @ 'ao_fence_obj', function() ::
+  it @ 'shape', @::
+    const res = is_fence_full @ ao_fence_obj()
+    expect(res.ao_gated).to.be.a('function')
+
+
+  it @ 'basic use', @::>
+    const res = ao_fence_obj()
+
+    const p = res.fence()
+    assert.equal @ 'timeout', await delay_race(p,1)
+
+    res.resume(1942)
+    assert.equal @ 1942, await delay_race(p,1)
+
+
+  it @ 'async iter use', @::>
+    const res = ao_fence_obj()
+
+    delay().then @=> res.resume('ready')
+
+    for await let v of res ::
+      assert.equal @ 'ready', v
+      break
+
+
+  it @ 'async iter multi use', @::>
+    const res = ao_fence_obj()
+
+    let pa = @!>
+      for await let v of res ::
+        return `pa ${v}`
+
+    let pb = @!>
+      for await let v of res.ao_fork() ::
+        return `pb ${v}`
+
+    let pc = res.fence()
+
+    assert.equal @ 'timeout', await delay_race(pa,1)
+    assert.equal @ 'timeout', await delay_race(pb,1)
+    assert.equal @ 'timeout', await delay_race(pc,1)
+
+    res.resume('ready')
+    assert.equal @ 'pa ready', await delay_race(pa,1)
+    assert.equal @ 'pb ready', await delay_race(pb,1)
+    assert.equal @ 'ready', await delay_race(pc,1)
+

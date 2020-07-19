@@ -22,25 +22,6 @@ To drive an async generator, `ao_drive(gen_in, gen_out, xform)` uses an async it
 The `gen_out` or `gen_in` parameters are evaluated via `_xinvoke` to accomodate closures.
 
 
-#### Fenced Promises
-
-A fence is a resetable deferred promise mechanism.
-Calling `fence()` returns a deferred promise.
-Calling `reset(value)` fulfills the existing deferred promise and ratchets `fence` to return a new deferred promise.
-
-- `ao_fence_v()` is the minimal version, return a list of two functions: `[fence() : promise, reset(value) : void]`.
-- `ao_fence_fn()` returns a list of `[fence, reset]` where `fence` supports the Fence API.
-- `ao_fence_obj()` returns an object of `{fence, reset}` supporting the Fence API.
-- `async * ao_fence_fork(fence)` is a generator gated by promises returned by `fence()`.
-    (See `ao_timeout`, `ao_interval`, and `ao_dom_animation`)
-
-##### Fence API
-
-- `stop()` marks the fence done, stopping async generators at next check.
-- `ao_fork()` is an alias for `ao_fence_fork(this.fence)`
-- `[Symbol.asyncIterator]()` is an alias for `ao_fence_fork(this.fence)`
-
-
 #### Deferred Promises
 
 A deferred is a `Promise` that exposes the closure `(resolve, reject)` parameters as list elements or object attributes.

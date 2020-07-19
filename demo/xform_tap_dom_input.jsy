@@ -2,16 +2,22 @@ import {ao_fence_obj, ao_fence_in} from 'roap'
 import {ao_dom_listen} from 'roap'
 
 
-let demo_target = ao_fence_in().ao_queue @:
-  * xrecv(g) ::
-    let ns = {}
-    for let e of g ::
-      ns[e.k] = e.v
+// The ao_xform_tap passive sink form.
+//
+// Note that demo_tap must be iterated
+// for forks of demo_target to see values
+
+let [demo_target, demo_tap] = ao_fence_in()
+  .ao_xform_tap @:
+    * xrecv(g) ::
+      let ns = {}
+      for let e of g ::
+        ns[e.k] = e.v
         yield ns
 
-  async * xemit(ag_out) ::
-    for await let ns of ag_out ::
-      yield {... ns}
+    async * xemit(ag_out) ::
+      for await let ns of ag_out ::
+        yield {... ns}
 
 
 ao_dom_listen(demo_target)
@@ -52,6 +58,6 @@ const ao_tgt_hsl = @*>
 
 
 ::!>
-  for await let e of demo_target ::
+  for await let e of demo_tap ::
     console.log @ 'ao_tgt', e
 

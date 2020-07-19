@@ -1,29 +1,28 @@
-import {_obj_assign, _is_fn, is_ao_iter} from './_common.jsy'
 
-export const _xinvoke = v_fn =>
-  _is_fn(v_fn)
-    ? v_fn()
-    : v_fn
+export const is_ao_iter = g =>
+  null != g[Symbol.asyncIterator]
 
-export function _xpipe_tgt(pipe) ::
-  if _is_fn(pipe) ::
-    pipe = pipe()
-    pipe.next()
-    return pipe
-
-  return pipe.g_in || pipe
+export const is_ao_fn = v_fn =>
+  'function' === typeof v_fn
+    && ! is_ao_iter(v_fn)
 
 
-export {is_ao_iter}
+export const ao_done = Object.freeze @: ao_done: true
+export const ao_check_done = err => ::
+  if err !== ao_done && err && !err.ao_done ::
+    throw err
+  return true
+
+
 export function * iter(gen_in) ::
-  yield * _xinvoke(gen_in)
+  yield * gen_in
 export async function * ao_iter(gen_in) ::
-  yield * _xinvoke(gen_in)
+  yield * gen_in
 
 
-export function fn_chain(tail, ctx) ::
-  return _obj_assign @ chain, {chain, tail}
+export function fn_chain(tail) ::
+  chain.tail = tail
+  return chain.chain = chain
   function chain(fn) ::
-    chain.tail = fn(chain.tail, ctx)
+    chain.tail = fn(chain.tail)
     return chain
-

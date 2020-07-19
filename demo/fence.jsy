@@ -43,12 +43,12 @@ let tid = setInterval(Boolean, 1000)
 
     console.log('')
     console.log(txt)
-    f.reset(txt)
+    f.resume(txt)
     console.log('')
 
   await 0
   console.log @ "S done"
   f.fence.done = true
-  f.reset('bye')
+  f.resume('bye')
   console.log @ "proc S done"
 

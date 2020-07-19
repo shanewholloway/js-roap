@@ -17,6 +17,7 @@ demo_jsy('dom_input')
 demo_jsy('dom_channels')
 demo_jsy('dom_storage')
 
+demo_jsy('xform_tap_dom_input')
 
 function demo_jsy(src_name='index') {
   configs.push({ plugins,

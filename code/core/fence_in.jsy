@@ -1,0 +1,120 @@
+import {is_ao_fn, ao_check_done} from './util.jsy'
+import {ao_fence_obj, ao_fence_v, _ao_fence_api_} from './fence.jsy'
+import {ao_split, ao_tap} from './split.jsy'
+
+
+export const ao_fence_in = ao_fence_v.bind @ null, @{}
+  __proto__: _ao_fence_api_
+
+  ao_pipe(ns_gen) ::
+    return this.ao_xform_run @:
+      xinit: aog_iter, ... ns_gen
+  ao_queue(ns_gen) ::
+    return this.ao_xform_run @:
+      xinit: aog_sink, ... ns_gen
+
+  aog_iter(xf) :: return aog_iter(this, xf)
+  aog_sink(f_gate, xf) :: return aog_sink(this, f_gate, xf)
+
+
+  ao_xform_tap(ns_gen) ::
+    return ao_tap @
+      this.ao_xform_raw(ns_gen)
+
+  ao_xform_run(ns_gen) ::
+    return ao_split @
+      this.ao_xform_raw(ns_gen)
+
+  ao_xform_raw(ns_gen=aog_sink) ::
+    let {xinit, xrecv, xemit} = ns_gen
+    if undefined === xinit ::
+      xinit = is_ao_fn(ns_gen) ? ns_gen : aog_sink
+
+
+    let ag_out, f_out = ao_fence_obj()
+    let res = xinit(this, f_out, xrecv)
+
+    if undefined !== res.g_in ::
+      // res is an output generator
+      ag_out = res
+      f_out.g_in = res.g_in
+
+    else ::
+      // res is an input generator
+      res.next()
+
+      ag_out = f_out.ao_gated(this)
+      ag_out.g_in = f_out.g_in = res
+      ag_out.f_out = f_out
+
+
+    if xemit ::
+      let {g_in} = ag_out
+      ag_out = xemit(ag_out)
+      ag_out.g_in = g_in
+
+    return ag_out
+
+
+
+export function * aog_iter(g, f_gate, xf) ::
+  xf = xf ? _xf_gen.create(xf) : void xf
+  try ::
+    while 1 ::
+      let tip = yield
+      if undefined !== xf ::
+        tip = xf.next(tip).value
+      g.next(tip)
+
+  catch err ::
+    ao_check_done(err)
+  finally ::
+    g.return()
+    if undefined !== xf ::
+      xf.return()
+
+
+export async function * aog_sink(g, f_gate, xf) ::
+  xf = xf ? _xf_gen.create(xf) : void xf
+  try ::
+    while 1 ::
+      ::
+        let tip = yield
+        if undefined !== xf ::
+          tip = await xf.next(tip)
+          tip = tip.value
+        await g.next(tip)
+
+      if undefined !== f_gate ::
+        await f_gate.fence()
+
+  catch err ::
+    ao_check_done(err)
+  finally ::
+    g.return()
+    if undefined !== xf ::
+      xf.return()
+
+
+export const _xf_gen = @{}
+  create(xf) ::
+    let self = {__proto__: this}
+    self.xg = xf(self.xf_inv())
+    return self
+
+  *xf_inv() ::
+    while 1 ::
+      let tip = this._tip
+      if this === tip ::
+        throw new Error('Underflow')
+      else this._tip = this
+
+      yield tip
+
+  next(v) ::
+    this._tip = v
+    return this.xg.next(v)
+
+  return() :: this.xg.return()
+  throw() :: this.xg.throw()
+

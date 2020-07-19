@@ -1,13 +1,13 @@
-import {ao_fence_fn} from '../core.jsy'
+import {ao_fence_fn} from '../core/fence.jsy'
 
 export function ao_dom_animation() ::
-  let tid, [_fence, _reset] = ao_fence_fn(raf)
+  let tid, [_fence, _resume] = ao_fence_fn(raf)
   raf.stop = @::
     tid = cancelAnimationFrame(tid)
     raf.done = true
   return raf
 
   function raf() ::
-    tid = requestAnimationFrame(_reset)
+    tid = requestAnimationFrame(_resume)
     return _fence()
 

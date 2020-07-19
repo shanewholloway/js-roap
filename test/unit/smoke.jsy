@@ -1,11 +1,10 @@
 import {assert, is_fn} from './_utils.jsy'
 
 import {ao_deferred, ao_deferred_v} from 'roap'
-import {ao_fence_v, ao_fence_fn, ao_fence_obj} from 'roap'
+import {ao_fence_v, ao_fence_fn, ao_fence_obj, ao_fence_in} from 'roap'
 import {iter, step_iter, ao_iter, ao_step_iter} from 'roap'
 import {ao_run, ao_drive} from 'roap'
 import {ao_split, ao_tap} from 'roap'
-import {ao_pipe} from 'roap'
 
 describe @ 'smoke', @::
   it @ 'deferred', @::
@@ -16,6 +15,7 @@ describe @ 'smoke', @::
     is_fn @ ao_fence_v
     is_fn @ ao_fence_fn
     is_fn @ ao_fence_obj
+    is_fn @ ao_fence_in
 
   it @ 'drive', @::
     is_fn @ iter
@@ -29,7 +29,4 @@ describe @ 'smoke', @::
   it @ 'split', @::
     is_fn @ ao_split
     is_fn @ ao_tap
-
-  it @ 'pipe', @::
-    is_fn @ ao_pipe
 

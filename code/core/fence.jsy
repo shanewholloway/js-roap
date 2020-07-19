@@ -1,60 +1,63 @@
-import {_obj_assign, _is_fn, _ret_ident} from './_common.jsy'
-
-export const ao_sym_done = Symbol('ao_done')
-
-export function ao_fence_v() ::
-  let p=0, _resume = ()=>{}
-  let _pset = a => _resume = a
-
-  return @[]
-    () => 0 !== p ? p
-      : p = new Promise(_pset)
-
-    v => :: p = 0; _resume(v)
+import {ao_done, ao_check_done, fn_chain} from './util.jsy'
 
 
+export function ao_fence_v(proto) ::
+  let p=0, _resume = _=>0, _abort = _=>0
+  let _pset = (y,n) => :: _resume=y; _abort=n
 
-const _ao_fence_api = @{}
-  stop() :: this.fence.done = true
+  let fence = () => @ 0 !== p ? p : p=new Promise(_pset)
+  let resume = (ans) => @ p=0, _resume(ans)
+  let abort = (err=ao_done) => @ p=0, _abort(err)
 
-  ao_fork() ::
-    return ao_fence_fork(this.fence)
+  return proto
+    ? @{} __proto__: proto, fence, resume, abort
+    : @[] fence, resume, abort
+
+
+
+export const _ao_fence_api_ = @{}
+  __proto__: @{}
+    // generator api
+    next(v) :: return {value: this.resume(v), done: true}
+    return() :: return {value: this.abort(ao_done), done: true}
+    throw(err) :: return {value: this.abort(err), done: true}
+
+    ao_check_done
+    chain(fn) :: return fn_chain(this)(fn)
+
+  // copyable fence api
 
   [Symbol.asyncIterator]() ::
     return this.ao_fork()
 
+  async * ao_fork() ::
+    let {fence} = this
+    try ::
+      while 1 ::
+        yield await fence()
+    catch err ::
+      ao_check_done(err)
+
+
 export function ao_fence_fn(tgt) ::
   let f = ao_fence_v()
   if undefined === tgt :: tgt = f[0]
-  tgt.fence = _obj_assign @ tgt, _ao_fence_api
+  tgt.fence = Object.assign(tgt, _ao_fence_api_)
   return f
 
-export function ao_fence_obj(tgt) ::
-  let f = ao_fence_fn(tgt)
-  return @{} __proto__: _ao_fence_api
-    fence: tgt || f[0], reset: f[1]
 
+export const ao_fence_obj = ao_fence_v.bind @ null, @{}
+  __proto__: _ao_fence_api_
 
-export async function * ao_fence_fork(fence) ::
-  while ! fence.done ::
-    let v = await fence()
-    if fence.done || v === ao_sym_done ::
-      return v
-    yield v
-
-
-export async function * _ao_fence_loop(fence, reset, xform) ::
-  try ::
-    let v
-    while ! fence.done ::
-      v = await fence()
-      if v === ao_sym_done ::
-        return
-
-      v = yield v
-      if undefined !== xform ::
-        v = await xform(v)
-      reset @ v
-  finally ::
-    reset(ao_sym_done)
+  async * ao_gated(f_gate) ::
+    try ::
+      while 1 ::
+        let v = await f_gate.fence()
+        yield v
+        this.resume(v)
+    catch err ::
+      ao_check_done(err)
+    finally ::
+      f_gate.abort()
+      this.abort()
 

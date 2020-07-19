@@ -1,10 +1,12 @@
-export * from './core.jsy'
+export * from './core/util.jsy'
+export * from './core/deferred.jsy'
+export * from './core/drive.jsy'
+export * from './core/split.jsy'
 
-export * from './queue.jsy'
-
-export * from './pipe.jsy'
+export * from './core/fence.jsy'
+export * from './core/fence_in.jsy'
 
 export * from './time.jsy'
 
-export * from './dom.jsy'
-
+export * from './dom/anim.jsy'
+export * from './dom/listen.jsy'

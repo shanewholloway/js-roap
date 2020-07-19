@@ -15,7 +15,7 @@ export async function * delay_walk(g_in, ms=1) ::
     await delay(ms)
 
 export function is_fn(fn) ::
-  assert.equal @ 'function', typeof fn
+  expect(fn).to.be.a('function')
   return fn
 
 export function is_gen(g) ::
@@ -23,6 +23,25 @@ export function is_gen(g) ::
   is_fn(g.return)
   is_fn(g.throw)
   return g
+
+export function is_fence_basic(f) ::
+  is_fn(f.fence)
+  is_fn(f.ao_fork)
+  is_async_iterable(f)
+  return f
+
+export function is_fence_full(f) ::
+  is_fence_basic(f)
+  is_fn(f.abort)
+  is_fn(f.resume)
+
+  is_fn(f.next)
+  is_fn(f.return)
+  is_fn(f.throw)
+
+  is_fn(f.ao_check_done)
+  is_fn(f.chain)
+  return f
 
 export function is_async_iterable(o) ::
   assert @ null != o[Symbol.asyncIterator], 'async iterable'

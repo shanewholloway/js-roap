@@ -33,7 +33,7 @@ State is inherent in async systems: timing, data stores, UIs, and network operat
 ### Docs
 
 - [core](./docs/core.md)
-- [pipe](./docs/pipe.md)
+- [fence](./docs/fence.md)
 - [time](./docs/time.md)
 - [dom](./docs/dom.md)
 

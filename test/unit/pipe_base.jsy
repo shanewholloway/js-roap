@@ -1,4 +1,4 @@
-import {_ao_pipe_base, ao_drive} from 'roap'
+import {ao_fence_in, ao_drive} from 'roap'
 
 import @{}
   assert, expect,
@@ -8,15 +8,18 @@ import @{}
 from './_utils.jsy'
 
 
-describe @ 'ao_pipe base', @::
+describe @ 'ao_fence_in.ao_pipe basics', function() ::
   it @ 'shape', @::
-    let pipe = is_async_iterable @ _ao_pipe_base.create()
-    is_gen @ pipe.g_in
+    let some_pipe = is_async_iterable @
+      ao_fence_in().ao_pipe()
 
+    is_gen @ some_pipe.g_in
+    expect(some_pipe.fence).to.be.a('function')
+    expect(some_pipe.when_run).to.be.a('promise')
 
   it @ 'example', @::>
-    let pipe = _ao_pipe_base.create()
-    let z = common_ao_pipe_base @ pipe,
+    let some_pipe = ao_fence_in().ao_pipe()
+    let z = _test_pipe_out @ some_pipe,
       [1942, 2042, 2142]
 
     assert.deepEqual @
@@ -24,11 +27,14 @@ describe @ 'ao_pipe base', @::
       await delay_race(z, 50)
 
   it @ 'xfold', @::>
-    let pipe = _ao_pipe_base.create @::
-      let s = 0
-      return @{} xfold: v => s += v
+    let some_pipe = ao_fence_in().ao_pipe @:
+      *xrecv(g) ::
+        let s = 0
+        for let v of g ::
+          s += v
+          yield s
 
-    let z = common_ao_pipe_base @ pipe,
+    let z = _test_pipe_out @ some_pipe,
       [1942, 2042, 2142]
 
     assert.deepEqual @
@@ -37,10 +43,12 @@ describe @ 'ao_pipe base', @::
 
 
   it @ 'xemit', @::>
-    let pipe = _ao_pipe_base.create @:
-      xemit: v => ['xe', v]
+    let some_pipe = ao_fence_in().ao_pipe @:
+      async * xemit(g) ::
+        for await let v of g ::
+          yield ['xe', v]
 
-    let z = common_ao_pipe_base @ pipe,
+    let z = _test_pipe_out @ some_pipe,
       [1942, 2042, 2142]
 
     assert.deepEqual @
@@ -50,44 +58,12 @@ describe @ 'ao_pipe base', @::
       await delay_race(z, 50)
 
 
-  it @ 'xpull', @::>
-    let pipe = _ao_pipe_base.create @::
-      let mem = []
-      return @{}
-        xfold(v) ::
-          if undefined !== v ::
-            mem.push(v)
-          return mem[0]
-        xpull() ::
-          return mem[0]
-        xemit() ::
-          let tip = mem.shift()
-          let q = mem.slice()
-          return @{} tip, q
-
-    let z = array_from_ao_iter(pipe)
-    for let v of [1942, 2042, 2142] ::
-      pipe.g_in.next(v)
-
-    await delay(1)
-    pipe.g_in.return()
-
-    assert.deepEqual @
-      @[]
-        @{} tip: 1942, q: @[] 2042, 2142
-        @{} tip: 2042, q: @[] 2142
-        @{} tip: 2142, q: @[]
-      await z
-
-
-  async function common_ao_pipe_base(pipe, values) ::
-    let z = array_from_ao_iter(pipe)
+  async function _test_pipe_out(some_pipe, values) ::
+    let z = array_from_ao_iter(some_pipe)
 
     await ao_drive @
       delay_walk(values)
-      pipe.g_in
-
-    pipe.g_in.return()
+      some_pipe.g_in, true
 
     return z
 

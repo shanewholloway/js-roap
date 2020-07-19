@@ -1,37 +1,41 @@
-import {_ret_ident} from './_common.jsy'
-import {iter, ao_iter, _xinvoke, _xpipe_tgt} from './util.jsy'
+import {iter, ao_iter, is_ao_fn} from './util.jsy'
 
 
-export async function ao_run(gen_in, notify=_ret_ident) ::
-  for await let v of _xinvoke(gen_in) ::
-    notify(v)
+export async function ao_run(gen_in) ::
+  for await let v of gen_in ::
 
 
-export async function ao_drive(gen_in, gen_tgt, xform=_ret_ident) ::
-  gen_tgt = _xpipe_tgt(gen_tgt)
-  for await let v of _xinvoke(gen_in) ::
-    if undefined !== gen_tgt ::
-      v = xform(v)
-      let {done} = await gen_tgt.next(v)
-      if done :: break
+export async function ao_drive(gen_in, gen_tgt, close_tgt) ::
+  if is_ao_fn(gen_tgt) ::
+    gen_tgt = gen_tgt()
+    gen_tgt.next()
+
+  for await let v of gen_in ::
+    let {done} = await gen_tgt.next(v)
+    if done :: break
+
+  if close_tgt ::
+    await gen_tgt.return()
 
 
-export function ao_step_iter(iterable, multiple) ::
+export function ao_step_iter(iterable, or_more) ::
   iterable = ao_iter(iterable)
   return @{}
     async * [Symbol.asyncIterator]() ::
       do ::
-        let {value} = await iterable.next()
+        let {value, done} = await iterable.next()
+        if done :: return value
         yield value
-      while multiple
+      while or_more
 
 
-export function step_iter(iterable, multiple) ::
+export function step_iter(iterable, or_more) ::
   iterable = iter(iterable)
   return @{}
     *[Symbol.iterator]() ::
       do ::
-        let {value} = iterable.next()
+        let {value, done} = iterable.next()
+        if done :: return value
         yield value
-      while multiple
+      while or_more
 

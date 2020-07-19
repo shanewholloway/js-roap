@@ -3,12 +3,18 @@ import './unit/core_deferred.jsy'
 import './unit/core_drive.jsy'
 import './unit/core_drive_iters.jsy'
 import './unit/core_split.jsy'
-import './unit/fence.jsy'
+
+import './unit/fence_v.jsy'
+import './unit/fence_fn.jsy'
+import './unit/fence_obj.jsy'
+
+import './unit/fence_in.jsy'
+import './unit/queue.jsy'
+
 import './unit/pipe_base.jsy'
 import './unit/pipe.jsy'
 
 import './unit/time.jsy'
-import './unit/queue.jsy'
 
 import './unit/dom_anim.jsy'
 import './unit/dom_listen.jsy'

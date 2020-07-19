@@ -4,41 +4,32 @@
   (global = global || self, factory(global.roap = {}));
 }(this, (function (exports) { 'use strict';
 
-  const {
-    assign: _obj_assign,
-    defineProperties: _obj_props,
-  } = Object;
-
   const is_ao_iter = g =>
     null != g[Symbol.asyncIterator];
 
-  const _is_fn = v_fn =>
+  const is_ao_fn = v_fn =>
     'function' === typeof v_fn
       && ! is_ao_iter(v_fn);
-  const _ret_ident = v => v;
 
-  const _xinvoke = v_fn =>
-    _is_fn(v_fn)
-      ? v_fn()
-      : v_fn;
 
-  function _xpipe_tgt(pipe) {
-    if (_is_fn(pipe)) {
-      pipe = pipe();
-      pipe.next();
-      return pipe}
+  const ao_done = Object.freeze({ao_done: true});
+  const ao_check_done$1 = err => {
+    if (err !== ao_done && err && !err.ao_done) {
+      throw err}
+    return true};
 
-    return pipe.g_in || pipe}
+
   function * iter(gen_in) {
-    yield * _xinvoke(gen_in);}
+    yield * gen_in;}
   async function * ao_iter(gen_in) {
-    yield * _xinvoke(gen_in);}
+    yield * gen_in;}
 
 
-  function fn_chain(tail, ctx) {
-    return _obj_assign(chain, {chain, tail})
+  function fn_chain(tail) {
+    chain.tail = tail;
+    return chain.chain = chain
     function chain(fn) {
-      chain.tail = fn(chain.tail, ctx);
+      chain.tail = fn(chain.tail);
       return chain} }
 
   const ao_deferred_v = ((() => {
@@ -51,394 +42,277 @@
     v = ao_deferred_v()
   , {promise: v[0], resolve: v[1], reject: v[2]});
 
-  const ao_sym_done = Symbol('ao_done');
-
-  function ao_fence_v() {
-    let p=0, _resume = ()=>{};
-    let _pset = a => _resume = a;
-
-    return [
-      () => 0 !== p ? p
-        : p = new Promise(_pset)
-
-    , v => {p = 0; _resume(v);} ] }
+  async function ao_run(gen_in) {
+    for await (let v of gen_in) {} }
 
 
+  async function ao_drive(gen_in, gen_tgt, close_tgt) {
+    if (is_ao_fn(gen_tgt)) {
+      gen_tgt = gen_tgt();
+      gen_tgt.next();}
 
-  const _ao_fence_api ={
-    stop() {this.fence.done = true;}
+    for await (let v of gen_in) {
+      let {done} = await gen_tgt.next(v);
+      if (done) {break} }
 
-  , ao_fork() {
-      return ao_fence_fork(this.fence)}
-
-  , [Symbol.asyncIterator]() {
-      return this.ao_fork()} };
-
-  function ao_fence_fn(tgt) {
-    let f = ao_fence_v();
-    if (undefined === tgt) {tgt = f[0];}
-    tgt.fence = _obj_assign(tgt, _ao_fence_api);
-    return f}
-
-  function ao_fence_obj(tgt) {
-    let f = ao_fence_fn(tgt);
-    return {__proto__: _ao_fence_api
-    , fence: tgt || f[0], reset: f[1]} }
+    if (close_tgt) {
+      await gen_tgt.return();} }
 
 
-  async function * ao_fence_fork(fence) {
-    while (! fence.done) {
-      let v = await fence();
-      if (fence.done || v === ao_sym_done) {
-        return v}
-      yield v;} }
-
-
-  async function * _ao_fence_loop(fence, reset, xform) {
-    try {
-      let v;
-      while (! fence.done) {
-        v = await fence();
-        if (v === ao_sym_done) {
-          return}
-
-        v = yield v;
-        if (undefined !== xform) {
-          v = await xform(v);}
-        reset(v); } }
-    finally {
-      reset(ao_sym_done);} }
-
-  async function ao_run(gen_in, notify=_ret_ident) {
-    for await (let v of _xinvoke(gen_in)) {
-      notify(v);} }
-
-
-  async function ao_drive(gen_in, gen_tgt, xform=_ret_ident) {
-    gen_tgt = _xpipe_tgt(gen_tgt);
-    for await (let v of _xinvoke(gen_in)) {
-      if (undefined !== gen_tgt) {
-        v = xform(v);
-        let {done} = await gen_tgt.next(v);
-        if (done) {break} } } }
-
-
-  function ao_step_iter(iterable, multiple) {
+  function ao_step_iter(iterable, or_more) {
     iterable = ao_iter(iterable);
     return {
       async * [Symbol.asyncIterator]() {
         do {
-          let {value} = await iterable.next();
+          let {value, done} = await iterable.next();
+          if (done) {return value}
           yield value;}
-        while (multiple) } } }
+        while (or_more) } } }
 
 
-  function step_iter(iterable, multiple) {
+  function step_iter(iterable, or_more) {
     iterable = iter(iterable);
     return {
       *[Symbol.iterator]() {
         do {
-          let {value} = iterable.next();
+          let {value, done} = iterable.next();
+          if (done) {return value}
           yield value;}
-        while (multiple) } } }
+        while (or_more) } } }
 
-  function ao_fork() {
-    return ao_fence_fork(this.fence)}
+  function ao_fence_v(proto) {
+    let p=0, _resume = _=>0, _abort = _=>0;
+    let _pset = (y,n) => {_resume=y; _abort=n;};
 
-  const _ao_tap_props ={
-    ao_fork:{value: ao_fork}
-  , chain:{get() {
-      return fn_chain(this, this)} } };
+    let fence = () =>(0 !== p ? p : p=new Promise(_pset));
+    let resume = (ans) =>(p=0, _resume(ans));
+    let abort = (err=ao_done) =>(p=0, _abort(err));
 
-  function ao_tap(ag_out) {
-    return _obj_props(_ao_tap(ag_out), _ao_tap_props) }
+    return proto
+      ?{__proto__: proto, fence, resume, abort}
+      :[fence, resume, abort] }
 
-  function _ao_tap(ag_out) {
-    let [fence, reset] = ao_fence_v();
-    let gen = ((async function * () {
-      fence.done = false;
+
+
+  const _ao_fence_api_ ={
+    __proto__:{
+      // generator api
+      next(v) {return {value: this.resume(v), done: true}}
+    , return() {return {value: this.abort(ao_done), done: true}}
+    , throw(err) {return {value: this.abort(err), done: true}}
+
+    , ao_check_done: ao_check_done$1
+    , chain(fn) {return fn_chain(this)(fn)} }
+
+  , // copyable fence api
+
+    [Symbol.asyncIterator]() {
+      return this.ao_fork()}
+
+  , async * ao_fork() {
+      let {fence} = this;
       try {
-        for await (let v of _xinvoke(ag_out)) {
-          reset(v);
-          yield v;} }
+        while (1) {
+          yield await fence();} }
+      catch (err) {
+        ao_check_done$1(err);} } };
+
+
+  function ao_fence_fn(tgt) {
+    let f = ao_fence_v();
+    if (undefined === tgt) {tgt = f[0];}
+    tgt.fence = Object.assign(tgt, _ao_fence_api_);
+    return f}
+
+
+  const ao_fence_obj = ao_fence_v.bind(null,{
+    __proto__: _ao_fence_api_
+
+  , async * ao_gated(f_gate) {
+      try {
+        while (1) {
+          let v = await f_gate.fence();
+          yield v;
+          this.resume(v);} }
+      catch (err) {
+        ao_check_done$1(err);}
       finally {
-        fence.done = true;
-        reset();} }).call(this));
-
-    gen.fence = fence;
-    return gen}
-
-
-
-  const _ao_split_api ={
-    get chain() {
-      return fn_chain(this, this)}
-  , [Symbol.asyncIterator]: ao_fork
-  , ao_fork};
+        f_gate.abort();
+        this.abort();} } } );
 
   function ao_split(ag_out) {
-    let gen = _ao_tap(ag_out);
-    return {
-      __proto__: _ao_split_api
-    , fin: ao_run(gen)
-    , fence: gen.fence} }
+    let {f_out} = ag_out;
+    if (undefined === f_out) {
+      [f_out, ag_out] = ao_tap(ag_out);}
 
-  function ao_queue(xform) {
-    let [fence, out_reset] = ao_fence_fn();
-    let [in_fence, in_reset] = ao_fence_v();
-
-    let ag_out = _ao_fence_loop(fence, in_reset);
-    let g_in = _ao_fence_loop(in_fence, out_reset, xform);
-
-    // allow g_in to initialize
-    g_in.next() ; in_reset();
-    return _obj_assign(ag_out, {fence, g_in}) }
-
-  const _as_pipe_end = (g,ns) => _obj_assign(g, ns);
-
-  //~~~
-  // Pipe base as generator in composed object-functional implementation
-
-  const _ao_pipe_base ={
-    xfold: v => v // on push: identity transform
-  , xpull() {} // memory: none
-  , xemit: _xinvoke // identity transform or invoke if function
-  , xinit(g_in, ag_out) {} // on init: default behavior
-
-  , get create() {
-      // as getter to bind class as `this` at access time
-      const create = (... args) =>
-        _obj_assign({__proto__: this},
-          ... args.map(_xinvoke))
-        ._ao_pipe();
-
-      return create.create = create}
-
-  , _ao_pipe() {
-      let fin_lst = [];
-
-      let on_fin = this.on_fin =
-        g =>(fin_lst.push(g), g);
-
-      let stop = this.stop = (() => {
-        this.done = true;
-        _fin_pipe(fin_lst);
-        this._resume();});
+    f_out.when_run = ao_run(ag_out);
+    return f_out}
 
 
-      let g_in = on_fin(
-        this._ao_pipe_in());
+  function ao_tap(iterable, order=1) {
+    let f_tap = ao_fence_obj();
+    let ag_tap = _ao_tap(iterable, f_tap, order);
+    ag_tap.f_out = f_tap;
+    ag_tap.g_in = f_tap.g_in = iterable.g_in;
+    return [f_tap, ag_tap]}
 
-      let ag_out = on_fin(
-        this._ao_pipe_out());
+  async function * _ao_tap(iterable, g_tap, order=1) {
+    try {
+      for await (let v of iterable) {
+        if (0 >= order) {await g_tap.next(v);}
+        yield v;
+        if (0 <= order) {await g_tap.next(v);} } }
+    catch (err) {
+      ao_check_done(err);}
+    finally {
+      g_tap.return();} }
 
-      // adapt ag_out by api and kind
-      let self = {stop, on_fin, g_in};
-      ag_out = this._as_pipe_out(
-        ag_out, self, this.kind);
+  const ao_fence_in = ao_fence_v.bind(null,{
+    __proto__: _ao_fence_api_
 
-      ag_out = this.xinit(g_in, ag_out) || ag_out;
+  , ao_pipe(ns_gen) {
+      return this.ao_xform_run({
+        xinit: aog_iter, ... ns_gen}) }
+  , ao_queue(ns_gen) {
+      return this.ao_xform_run({
+        xinit: aog_sink, ... ns_gen}) }
 
-      // allow g_in to initialize
-      g_in.next();
-      return ag_out}
-
-  , _as_pipe_out: _as_pipe_end
-
-  , //~~~
-    // Upstream input generator
-    //   designed for multiple feeders
-
-    *_ao_pipe_in() {
-      try {
-        let v;
-        while (! this.done) {
-          v = this.xfold(yield v);
-          this.value = v;
-          if (0 !== this._waiting && undefined !== v) {
-            this._resume();} } }
-
-      finally {
-        this.stop();} }
+  , aog_iter(xf) {return aog_iter(this)}
+  , aog_sink(f_gate, xf) {return aog_sink(this, f_gate, xf)}
 
 
-  , //~~~
-    // Downstream async output generator
-    //   designed for single consumer.
+  , ao_xform_tap(ns_gen) {
+      return ao_tap(
+        this.ao_xform_raw(ns_gen)) }
 
-    async *_ao_pipe_out() {
-      try {
-        let r;
-        while (! this.done) {
-          if (0 !== (r = this._waiting)) {
-            // p0: existing waiters
-            r = await r;
-            if (this.done) {break} }
-          else if (undefined !== (r = this.value)) {
-            // p1: available value
-            this.value = undefined;}
-          else if (undefined !== (r = this.xpull())) {
-            }// p2: xpull value (e.g. queue memory) 
-          else {
-            // p3: add new waiter
-            r = await this._bind_waiting();
-            if (this.done) {break} }
+  , ao_xform_run(ns_gen) {
+      return ao_split(
+        this.ao_xform_raw(ns_gen)) }
 
-          yield this.xemit(r);} }
-
-      finally {
-        this.stop();} }
+  , ao_xform_raw(ns_gen=aog_sink) {
+      let {xinit, xrecv, xemit} = ns_gen;
+      if (undefined === xinit) {
+        xinit = is_ao_fn(ns_gen) ? ns_gen : aog_sink;}
 
 
-  , //~~~
-    // generator-like value/done states
+      let ag_out, f_out = ao_fence_obj();
+      let res = xinit(this, f_out, xrecv);
 
-    value: undefined
-  , done: false
+      if (undefined !== res.g_in) {
+        // res is an output generator
+        ag_out = res;
+        f_out.g_in = res.g_in;}
 
-  , //~~~
-    // promise-based fence tailored for ao_pipe usecase
+      else {
+        // res is an input generator
+        res.next();
 
-    _waiting: 0
-  , _fulfill() {}
-  , async _resume() {
-      if (! this.done) {await this;}
-
-      let {value, _fulfill} = this;
-      if (undefined != value || this.done) {
-        this.value = undefined;
-        this._waiting = 0;
-        _fulfill(value);} }
-
-  , _bind_waiting() {
-      let _reset = y => this._fulfill = y;
-      this._bind_waiting = () => this._waiting ||(
-        this._waiting = new Promise(_reset));
-      return this._bind_waiting()} };
+        ag_out = f_out.ao_gated(this);
+        ag_out.g_in = f_out.g_in = res;
+        ag_out.f_out = f_out;}
 
 
-  function _fin_pipe(fin_lst) {
-    while (0 !== fin_lst.length) {
-      let g = fin_lst.pop();
-      try {
-        if (_is_fn(g)) {g();}
-        else g.return();}
-      catch (err) {
-        if (err instanceof TypeError) {
-          if ('Generator is already running' === err.message) {
-            continue} }
-        console.error(err);} } }
+      if (xemit) {
+        let {g_in} = ag_out;
+        ag_out = xemit(ag_out);
+        ag_out.g_in = g_in;}
 
-  const _ao_pipe_out_kinds ={
-    ao_raw: g => g
-  , ao_split: ao_split
-  , ao_tap: ao_tap};
-
-  function _ao_pipe_out(ag_out, self, kind) {
-    kind = /^ao_/.test(kind) ? kind : 'ao_'+kind;
-    let ao_wrap = _ao_pipe_out_kinds[kind];
-    if (undefined === ao_wrap) {
-      throw new Error(`Unknonwn ao_pipe_out kind "${kind}"`)}
-
-    return _obj_assign(ao_wrap(ag_out), self) }
-
-  const _ao_pipe ={
-    __proto__: _ao_pipe_base
-
-  , // xfold: v => v -- on push: identity transform
-    // xpull() {} -- memory: none
-    // xemit: _xinvoke -- identity transform or invoke if function
-
-    // *xgfold() -- on push: generator-based fold impl
-    // *xsrc() -- feed with source generator
-    // *xctx(gen_src) -- on init: bind event sources
-
-    kind: 'split'
-  , //_as_pipe_in: _ao_pipe_in
-    _as_pipe_out: _ao_pipe_out
-
-  , xinit(g_in, ag_out) {
-      let xgfold = this.xgfold;
-      if (undefined !== xgfold) {
-        this._init_xgfold(g_in, xgfold);}
-
-      this._init_chain(g_in);}
+      return ag_out} } );
 
 
-  , _init_xgfold(g_in, xgfold) {
-      if (undefined === xgfold) {
-        return}
 
-      if (_is_fn(xgfold)) {
-        xgfold = xgfold.call(this, this);
+  function * aog_iter(g, f_gate, xf) {
+    xf = xf ? _xf_gen.create(xf) : void xf;
+    try {
+      while (1) {
+        let tip = yield;
+        if (undefined !== xf) {
+          tip = xf.next(tip).value;}
+        g.next(tip);} }
 
-        if (_is_fn(xgfold)) {
-          this.xfold = xgfold;
-          return true}
-
-        xgfold.next();}
-
-      this.xgfold = xgfold;
-      this.xfold = this._fold_gen;
-      this.on_fin(xgfold);
-      return true}
-
-  , _fold_gen(v) {
-      let {done, value} = this.xgfold.next(v);
-      if (done) {this.done = true;}
-      return value}
+    catch (err) {
+      ao_check_done$1(err);}
+    finally {
+      g.return();
+      if (undefined !== xf) {
+        xf.return();} } }
 
 
-  , _init_chain(g_in) {
-      let {xsrc, xctx} = this;
-      if (undefined !== xsrc) {
-        ao_drive(xsrc, g_in)
-          .then (() =>g_in.return()); }
+  async function * aog_sink(g, f_gate, xf) {
+    xf = xf ? _xf_gen.create(xf) : void xf;
+    try {
+      while (1) {
+         {
+          let tip = yield;
+          if (undefined !== xf) {
+            tip = await xf.next(tip);
+            tip = tip.value;}
+          await g.next(tip);}
 
-      if (undefined !== xctx) {
-        this._with_ctx(g_in, xctx);} }
+        if (undefined !== f_gate) {
+          await f_gate.fence();} } }
 
-  , _with_ctx(g_in, xctx) {
-      if (_is_fn(xctx)) {
-        xctx = xctx(g_in);}
+    catch (err) {
+      ao_check_done$1(err);}
+    finally {
+      g.return();
+      if (undefined !== xf) {
+        xf.return();} } }
 
-      if (xctx && xctx.next) {
-        xctx.next(g_in);
-        this.on_fin(xctx);}
-      return xctx} };
 
-  const ao_pipe = _ao_pipe.create;
+  const _xf_gen ={
+    create(xf) {
+      let self = {__proto__: this};
+      self.xg = xf(self.xf_inv());
+      return self}
+
+  , *xf_inv() {
+      while (1) {
+        let tip = this._tip;
+        if (this === tip) {
+          throw new Error('Underflow')}
+        else this._tip = this;
+
+        yield tip;} }
+
+  , next(v) {
+      this._tip = v;
+      return this.xg.next(v)}
+
+  , return() {this.xg.return();}
+  , throw() {this.xg.throw();} };
 
   function ao_interval(ms=1000) {
-    let [_fence, _reset] = ao_fence_fn();
-    let tid = setInterval(_reset, ms, 1);
+    let [_fence, _resume, _abort] = ao_fence_fn();
+    let tid = setInterval(_resume, ms, 1);
     if (tid.unref) {tid.unref();}
     _fence.stop = (() => {
       tid = clearInterval(tid);
-      _fence.done = true;});
+      _fence.done = true;
+      _abort();});
     return _fence}
 
 
   function ao_timeout(ms=1000) {
-    let tid, [_fence, _reset] = ao_fence_fn(timeout);
+    let tid, [_fence, _resume] = ao_fence_fn(timeout);
     return timeout
 
     function timeout() {
-      tid = setTimeout(_reset, ms, 1);
+      tid = setTimeout(_resume, ms, 1);
       if (tid.unref) {tid.unref();}
       return _fence()} }
 
 
   function ao_debounce(ms=300, gen_in) {
-    let tid, [_fence, _reset] = ao_fence_fn();
+    let tid, [_fence, _resume] = ao_fence_fn();
 
     _fence.fin = ((async () => {
       let p;
-      for await (let v of _xinvoke(gen_in)) {
+      for await (let v of gen_in) {
         clearTimeout(tid);
         if (_fence.done) {return}
         p = _fence();
-        tid = setTimeout(_reset, ms, v);}
+        tid = setTimeout(_resume, ms, v);}
 
       await p;
       _fence.done = true;})());
@@ -452,18 +326,18 @@
       yield Date.now() - ts0;} }
 
   function ao_dom_animation() {
-    let tid, [_fence, _reset] = ao_fence_fn(raf);
+    let tid, [_fence, _resume] = ao_fence_fn(raf);
     raf.stop = (() => {
       tid = cancelAnimationFrame(tid);
       raf.done = true;});
     return raf
 
     function raf() {
-      tid = requestAnimationFrame(_reset);
+      tid = requestAnimationFrame(_resume);
       return _fence()} }
 
   const _evt_init = Promise.resolve({type:'init'});
-  function ao_dom_listen(pipe = ao_queue()) {
+  function ao_dom_listen(pipe = ao_fence_in().ao_queue()) {
     let with_dom = (dom, fn) =>
       dom.addEventListener
         ? _ao_with_dom(_bind, fn, dom)
@@ -485,7 +359,7 @@
 
   function _ao_with_dom(_bind, fn, dom) {
     let _on_evt;
-    if (_is_fn(fn)) {
+    if (is_ao_fn(fn)) {
       _evt_init.then(
         _on_evt = _bind(dom, void 0, fn)); }
 
@@ -521,36 +395,33 @@
           ectx.listen(...args);}
         return this} } }
 
-  exports._ao_fence_loop = _ao_fence_loop;
-  exports._ao_pipe = _ao_pipe;
-  exports._ao_pipe_base = _ao_pipe_base;
-  exports._ao_pipe_out = _ao_pipe_out;
-  exports._ao_pipe_out_kinds = _ao_pipe_out_kinds;
+  exports._ao_fence_api_ = _ao_fence_api_;
   exports._ao_tap = _ao_tap;
-  exports._xinvoke = _xinvoke;
-  exports._xpipe_tgt = _xpipe_tgt;
+  exports._xf_gen = _xf_gen;
+  exports.ao_check_done = ao_check_done$1;
   exports.ao_debounce = ao_debounce;
   exports.ao_deferred = ao_deferred;
   exports.ao_deferred_v = ao_deferred_v;
   exports.ao_dom_animation = ao_dom_animation;
   exports.ao_dom_listen = ao_dom_listen;
+  exports.ao_done = ao_done;
   exports.ao_drive = ao_drive;
   exports.ao_fence_fn = ao_fence_fn;
-  exports.ao_fence_fork = ao_fence_fork;
+  exports.ao_fence_in = ao_fence_in;
   exports.ao_fence_obj = ao_fence_obj;
   exports.ao_fence_v = ao_fence_v;
   exports.ao_interval = ao_interval;
   exports.ao_iter = ao_iter;
-  exports.ao_pipe = ao_pipe;
-  exports.ao_queue = ao_queue;
   exports.ao_run = ao_run;
   exports.ao_split = ao_split;
   exports.ao_step_iter = ao_step_iter;
-  exports.ao_sym_done = ao_sym_done;
   exports.ao_tap = ao_tap;
   exports.ao_timeout = ao_timeout;
   exports.ao_times = ao_times;
+  exports.aog_iter = aog_iter;
+  exports.aog_sink = aog_sink;
   exports.fn_chain = fn_chain;
+  exports.is_ao_fn = is_ao_fn;
   exports.is_ao_iter = is_ao_iter;
   exports.iter = iter;
   exports.step_iter = step_iter;

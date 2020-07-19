@@ -1,8 +1,8 @@
-import {_is_fn} from '../core/_common.jsy'
-import {ao_queue} from '../queue.jsy'
+import {is_ao_fn} from '../core/util.jsy'
+import {ao_fence_in} from '../core/fence_in.jsy'
 
 const _evt_init = Promise.resolve({type:'init'})
-export function ao_dom_listen(pipe = ao_queue()) ::
+export function ao_dom_listen(pipe = ao_fence_in().ao_queue()) ::
   let with_dom = (dom, fn) =>
     dom.addEventListener
       ? _ao_with_dom(_bind, fn, dom)
@@ -24,7 +24,7 @@ export function ao_dom_listen(pipe = ao_queue()) ::
 
 function _ao_with_dom(_bind, fn, dom) ::
   let _on_evt
-  if _is_fn(fn) ::
+  if is_ao_fn(fn) ::
     _evt_init.then @
       _on_evt = _bind(dom, void 0, fn)
 

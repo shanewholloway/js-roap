@@ -1,4 +1,4 @@
-import {ao_queue, ao_drive} from 'roap'
+import {ao_fence_in, ao_drive} from 'roap'
 
 import @{}
   assert, expect,
@@ -7,40 +7,39 @@ import @{}
 from './_utils.jsy'
 
 
-describe @ 'queue', @::
+describe @ 'ao_fence_in.ao_queue', function() ::
   it @ 'shape', @::
-    is_fn @ ao_queue
+    let some_queue = is_async_iterable @
+      ao_fence_in().ao_queue()
 
-    let aot = is_async_iterable @
-      ao_queue()
-
-    is_gen(aot.g_in)
+    is_gen(some_queue.g_in)
+    expect(some_queue.fence).to.be.a('function')
+    expect(some_queue.when_run).to.be.a('promise')
 
   it @ 'singles', @::>
-    let aot = ao_queue()
+    let some_queue = ao_fence_in().ao_queue()
 
-    let p_out1 = aot.next()
+    let p_out1 = some_queue.fence()
     expect(p_out1).to.be.a('promise')
 
-    let p_in1 = aot.g_in.next @ 'first'
+    let p_in1 = some_queue.g_in.next @ 'first'
     expect(p_in1).to.be.a('promise')
 
-    expect(await p_out1).to.deep.equal @:
-      value: 'first', done: false
+    expect(await p_out1).to.equal @ 'first'
 
   it @ 'vec', @::>
-    let aot = ao_queue @
-      async v => 1000+v
+    let some_queue = ao_fence_in().ao_queue @:
+      async * xrecv(g) ::
+        for await let v of g ::
+          yield 1000+v
 
-    let out = array_from_ao_iter(aot)
+    let out = array_from_ao_iter(some_queue)
 
-    let p = ao_drive @
+    await ao_drive @
       delay_walk @# 25, 50, 75, 100
-      aot.g_in
+      some_queue.g_in
 
-    await p
-
-    await aot.g_in.return()
+    await some_queue.g_in.return()
 
     expect(await out).to.deep.equal @#
       1025, 1050, 1075, 1100

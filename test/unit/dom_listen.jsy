@@ -1,4 +1,4 @@
-import {ao_dom_listen, ao_pipe} from 'roap'
+import {ao_dom_listen} from 'roap'
 
 import @{}
   assert, expect,

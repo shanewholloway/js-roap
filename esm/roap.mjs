@@ -282,7 +282,6 @@ function ao_interval(ms=1000) {
   if (tid.unref) {tid.unref();}
   _fence.stop = (() => {
     tid = clearInterval(tid);
-    _fence.done = true;
     _abort();});
   return _fence}
 
@@ -301,15 +300,32 @@ function ao_debounce(ms=300, gen_in) {
   let tid, [_fence, _resume] = ao_fence_fn();
 
   _fence.fin = ((async () => {
-    let p;
-    for await (let v of gen_in) {
-      clearTimeout(tid);
-      if (_fence.done) {return}
-      p = _fence();
-      tid = setTimeout(_resume, ms, v);}
+    try {
+      let p;
+      for await (let v of gen_in) {
+        clearTimeout(tid);
+        p = _fence();
+        tid = setTimeout(_resume, ms, v);}
 
-    await p;
-    _fence.done = true;})());
+      await p;}
+    catch (err) {
+      ao_check_done$1(err);} })());
+
+  return _fence}
+
+
+function ao_ratelimit(ms=300, gen_in) {
+  let tid=null, [_fence, _resume] = ao_fence_fn();
+  let _reset = () => tid = null;
+
+  _fence.fin = ((async () => {
+    try {
+      for await (let v of gen_in) {
+        if (null === tid) {
+          _resume(v);
+          tid = setTimeout(_reset, ms);} } }
+    catch (err) {
+      ao_check_done$1(err);} })());
 
   return _fence}
 
@@ -389,5 +405,5 @@ function _ao_with_dom_vec(_bind, fn, ectx_list) {
         ectx.listen(...args);}
       return this} } }
 
-export { _ao_fence_api_, _ao_tap, _xf_gen, ao_check_done$1 as ao_check_done, ao_debounce, ao_deferred, ao_deferred_v, ao_dom_animation, ao_dom_listen, ao_done, ao_drive, ao_fence_fn, ao_fence_in, ao_fence_obj, ao_fence_v, ao_interval, ao_iter, ao_run, ao_split, ao_step_iter, ao_tap, ao_timeout, ao_times, aog_iter, aog_sink, fn_chain, is_ao_fn, is_ao_iter, iter, step_iter };
+export { _ao_fence_api_, _ao_tap, _xf_gen, ao_check_done$1 as ao_check_done, ao_debounce, ao_deferred, ao_deferred_v, ao_dom_animation, ao_dom_listen, ao_done, ao_drive, ao_fence_fn, ao_fence_in, ao_fence_obj, ao_fence_v, ao_interval, ao_iter, ao_ratelimit, ao_run, ao_split, ao_step_iter, ao_tap, ao_timeout, ao_times, aog_iter, aog_sink, fn_chain, is_ao_fn, is_ao_iter, iter, step_iter };
 //# sourceMappingURL=roap.mjs.map

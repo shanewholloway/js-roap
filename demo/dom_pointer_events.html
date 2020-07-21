@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+  <meta charset='utf-8' />
+  <meta name='viewport' content='width=device-width, initial-scale=1'>
+  <title>ROAP</title>
+
+  <link rel='icon' href='data:image/png;base64,' />
+  <link rel='stylesheet' crossorigin='anonymous' href='https://cdn.jsdelivr.net/npm/shoelace-css@1.0.0-beta24/dist/shoelace.css' />
+  <style>
+    body, main { min-height: 100vh; }
+    main { margin: 2em; }
+    main>pre { max-width: 40em; margin: 2em auto; }
+    output {
+      display: block;
+      background-color: #ddd;
+    }
+    output>p { margin: 0; font-family: monospace; }
+    #playarea {
+      display: flex;
+      align-content: center;
+      height: 60vh;
+      touch-action: none;
+      user-select: none;
+      background-color: #dfd;
+    }
+  </style>
+  <link href='https://cdn.jsdelivr.net/npm/prismjs@1.20.0/themes/prism.css' rel='stylesheet' />
+  <script src='https://cdn.jsdelivr.net/npm/prism-jsy/umd/prism-jsy.js'></script>
+
+  <script src='../umd/roap.js'></script>
+  <script src='/livereload.js'></script>
+</head>
+
+<body>
+  <main>
+    <div id='playarea'>
+      Pointer move / down / up area.
+    </div>
+
+    <output></output>
+
+    <hr />
+    <pre data-src='./dom_pointer_events.jsy'></pre>
+  </main>
+
+  <script src='./esm/dom_pointer_events.mjs'></script>
+</body>
+</html>

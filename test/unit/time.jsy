@@ -1,4 +1,4 @@
-import {ao_interval, ao_timeout, ao_debounce, ao_times, ao_iter} from 'roap'
+import {ao_interval, ao_timeout, ao_debounce, ao_ratelimit, ao_times, ao_iter} from 'roap'
 
 import @{}
   assert, expect,
@@ -57,6 +57,22 @@ describe @ 'time', @::
 
     let {value} = await p
     assert.equal(15, value)
+
+    await aot.fin
+
+
+  it @ 'ao_ratelimit', @::>
+    let aot = is_async_iterable @
+      ao_ratelimit(10, [30, 20, 10, 15])
+    let g = ao_iter(aot)
+
+    expect(aot.fin).to.be.a('promise')
+
+    let p = g.next()
+    expect(p).to.be.a('promise')
+
+    let {value} = await p
+    assert.equal(30, value)
 
     await aot.fin
 

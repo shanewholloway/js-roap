@@ -1,4 +1,5 @@
 import {ao_fence_fn} from './core/fence.jsy'
+import {ao_check_done} from './core/util.jsy'
 
 export function ao_interval(ms=1000) ::
   let [_fence, _resume, _abort] = ao_fence_fn()
@@ -6,7 +7,6 @@ export function ao_interval(ms=1000) ::
   if tid.unref :: tid.unref()
   _fence.stop = @::
     tid = clearInterval(tid)
-    _fence.done = true
     _abort()
   return _fence
 
@@ -25,15 +25,32 @@ export function ao_debounce(ms=300, gen_in) ::
   let tid, [_fence, _resume] = ao_fence_fn()
 
   _fence.fin = @!>
-    let p
-    for await let v of gen_in ::
-      clearTimeout(tid)
-      if _fence.done :: return
-      p = _fence()
-      tid = setTimeout(_resume, ms, v)
+    try ::
+      let p
+      for await let v of gen_in ::
+        clearTimeout(tid)
+        p = _fence()
+        tid = setTimeout(_resume, ms, v)
 
-    await p
-    _fence.done = true
+      await p
+    catch err ::
+      ao_check_done(err)
+
+  return _fence
+
+
+export function ao_ratelimit(ms=300, gen_in) ::
+  let tid=null, [_fence, _resume] = ao_fence_fn()
+  let _reset = () => tid = null
+
+  _fence.fin = @!>
+    try ::
+      for await let v of gen_in ::
+        if null === tid ::
+          _resume(v)
+          tid = setTimeout(_reset, ms)
+    catch err ::
+      ao_check_done(err)
 
   return _fence
 

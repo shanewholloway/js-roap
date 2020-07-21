@@ -1,0 +1,41 @@
+import {ao_dom_listen, ao_drive, ao_ratelimit} from 'roap'
+
+let dom_hub = ao_dom_listen()
+let dom_fast_hub = ao_dom_listen()
+ao_drive @ ao_ratelimit(250, dom_fast_hub), dom_hub.g_in
+
+dom_hub
+  .with_dom @
+    document.querySelector('#playarea')
+    (el, evt) => evt
+  .listen @ 'contextmenu', @\ evt :: evt.preventDefault()
+  .listen @ 'pointerdown', 'pointerup',
+    'pointerover', 'pointerout'
+    'pointerenter', 'pointerleave'
+    'pointercancel'
+  .listen @ 'click', 'dblclick'
+
+dom_fast_hub
+  .with_dom @ document.querySelector('#playarea')
+  .listen @ 'pointermove', evt => evt
+
+
+
+::!> // create output
+  let el_output = document.querySelector('output')
+  for await let evt of dom_hub ::
+    let msg = [evt.type]
+
+    if evt.pointerType ::
+      msg = @[]
+        `${evt.type}[${evt.pointerType} id:${evt.pointerId}${evt.isPrimary?'*':''}]`
+        `btn:${evt.button}::${evt.buttons.toString(2)}b`
+        `w,h:[${evt.width.toFixed(3)},${evt.height.toFixed(3)}] pen:[${evt.tiltX.toFixed(3)},${evt.tiltY.toFixed(3)},${evt.pressure.toFixed(3)}]`
+
+    msg = msg.filter(Boolean).join(' ')
+    let el_pre = document.createElement('p')
+    el_pre.textContent = msg
+
+    while el_output.children.length >= 10 ::
+      el_output.removeChild(el_output.firstChild)
+    el_output.appendChild(el_pre)

@@ -288,7 +288,6 @@
     if (tid.unref) {tid.unref();}
     _fence.stop = (() => {
       tid = clearInterval(tid);
-      _fence.done = true;
       _abort();});
     return _fence}
 
@@ -307,15 +306,32 @@
     let tid, [_fence, _resume] = ao_fence_fn();
 
     _fence.fin = ((async () => {
-      let p;
-      for await (let v of gen_in) {
-        clearTimeout(tid);
-        if (_fence.done) {return}
-        p = _fence();
-        tid = setTimeout(_resume, ms, v);}
+      try {
+        let p;
+        for await (let v of gen_in) {
+          clearTimeout(tid);
+          p = _fence();
+          tid = setTimeout(_resume, ms, v);}
 
-      await p;
-      _fence.done = true;})());
+        await p;}
+      catch (err) {
+        ao_check_done$1(err);} })());
+
+    return _fence}
+
+
+  function ao_ratelimit(ms=300, gen_in) {
+    let tid=null, [_fence, _resume] = ao_fence_fn();
+    let _reset = () => tid = null;
+
+    _fence.fin = ((async () => {
+      try {
+        for await (let v of gen_in) {
+          if (null === tid) {
+            _resume(v);
+            tid = setTimeout(_reset, ms);} } }
+      catch (err) {
+        ao_check_done$1(err);} })());
 
     return _fence}
 
@@ -412,6 +428,7 @@
   exports.ao_fence_v = ao_fence_v;
   exports.ao_interval = ao_interval;
   exports.ao_iter = ao_iter;
+  exports.ao_ratelimit = ao_ratelimit;
   exports.ao_run = ao_run;
   exports.ao_split = ao_split;
   exports.ao_step_iter = ao_step_iter;

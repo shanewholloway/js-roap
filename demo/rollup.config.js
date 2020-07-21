@@ -13,6 +13,7 @@ demo_jsy('fence')
 demo_jsy('time_interval')
 demo_jsy('time_timeout')
 
+demo_jsy('dom_pointer_events')
 demo_jsy('dom_input')
 demo_jsy('dom_channels')
 demo_jsy('dom_storage')

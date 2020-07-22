@@ -7,7 +7,7 @@ const is_ao_fn = v_fn =>
 
 
 const ao_done = Object.freeze({ao_done: true});
-const ao_check_done$1 = err => {
+const ao_check_done = err => {
   if (err !== ao_done && err && !err.ao_done) {
     throw err}
   return true};
@@ -74,6 +74,14 @@ function step_iter(iterable, or_more) {
         yield value;}
       while (or_more) } } }
 
+
+async function * ao_iter_fenced(gen_in, f_gate, initial=false) {
+  let f = true === initial ? f_gate.fence() : initial;
+  for await (let v of gen_in) {
+    await f;
+    yield v;
+    f = f_gate.fence();} }
+
 function ao_fence_v(proto) {
   let p=0, _resume = _=>0, _abort = _=>0;
   let _pset = (y,n) => {_resume=y; _abort=n;};
@@ -95,7 +103,7 @@ const _ao_fence_api_ ={
   , return() {return {value: this.abort(ao_done), done: true}}
   , throw(err) {return {value: this.abort(err), done: true}}
 
-  , ao_check_done: ao_check_done$1
+  , ao_check_done
   , chain(fn) {return fn_chain(this)(fn)} }
 
 , // copyable fence api
@@ -109,7 +117,7 @@ const _ao_fence_api_ ={
       while (1) {
         yield await fence();} }
     catch (err) {
-      ao_check_done$1(err);} } };
+      ao_check_done(err);} } };
 
 
 function ao_fence_fn(tgt) {
@@ -129,7 +137,7 @@ const ao_fence_obj = ao_fence_v.bind(null,{
         yield v;
         this.resume(v);} }
     catch (err) {
-      ao_check_done$1(err);}
+      ao_check_done(err);}
     finally {
       f_gate.abort();
       this.abort();} } } );
@@ -146,7 +154,7 @@ function ao_split(ag_out) {
 function ao_tap(iterable, order=1) {
   let f_tap = ao_fence_obj();
   let ag_tap = _ao_tap(iterable, f_tap, order);
-  ag_tap.f_out = f_tap;
+  ag_tap.f_tap = ag_tap.f_out = f_tap;
   ag_tap.g_in = f_tap.g_in = iterable.g_in;
   return [f_tap, ag_tap]}
 
@@ -225,7 +233,7 @@ function * aog_iter(g, f_gate, xf) {
       g.next(tip);} }
 
   catch (err) {
-    ao_check_done$1(err);}
+    ao_check_done(err);}
   finally {
     g.return();
     if (undefined !== xf) {
@@ -247,7 +255,7 @@ async function * aog_sink(g, f_gate, xf) {
         await f_gate.fence();} } }
 
   catch (err) {
-    ao_check_done$1(err);}
+    ao_check_done(err);}
   finally {
     g.return();
     if (undefined !== xf) {
@@ -276,19 +284,23 @@ const _xf_gen ={
 , return() {this.xg.return();}
 , throw() {this.xg.throw();} };
 
-function ao_interval(ms=1000) {
+function ao_interval(ms=1000, gen_in) {
   let [_fence, _resume, _abort] = ao_fence_fn();
   let tid = setInterval(_resume, ms, 1);
   if (tid.unref) {tid.unref();}
   _fence.stop = (() => {
     tid = clearInterval(tid);
     _abort();});
-  return _fence}
+
+  return null == gen_in ? _fence
+    : ao_iter_fenced(gen_in, _fence)}
 
 
-function ao_timeout(ms=1000) {
+function ao_timeout(ms=1000, gen_in) {
   let tid, [_fence, _resume] = ao_fence_fn(timeout);
-  return timeout
+
+  return null == gen_in ? timeout
+    : ao_iter_fenced(gen_in, timeout)
 
   function timeout() {
     tid = setTimeout(_resume, ms, 1);
@@ -309,23 +321,7 @@ function ao_debounce(ms=300, gen_in) {
 
       await p;}
     catch (err) {
-      ao_check_done$1(err);} })());
-
-  return _fence}
-
-
-function ao_ratelimit(ms=300, gen_in) {
-  let tid=null, [_fence, _resume] = ao_fence_fn();
-  let _reset = () => tid = null;
-
-  _fence.fin = ((async () => {
-    try {
-      for await (let v of gen_in) {
-        if (null === tid) {
-          _resume(v);
-          tid = setTimeout(_reset, ms);} } }
-    catch (err) {
-      ao_check_done$1(err);} })());
+      ao_check_done(err);} })());
 
   return _fence}
 
@@ -335,12 +331,14 @@ async function * ao_times(gen_in) {
   for await (let v of gen_in) {
     yield Date.now() - ts0;} }
 
-function ao_dom_animation() {
+function ao_dom_animation(gen_in) {
   let tid, [_fence, _resume] = ao_fence_fn(raf);
   raf.stop = (() => {
     tid = cancelAnimationFrame(tid);
     raf.done = true;});
-  return raf
+
+  return null == gen_in ? raf
+    : ao_iter_fenced(gen_in, raf)
 
   function raf() {
     tid = requestAnimationFrame(_resume);
@@ -405,5 +403,5 @@ function _ao_with_dom_vec(_bind, fn, ectx_list) {
         ectx.listen(...args);}
       return this} } }
 
-export { _ao_fence_api_, _ao_tap, _xf_gen, ao_check_done$1 as ao_check_done, ao_debounce, ao_deferred, ao_deferred_v, ao_dom_animation, ao_dom_listen, ao_done, ao_drive, ao_fence_fn, ao_fence_in, ao_fence_obj, ao_fence_v, ao_interval, ao_iter, ao_ratelimit, ao_run, ao_split, ao_step_iter, ao_tap, ao_timeout, ao_times, aog_iter, aog_sink, fn_chain, is_ao_fn, is_ao_iter, iter, step_iter };
+export { _ao_fence_api_, _ao_tap, _xf_gen, ao_check_done, ao_debounce, ao_deferred, ao_deferred_v, ao_dom_animation, ao_dom_listen, ao_done, ao_drive, ao_fence_fn, ao_fence_in, ao_fence_obj, ao_fence_v, ao_interval, ao_iter, ao_iter_fenced, ao_run, ao_split, ao_step_iter, ao_tap, ao_timeout, ao_times, aog_iter, aog_sink, fn_chain, is_ao_fn, is_ao_iter, iter, step_iter };
 //# sourceMappingURL=roap.mjs.map

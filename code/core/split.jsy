@@ -1,3 +1,4 @@
+import {ao_check_done} from './util.jsy'
 import {ao_run} from './drive.jsy'
 import {ao_fence_obj} from './fence.jsy'
 
@@ -14,7 +15,7 @@ export function ao_split(ag_out) ::
 export function ao_tap(iterable, order=1) ::
   let f_tap = ao_fence_obj()
   let ag_tap = _ao_tap(iterable, f_tap, order)
-  ag_tap.f_out = f_tap
+  ag_tap.f_tap = ag_tap.f_out = f_tap
   ag_tap.g_in = f_tap.g_in = iterable.g_in
   return [f_tap, ag_tap]
 

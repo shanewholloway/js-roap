@@ -1,5 +1,5 @@
-import {ao_interval, ao_times} from 'roap'
-import {ao_dom_listen} from 'roap'
+import {ao_interval, ao_times, ao_dom_listen} from 'roap'
+import {bind_output_log} from './_demo_utils.jsy'
 
 const {port1, port2} = new MessageChannel()
 const ao_tgt = ao_dom_listen()
@@ -14,13 +14,9 @@ ao_tgt
     evt => @: port222: evt.data
 
 ::!>
-  let el_output = document.querySelector('output')
-  for await let e of ao_tgt ::
-    console.log @ 'ao_tgt:', e
-
-    let el_pre = document.createElement('pre')
-    el_pre.textContent = JSON.stringify(e, null, 2)
-    el_output.appendChild(el_pre)
+  let out_log = bind_output_log('output')
+  for await let m of ao_tgt ::
+    out_log @ JSON.stringify(m, null, 2)
 
 ::!>
   for await let ts of ao_times @ ao_interval(1000) ::

@@ -1,8 +1,8 @@
-import {ao_dom_listen, ao_drive, ao_ratelimit} from 'roap'
+import {ao_dom_listen, ao_drive, ao_fence_in, ao_interval, ao_dom_animation} from 'roap'
+import {bind_output_log} from './_demo_utils.jsy'
+
 
 let dom_hub = ao_dom_listen()
-let dom_fast_hub = ao_dom_listen()
-ao_drive @ ao_ratelimit(250, dom_fast_hub), dom_hub.g_in
 
 dom_hub
   .with_dom @
@@ -15,14 +15,24 @@ dom_hub
     'pointercancel'
   .listen @ 'click', 'dblclick'
 
+
+let dom_fast_hub = ao_dom_listen()
+
 dom_fast_hub
   .with_dom @ document.querySelector('#playarea')
   .listen @ 'pointermove', evt => evt
 
 
+// rate limit dom_fast_hub into dom_hub
+let gen_limiter = 1
+  ? ao_interval(250, dom_fast_hub)
+  : ao_dom_animation(dom_fast_hub)
+
+ao_drive @ gen_limiter, dom_hub.g_in
+
 
 ::!> // create output
-  let el_output = document.querySelector('output')
+  let out_log = bind_output_log('output')
   for await let evt of dom_hub ::
     let msg = [evt.type]
 
@@ -32,10 +42,5 @@ dom_fast_hub
         `btn:${evt.button}::${evt.buttons.toString(2)}b`
         `w,h:[${evt.width.toFixed(3)},${evt.height.toFixed(3)}] pen:[${evt.tiltX.toFixed(3)},${evt.tiltY.toFixed(3)},${evt.pressure.toFixed(3)}]`
 
-    msg = msg.filter(Boolean).join(' ')
-    let el_pre = document.createElement('p')
-    el_pre.textContent = msg
+    out_log(msg)
 
-    while el_output.children.length >= 10 ::
-      el_output.removeChild(el_output.firstChild)
-    el_output.appendChild(el_pre)

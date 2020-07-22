@@ -12,6 +12,13 @@
       max-width: 40em;
       margin: 2em auto;
     }
+    output {
+      display: block;
+      background-color: #ddd;
+      max-height: 50vh;
+      overflow: auto;
+    }
+    output>p { margin: 0; font-family: monospace; }
   </style>
   <link href='https://cdn.jsdelivr.net/npm/prismjs@1.20.0/themes/prism.css' rel='stylesheet' />
   <script src='https://cdn.jsdelivr.net/npm/prism-jsy/umd/prism-jsy.js'></script>
@@ -22,7 +29,7 @@
 
 <body>
   <main>
-    <p>See the developer console...</p>
+    <output></output>
 
     <hr />
     <pre data-src='./time_timeout.jsy'></pre>

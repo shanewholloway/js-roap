@@ -1,14 +1,17 @@
 import {ao_timeout, ao_times} from 'roap'
 
+import {bind_log} from './_demo_utils.jsy'
+let out_log = bind_log('output')
+
 let demo_duration = setTimeout @ Boolean, 15000
 
 ::!>
   let i = 0
   for await let v of ao_timeout(1000) ::
-    console.log @ 'ao_timeout', @{} v, i: i++
+    out_log @ 'ao_timeout', @{} v, i: i++
 
 ::!>
   let i = 0
   for await let ts of ao_times @ ao_timeout(1000) ::
-    console.log @ 'ao_time @ ao_timeout', @{} ts, i: i++
+    out_log @ 'ao_time @ ao_timeout', @{} ts, i: i++
 

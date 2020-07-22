@@ -1,39 +1,42 @@
 import {ao_fence_obj} from 'roap'
 
+import {bind_log} from './_demo_utils.jsy'
+let out_log = bind_log('output')
+
 let f = ao_fence_obj()
 let tid = setInterval(Boolean, 1000)
 
 ::!>
   let v
-  console.log @ "A start", {v}
+  out_log @ "A start", {v}
   v = await f.fence()
-  console.log @ "A1", {v}
+  out_log @ "A1", {v}
   v = await f.fence()
-  console.log @ "A2", {v}
+  out_log @ "A2", {v}
   v = await f.fence()
-  console.log @ "A3", {v}
+  out_log @ "A3", {v}
   v = await f.fence()
-  console.log @ "proc A done", {v}
+  out_log @ "proc A done", {v}
 
 ::!>
   let v
-  console.log @ "M start", {v}
+  out_log @ "M start", {v}
   v = await f.fence()
-  console.log @ "M1", {v}
+  out_log @ "M1", {v}
   v = await f.fence()
-  console.log @ "M2", {v}
+  out_log @ "M2", {v}
   v = await f.fence()
-  console.log @ "M3", {v}
+  out_log @ "M3", {v}
   v = await f.fence()
-  console.log @ "M4", {v}
+  out_log @ "M4", {v}
   v = await f.fence()
-  console.log @ "proc M done", {v}
+  out_log @ "proc M done", {v}
 
 ::!>
   for await let v of f ::
-    console.log @ "G", {v}
+    out_log @ "G", {v}
 
-  console.log @ "proc G done"
+  out_log @ "proc G done"
   tid = clearInterval(tid)
 
 ::!>
@@ -41,14 +44,14 @@ let tid = setInterval(Boolean, 1000)
     let txt = `S${i}`
     await txt
 
-    console.log('')
-    console.log(txt)
+    out_log('')
+    out_log(txt)
     f.resume(txt)
-    console.log('')
+    out_log('')
 
   await 0
-  console.log @ "S done"
+  out_log @ "S done"
   f.fence.done = true
   f.resume('bye')
-  console.log @ "proc S done"
+  out_log @ "proc S done"
 

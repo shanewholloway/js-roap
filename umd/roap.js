@@ -13,7 +13,7 @@
 
 
   const ao_done = Object.freeze({ao_done: true});
-  const ao_check_done$1 = err => {
+  const ao_check_done = err => {
     if (err !== ao_done && err && !err.ao_done) {
       throw err}
     return true};
@@ -80,6 +80,14 @@
           yield value;}
         while (or_more) } } }
 
+
+  async function * ao_iter_fenced(gen_in, f_gate, initial=false) {
+    let f = true === initial ? f_gate.fence() : initial;
+    for await (let v of gen_in) {
+      await f;
+      yield v;
+      f = f_gate.fence();} }
+
   function ao_fence_v(proto) {
     let p=0, _resume = _=>0, _abort = _=>0;
     let _pset = (y,n) => {_resume=y; _abort=n;};
@@ -101,7 +109,7 @@
     , return() {return {value: this.abort(ao_done), done: true}}
     , throw(err) {return {value: this.abort(err), done: true}}
 
-    , ao_check_done: ao_check_done$1
+    , ao_check_done
     , chain(fn) {return fn_chain(this)(fn)} }
 
   , // copyable fence api
@@ -115,7 +123,7 @@
         while (1) {
           yield await fence();} }
       catch (err) {
-        ao_check_done$1(err);} } };
+        ao_check_done(err);} } };
 
 
   function ao_fence_fn(tgt) {
@@ -135,7 +143,7 @@
           yield v;
           this.resume(v);} }
       catch (err) {
-        ao_check_done$1(err);}
+        ao_check_done(err);}
       finally {
         f_gate.abort();
         this.abort();} } } );
@@ -152,7 +160,7 @@
   function ao_tap(iterable, order=1) {
     let f_tap = ao_fence_obj();
     let ag_tap = _ao_tap(iterable, f_tap, order);
-    ag_tap.f_out = f_tap;
+    ag_tap.f_tap = ag_tap.f_out = f_tap;
     ag_tap.g_in = f_tap.g_in = iterable.g_in;
     return [f_tap, ag_tap]}
 
@@ -231,7 +239,7 @@
         g.next(tip);} }
 
     catch (err) {
-      ao_check_done$1(err);}
+      ao_check_done(err);}
     finally {
       g.return();
       if (undefined !== xf) {
@@ -253,7 +261,7 @@
           await f_gate.fence();} } }
 
     catch (err) {
-      ao_check_done$1(err);}
+      ao_check_done(err);}
     finally {
       g.return();
       if (undefined !== xf) {
@@ -282,19 +290,23 @@
   , return() {this.xg.return();}
   , throw() {this.xg.throw();} };
 
-  function ao_interval(ms=1000) {
+  function ao_interval(ms=1000, gen_in) {
     let [_fence, _resume, _abort] = ao_fence_fn();
     let tid = setInterval(_resume, ms, 1);
     if (tid.unref) {tid.unref();}
     _fence.stop = (() => {
       tid = clearInterval(tid);
       _abort();});
-    return _fence}
+
+    return null == gen_in ? _fence
+      : ao_iter_fenced(gen_in, _fence)}
 
 
-  function ao_timeout(ms=1000) {
+  function ao_timeout(ms=1000, gen_in) {
     let tid, [_fence, _resume] = ao_fence_fn(timeout);
-    return timeout
+
+    return null == gen_in ? timeout
+      : ao_iter_fenced(gen_in, timeout)
 
     function timeout() {
       tid = setTimeout(_resume, ms, 1);
@@ -315,23 +327,7 @@
 
         await p;}
       catch (err) {
-        ao_check_done$1(err);} })());
-
-    return _fence}
-
-
-  function ao_ratelimit(ms=300, gen_in) {
-    let tid=null, [_fence, _resume] = ao_fence_fn();
-    let _reset = () => tid = null;
-
-    _fence.fin = ((async () => {
-      try {
-        for await (let v of gen_in) {
-          if (null === tid) {
-            _resume(v);
-            tid = setTimeout(_reset, ms);} } }
-      catch (err) {
-        ao_check_done$1(err);} })());
+        ao_check_done(err);} })());
 
     return _fence}
 
@@ -341,12 +337,14 @@
     for await (let v of gen_in) {
       yield Date.now() - ts0;} }
 
-  function ao_dom_animation() {
+  function ao_dom_animation(gen_in) {
     let tid, [_fence, _resume] = ao_fence_fn(raf);
     raf.stop = (() => {
       tid = cancelAnimationFrame(tid);
       raf.done = true;});
-    return raf
+
+    return null == gen_in ? raf
+      : ao_iter_fenced(gen_in, raf)
 
     function raf() {
       tid = requestAnimationFrame(_resume);
@@ -414,7 +412,7 @@
   exports._ao_fence_api_ = _ao_fence_api_;
   exports._ao_tap = _ao_tap;
   exports._xf_gen = _xf_gen;
-  exports.ao_check_done = ao_check_done$1;
+  exports.ao_check_done = ao_check_done;
   exports.ao_debounce = ao_debounce;
   exports.ao_deferred = ao_deferred;
   exports.ao_deferred_v = ao_deferred_v;
@@ -428,7 +426,7 @@
   exports.ao_fence_v = ao_fence_v;
   exports.ao_interval = ao_interval;
   exports.ao_iter = ao_iter;
-  exports.ao_ratelimit = ao_ratelimit;
+  exports.ao_iter_fenced = ao_iter_fenced;
   exports.ao_run = ao_run;
   exports.ao_split = ao_split;
   exports.ao_step_iter = ao_step_iter;

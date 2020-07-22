@@ -39,3 +39,11 @@ export function step_iter(iterable, or_more) ::
         yield value
       while or_more
 
+
+export async function * ao_iter_fenced(gen_in, f_gate, initial=false) ::
+  let f = true === initial ? f_gate.fence() : initial
+  for await let v of gen_in ::
+    await f
+    yield v
+    f = f_gate.fence()
+

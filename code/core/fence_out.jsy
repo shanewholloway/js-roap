@@ -1,0 +1,45 @@
+import {ao_check_done} from './util.jsy'
+import {ao_fence_v, _ao_fence_core_api_} from './fence.jsy'
+import {ao_run} from './drive.jsy'
+
+const _ao_out_multiple = @::
+  throw new Error('ao_fence_out already consumed')
+
+export const ao_fence_out = ao_fence_v.bind @ null, @{}
+  __proto__: _ao_fence_core_api_
+
+  [Symbol.asyncIterator]() :: return this.ao_bound()
+  ao_bound() ::
+    throw new Error('ao_fence_out not bound')
+
+  ao_run() ::
+    let {when_run} = this
+    if undefined === when_run ::
+      this.when_run = when_run =
+        ao_run(this)
+    return when_run
+
+  bind_gated(f_gate) ::
+    let ag_out = this._ao_gated(f_gate)
+    ag_out.f_out = this
+    ag_out.g_in = this.g_in
+    this.ao_bound = @::
+      this.ao_bound = _ao_out_multiple
+      let {xemit} = this
+      return xemit ? xemit(ag_out) : ag_out
+
+    return this
+
+  async * _ao_gated(f_gate) ::
+    try ::
+      this.resume()
+      while 1 ::
+        let v = await f_gate.fence()
+        yield v
+        this.resume(v)
+    catch err ::
+      ao_check_done(err)
+    finally ::
+      f_gate.abort()
+      this.abort()
+

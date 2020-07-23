@@ -1,5 +1,9 @@
 import {ao_fence_fn} from 'roap'
-import {assert, expect, is_fence_basic, delay_race, delay} from './_utils.jsy'
+import {
+  assert, expect, 
+  is_fence_core,
+  delay_race, delay
+} from './_utils.jsy'
 
 
 describe @ 'ao_fence_fn', function() ::
@@ -11,7 +15,7 @@ describe @ 'ao_fence_fn', function() ::
     expect(res[1]).to.be.a('function')
     expect(res[2]).to.be.a('function')
 
-    is_fence_basic(res[0])
+    is_fence_core(res[0])
 
 
   it @ 'basic use', @::>

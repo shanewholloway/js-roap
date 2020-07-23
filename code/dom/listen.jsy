@@ -1,16 +1,14 @@
 import {is_ao_fn} from '../core/util.jsy'
-import {ao_fence_in} from '../core/fence_in.jsy'
+import {ao_queue} from '../core/fence_in.jsy'
 
 const _evt_init = Promise.resolve({type:'init'})
-export function ao_dom_listen(pipe = ao_fence_in().ao_queue()) ::
-  let with_dom = (dom, fn) =>
-    dom.addEventListener
-      ? _ao_with_dom(_bind, fn, dom)
-      : _ao_with_dom_vec(_bind, fn, dom)
-
-  _bind.self = {pipe, with_dom}
-  pipe.with_dom = with_dom
-  return pipe
+export function ao_dom_listen(self=ao_queue()) ::
+  return _bind.self = self = @{}
+    __proto__: self
+    with_dom(dom, fn) ::
+      return dom.addEventListener
+        ? _ao_with_dom(_bind, fn, dom)
+        : _ao_with_dom_vec(_bind, fn, dom)
 
   function _bind(dom, fn_evt, fn_dom) ::
     return evt => ::
@@ -19,7 +17,7 @@ export function ao_dom_listen(pipe = ao_fence_in().ao_queue()) ::
         : fn_dom(dom, evt)
 
       if null != v ::
-        pipe.g_in.next(v)
+        self.g_in.next(v)
 
 
 function _ao_with_dom(_bind, fn, dom) ::

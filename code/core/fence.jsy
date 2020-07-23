@@ -15,26 +15,26 @@ export function ao_fence_v(proto) ::
 
 
 
-export const _ao_fence_api_ = @{}
-  __proto__: @{}
-    // generator api
-    next(v) :: return {value: this.resume(v), done: true}
-    return() :: return {value: this.abort(ao_done), done: true}
-    throw(err) :: return {value: this.abort(err), done: true}
+export const _ao_fence_core_api_ = @{}
+  ao_check_done
+  chain(fn) :: return fn_chain(this)(fn)
 
-    ao_check_done
-    chain(fn) :: return fn_chain(this)(fn)
-
-  // copyable fence api
-
+  // copyable fence fork api
   [Symbol.asyncIterator]() ::
     return this.ao_fork()
 
-  async * ao_fork() ::
+  ao_fork() ::
+    let ag = this._ao_fork()
+    let {xemit} = this
+    return xemit ? xemit(ag) : ag
+
+  async * _ao_fork() ::
     let {fence} = this
     try ::
       while 1 ::
-        yield await fence()
+        let r = await fence()
+        if undefined !== r ::
+          yield r
     catch err ::
       ao_check_done(err)
 
@@ -42,22 +42,19 @@ export const _ao_fence_api_ = @{}
 export function ao_fence_fn(tgt) ::
   let f = ao_fence_v()
   if undefined === tgt :: tgt = f[0]
-  tgt.fence = Object.assign(tgt, _ao_fence_api_)
+  tgt.fence = Object.assign(tgt, _ao_fence_core_api_)
   return f
 
 
-export const ao_fence_obj = ao_fence_v.bind @ null, @{}
-  __proto__: _ao_fence_api_
+export const _ao_fence_gen_api_ = @{}
+  __proto__: _ao_fence_core_api_
 
-  async * ao_gated(f_gate) ::
-    try ::
-      while 1 ::
-        let v = await f_gate.fence()
-        yield v
-        this.resume(v)
-    catch err ::
-      ao_check_done(err)
-    finally ::
-      f_gate.abort()
-      this.abort()
+  // generator api
+  next(v) :: return {value: this.resume(v), done: true}
+  return() :: return {value: this.abort(ao_done), done: true}
+  throw(err) :: return {value: this.abort(err), done: true}
+
+
+export const ao_fence_obj =
+  ao_fence_v.bind(null, _ao_fence_gen_api_)
 

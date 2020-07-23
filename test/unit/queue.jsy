@@ -1,4 +1,4 @@
-import {ao_fence_in, ao_drive} from 'roap'
+import {ao_fence_in, ao_iter, ao_drive} from 'roap'
 
 import @{}
   assert, expect,
@@ -7,25 +7,25 @@ import @{}
 from './_utils.jsy'
 
 
-describe @ 'ao_fence_in.ao_queue', function() ::
+describe @ 'ao_fence_in().ao_queue()', function() ::
   it @ 'shape', @::
     let some_queue = is_async_iterable @
       ao_fence_in().ao_queue()
 
     is_gen(some_queue.g_in)
     expect(some_queue.fence).to.be.a('function')
-    expect(some_queue.when_run).to.be.a('promise')
 
   it @ 'singles', @::>
     let some_queue = ao_fence_in().ao_queue()
 
-    let p_out1 = some_queue.fence()
+    let p_out1 = ao_iter(some_queue).next()
     expect(p_out1).to.be.a('promise')
 
     let p_in1 = some_queue.g_in.next @ 'first'
     expect(p_in1).to.be.a('promise')
 
-    expect(await p_out1).to.equal @ 'first'
+    expect(await p_out1).to.deep.equal @:
+      value: 'first', done: false
 
   it @ 'vec', @::>
     let some_queue = ao_fence_in().ao_queue @:

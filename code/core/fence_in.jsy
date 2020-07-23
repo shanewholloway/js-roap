@@ -1,60 +1,43 @@
-import {is_ao_fn, ao_check_done} from './util.jsy'
-import {ao_fence_obj, ao_fence_v, _ao_fence_api_} from './fence.jsy'
-import {ao_split, ao_tap} from './split.jsy'
+import {is_ao_fn, ao_done, ao_check_done} from './util.jsy'
+import {ao_fence_v, _ao_fence_gen_api_} from './fence.jsy'
+import {ao_fence_out} from './fence_out.jsy'
 
+
+export const ao_xform = ns_gen => ao_fence_in().ao_xform(ns_gen)
+export const ao_fold = ns_gen => ao_fence_in().ao_fold(ns_gen)
+export const ao_queue = ns_gen => ao_fence_in().ao_queue(ns_gen)
 
 export const ao_fence_in = ao_fence_v.bind @ null, @{}
-  __proto__: _ao_fence_api_
+  __proto__: _ao_fence_gen_api_
 
-  ao_pipe(ns_gen) ::
-    return this.ao_xform_run @:
-      xinit: aog_iter, ... ns_gen
-  ao_queue(ns_gen) ::
-    return this.ao_xform_run @:
-      xinit: aog_sink, ... ns_gen
+  ao_fold(ns_gen) :: return this.ao_xform @: xinit: aog_iter, ... ns_gen
+  ao_queue(ns_gen) :: return this.ao_xform @: xinit: aog_sink, ... ns_gen
 
   aog_iter(xf) :: return aog_iter(this, xf)
   aog_sink(f_gate, xf) :: return aog_sink(this, f_gate, xf)
 
+  ao_xform(ns_gen={xinit: aog_sink}) ::
+    let f_out = ao_fence_out()
 
-  ao_xform_tap(ns_gen) ::
-    return ao_tap @
-      this.ao_xform_raw(ns_gen)
+    let {xinit, xrecv, xemit} = 
+      is_ao_fn(ns_gen)
+        ? ns_gen(this, f_out)
+        : ns_gen
 
-  ao_xform_run(ns_gen) ::
-    return ao_split @
-      this.ao_xform_raw(ns_gen)
-
-  ao_xform_raw(ns_gen=aog_sink) ::
-    let {xinit, xrecv, xemit} = ns_gen
-    if undefined === xinit ::
-      xinit = is_ao_fn(ns_gen) ? ns_gen : aog_sink
-
-
-    let ag_out, f_out = ao_fence_obj()
+    f_out.xemit = xemit
+    if ! xinit :: xinit = aog_sink
     let res = xinit(this, f_out, xrecv)
 
-    if undefined !== res.g_in ::
-      // res is an output generator
-      ag_out = res
-      f_out.g_in = res.g_in
-
-    else ::
+    let ag_out, g_in = res.g_in || res
+    if res === g_in ::
       // res is an input generator
-      res.next()
+      g_in.next()
+      ag_out = f_out.bind_gated(this)
 
-      ag_out = f_out.ao_gated(this)
-      ag_out.g_in = f_out.g_in = res
-      ag_out.f_out = f_out
+    // else res is an output generator
 
-
-    if xemit ::
-      let {g_in} = ag_out
-      ag_out = xemit(ag_out)
-      ag_out.g_in = g_in
-
+    ag_out.g_in = f_out.g_in = g_in
     return ag_out
-
 
 
 export function * aog_iter(g, f_gate, xf) ::

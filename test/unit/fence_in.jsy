@@ -1,20 +1,19 @@
 import {ao_fence_in} from 'roap'
-import {assert, expect, is_fence_full, delay_race, delay} from './_utils.jsy'
+import {
+  assert, expect,
+  is_fence_gen,
+  delay_race, delay
+} from './_utils.jsy'
 
 
 describe @ 'ao_fence_in', @::
   it @ 'shape', @::
-    const res = is_fence_full @ ao_fence_in()
-
-    expect(res.ao_xform_tap).to.be.a('function')
-    expect(res.ao_xform_run).to.be.a('function')
-    expect(res.ao_xform_raw).to.be.a('function')
-
+    const res = is_fence_gen @ ao_fence_in()
+    expect(res.ao_xform).to.be.a('function')
+    expect(res.ao_fold).to.be.a('function')
     expect(res.ao_queue).to.be.a('function')
-    expect(res.aog_sink).to.be.a('function')
-
-    expect(res.ao_pipe).to.be.a('function')
     expect(res.aog_iter).to.be.a('function')
+    expect(res.aog_sink).to.be.a('function')
 
 
   it @ 'basic use', @::>

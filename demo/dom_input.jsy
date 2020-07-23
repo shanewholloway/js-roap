@@ -1,8 +1,10 @@
+'use strict'
+
 import {ao_fence_obj, ao_fence_in} from 'roap'
 import {ao_dom_listen} from 'roap'
 
 
-let demo_target = ao_fence_in().ao_queue @:
+let demo_target = ao_fence_in().ao_fold @:
   * xrecv(g) ::
     let ns = {}
     for let e of g ::
@@ -20,9 +22,10 @@ ao_dom_listen(demo_target)
     (elem, evt) => @: k: elem.id, v: elem.valueAsNumber
   .listen @ 'input', 'change',
 
+console.log @: demo_target
 
 const ao_tgt_rgb = @*>
-  for await {aaa, bbb, ccc} of demo_target ::
+  for await let {aaa, bbb, ccc} of demo_target.ao_fork() ::
     let r = (aaa*.255).toFixed(1)
     let g = (bbb*.255).toFixed(1)
     let b = (ccc*.255).toFixed(1)
@@ -30,10 +33,10 @@ const ao_tgt_rgb = @*>
       
 
 const ao_tgt_hsl = @*>
-  for await {aaa, bbb, ccc} of demo_target ::
+  for await let {aaa, bbb, ccc} of demo_target.ao_fork() ::
     let h = (aaa*0.36).toFixed(1)
-    let s = (bbb/10).toFixed(1)
-    let l = (ccc/10).toFixed(1)
+    let s = (bbb*0.10).toFixed(1)
+    let l = (ccc*0.10).toFixed(1)
     
     yield `hsl(${h}, ${s}%, ${l}%)`
 
@@ -53,5 +56,5 @@ const ao_tgt_hsl = @*>
 
 ::!>
   for await let e of demo_target ::
-    console.log @ 'ao_tgt', e
+    console.log @ 'stream', e
 

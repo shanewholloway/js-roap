@@ -1,0 +1,17 @@
+export function bind_output_log(el_output='output') ::
+  el_output = 'string' === typeof el_output
+    ? document.querySelector(el_output)
+    : el_output
+
+  return @\ ... args ::
+    console.log @ ... args
+
+    let el = document.createElement('p')
+    el.textContent = args.flat().filter(Boolean).join(' ')
+    el_output.insertBefore(el, el_output.firstChild)
+
+
+export function bind_log(el_output='output') ::
+  return 'object' === typeof document
+    ? bind_output_log(el_output)
+    : console.log.bind(console)

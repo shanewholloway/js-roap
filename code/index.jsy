@@ -4,6 +4,7 @@ export * from './core/drive.jsy'
 export * from './core/split.jsy'
 
 export * from './core/fence.jsy'
+export * from './core/fence_out.jsy'
 export * from './core/fence_in.jsy'
 
 export * from './time.jsy'

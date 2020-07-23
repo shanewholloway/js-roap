@@ -3,30 +3,40 @@ import {ao_run} from './drive.jsy'
 import {ao_fence_obj} from './fence.jsy'
 
 
-export function ao_split(ag_out) ::
-  let {f_out} = ag_out
-  if undefined === f_out ::
-    [f_out, ag_out] = ao_tap(ag_out)
-
-  f_out.when_run = ao_run(ag_out)
+export function ao_split(iterable) ::
+  let f_out = ao_fence_obj()
+  f_out.when_run = _ao_run(iterable, f_out)
+  f_out.g_in = iterable.g_in
   return f_out
 
+export async function _ao_run(iterable, g_tap) ::
+  try ::
+    for await let v of iterable ::
+      g_tap.next(v)
 
-export function ao_tap(iterable, order=1) ::
+  catch err ::
+    ao_check_done(err)
+
+  finally ::
+    g_tap.return()
+
+
+export function ao_tap(iterable) ::
   let f_tap = ao_fence_obj()
-  let ag_tap = _ao_tap(iterable, f_tap, order)
+  let ag_tap = _ao_tap(iterable, f_tap)
   ag_tap.f_tap = ag_tap.f_out = f_tap
   ag_tap.g_in = f_tap.g_in = iterable.g_in
   return [f_tap, ag_tap]
 
-export async function * _ao_tap(iterable, g_tap, order=1) ::
+export async function * _ao_tap(iterable, g_tap) ::
   try ::
     for await let v of iterable ::
-      if 0 >= order :: await g_tap.next(v)
+      g_tap.next(v)
       yield v
-      if 0 <= order :: await g_tap.next(v)
+
   catch err ::
     ao_check_done(err)
+
   finally ::
     g_tap.return()
 

@@ -9,10 +9,9 @@ import './unit/fence_fn.jsy'
 import './unit/fence_obj.jsy'
 
 import './unit/fence_in.jsy'
+import './unit/xform.jsy'
+import './unit/fold.jsy'
 import './unit/queue.jsy'
-
-import './unit/pipe_base.jsy'
-import './unit/pipe.jsy'
 
 import './unit/time.jsy'
 

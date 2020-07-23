@@ -8,17 +8,16 @@ import @{}
 from './_utils.jsy'
 
 
-describe @ 'ao_fence_in.ao_pipe basics', function() ::
+describe @ 'ao_fence_in().ao_fold()', function() ::
   it @ 'shape', @::
     let some_pipe = is_async_iterable @
-      ao_fence_in().ao_pipe()
+      ao_fence_in().ao_fold()
 
     is_gen @ some_pipe.g_in
     expect(some_pipe.fence).to.be.a('function')
-    expect(some_pipe.when_run).to.be.a('promise')
 
-  it @ 'example', @::>
-    let some_pipe = ao_fence_in().ao_pipe()
+  it @ 'simple', @::>
+    let some_pipe = ao_fence_in().ao_fold()
     let z = _test_pipe_out @ some_pipe,
       [1942, 2042, 2142]
 
@@ -26,8 +25,9 @@ describe @ 'ao_fence_in.ao_pipe basics', function() ::
       @[] 1942, 2042, 2142
       await delay_race(z, 50)
 
-  it @ 'xfold', @::>
-    let some_pipe = ao_fence_in().ao_pipe @:
+
+  it @ 'xrecv sum pre transform', @::>
+    let some_pipe = ao_fence_in().ao_fold @:
       *xrecv(g) ::
         let s = 0
         for let v of g ::
@@ -42,8 +42,8 @@ describe @ 'ao_fence_in.ao_pipe basics', function() ::
       await delay_race(z, 50)
 
 
-  it @ 'xemit', @::>
-    let some_pipe = ao_fence_in().ao_pipe @:
+  it @ 'xemit post transform', @::>
+    let some_pipe = ao_fence_in().ao_fold @:
       async * xemit(g) ::
         for await let v of g ::
           yield ['xe', v]
@@ -58,6 +58,34 @@ describe @ 'ao_fence_in.ao_pipe basics', function() ::
       await delay_race(z, 50)
 
 
+  it @ 'xinit context g_in', @::>
+    let log=[]
+
+    let some_pipe = ao_fence_in().ao_fold @:
+      *xinit(g_in) ::
+        log.push @ 'xctx start'
+        let tid = setTimeout @ 
+          v => g_in.next(v)
+          1, 'bingo'
+
+        try ::
+          yield * g_in.aog_iter()
+        finally ::
+          clearTimeout(tid)
+          log.push @ 'xctx fin'
+
+    let z = array_from_ao_iter(some_pipe)
+
+    assert.deepEqual @ log, @[] 'xctx start'
+
+    await delay(5)
+    some_pipe.g_in.return()
+
+    assert.deepEqual @ log, @[] 'xctx start', 'xctx fin'
+
+    assert.deepEqual @ await z, @[] 'bingo'
+
+
   async function _test_pipe_out(some_pipe, values) ::
     let z = array_from_ao_iter(some_pipe)
 
@@ -66,4 +94,5 @@ describe @ 'ao_fence_in.ao_pipe basics', function() ::
       some_pipe.g_in, true
 
     return z
+
 

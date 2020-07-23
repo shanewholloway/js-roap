@@ -1,4 +1,4 @@
-import {ao_dom_listen, ao_drive, ao_fence_in, ao_interval, ao_dom_animation} from 'roap'
+import {ao_dom_listen, ao_drive, ao_fold, ao_interval, ao_dom_animation} from 'roap'
 import {bind_output_log} from './_demo_utils.jsy'
 
 
@@ -8,27 +8,36 @@ dom_hub
   .with_dom @
     document.querySelector('#playarea')
     (el, evt) => evt
-  .listen @ 'contextmenu', @\ evt :: evt.preventDefault()
-  .listen @ 'pointerdown', 'pointerup',
-    'pointerover', 'pointerout'
-    'pointerenter', 'pointerleave'
-    'pointercancel'
-  .listen @ 'click', 'dblclick'
+
+  .listen @
+    'pointerdown', 'pointerup',
+    'pointerenter', 'pointerleave', 'pointercancel'
+    //'pointerover', 'pointerout'
+
+  .listen @
+    'click', 'dblclick'
+
+  .listen @ 'contextmenu',
+    evt => ::
+      // context menus distract from the demo...
+      evt.preventDefault()
+      return evt
 
 
-let dom_fast_hub = ao_dom_listen()
+if 1 ::
+  let dom_fast_hub = ao_dom_listen @
+    ao_fold() // use ao_fold() instead of ao_queue()
 
-dom_fast_hub
-  .with_dom @ document.querySelector('#playarea')
-  .listen @ 'pointermove', evt => evt
+  dom_fast_hub
+    .with_dom @ document.querySelector('#playarea')
+    .listen @ 'pointermove', evt => evt
 
+  // rate limit dom_fast_hub into dom_hub
+  let gen_limiter = 1
+    ? ao_dom_animation(dom_fast_hub)
+    : ao_interval(200, dom_fast_hub)
 
-// rate limit dom_fast_hub into dom_hub
-let gen_limiter = 1
-  ? ao_interval(250, dom_fast_hub)
-  : ao_dom_animation(dom_fast_hub)
-
-ao_drive @ gen_limiter, dom_hub.g_in
+  ao_drive @ gen_limiter, dom_hub.g_in
 
 
 ::!> // create output
@@ -43,4 +52,8 @@ ao_drive @ gen_limiter, dom_hub.g_in
         `w,h:[${evt.width.toFixed(3)},${evt.height.toFixed(3)}] pen:[${evt.tiltX.toFixed(3)},${evt.tiltY.toFixed(3)},${evt.pressure.toFixed(3)}]`
 
     out_log(msg)
+
+    if 0 ::
+      // check that every event arrives, despite long processing times
+      await new Promise @ y => setTimeout(y, 200)
 

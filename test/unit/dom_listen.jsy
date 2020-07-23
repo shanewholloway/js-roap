@@ -12,7 +12,7 @@ describe @ 'dom events', @::
   it @ 'shape', @::
     is_fn @ ao_dom_listen
 
-    let de = is_gen @ ao_dom_listen()
+    let de = is_async_iterable @ ao_dom_listen()
     is_gen @ de.g_in
     is_fn @ de.with_dom
 

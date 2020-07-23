@@ -14,12 +14,6 @@ export const ao_check_done = err => ::
   return true
 
 
-export function * iter(gen_in) ::
-  yield * gen_in
-export async function * ao_iter(gen_in) ::
-  yield * gen_in
-
-
 export function fn_chain(tail) ::
   chain.tail = tail
   return chain.chain = chain

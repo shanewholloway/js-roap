@@ -8,6 +8,8 @@ import './unit/fence_v.jsy'
 import './unit/fence_fn.jsy'
 import './unit/fence_obj.jsy'
 
+import './unit/fence_out.jsy'
+
 import './unit/fence_in.jsy'
 import './unit/xform.jsy'
 import './unit/fold.jsy'

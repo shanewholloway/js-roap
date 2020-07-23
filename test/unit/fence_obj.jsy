@@ -1,4 +1,4 @@
-import {ao_fence_obj, ao_fence_out} from 'roap'
+import {ao_fence_obj} from 'roap'
 import {
   assert, expect, 
   is_fence_core, is_fence_gen,
@@ -51,12 +51,4 @@ describe @ 'ao_fence_obj', function() ::
     assert.equal @ 'pa ready', await delay_race(pa,1)
     assert.equal @ 'pb ready', await delay_race(pb,1)
     assert.equal @ 'ready', await delay_race(pc,1)
-
-
-describe @ 'ao_fence_out', function() ::
-  it @ 'shape', @::
-    const res = is_fence_core @ ao_fence_out()
-    expect(res.ao_bound).to.be.a('function')
-    expect(res.ao_run).to.be.a('function')
-    expect(res.bind_gated).to.be.a('function')
 

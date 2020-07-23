@@ -1,0 +1,81 @@
+import {ao_fence_out, ao_iter, ao_fence_obj} from 'roap'
+import {
+  assert, expect,
+  delay_race,
+  is_fence_core,
+} from './_utils.jsy'
+
+
+describe.only @ 'ao_fence_out', function() ::
+  it @ 'shape', @::
+    const res = is_fence_core @ ao_fence_out()
+    expect(res.ao_bound).to.be.a('function')
+    expect(res.ao_run).to.be.a('function')
+    expect(res.bind_gated).to.be.a('function')
+    expect(res.allow_many).to.be.a('function')
+
+
+  it @ 'check not bound error', @::>
+    const f = ao_fence_out()
+
+    try ::
+      await delay_race @ ao_iter(f).next()
+      assert.fail @ 'should have returned an error'
+    catch err ::
+      if /ao_fence_out not bound/.test(err.message) ::
+        // worked
+      else throw err
+
+
+  it @ 'check already bound error', @::>
+    const f_gate = ao_fence_obj()
+    const f = ao_fence_out().bind_gated(f_gate)
+
+    try ::
+      await delay_race @ ao_iter(f).next()
+      await delay_race @ ao_iter(f).next()
+      assert.fail @ 'should have returned an error'
+    catch err ::
+      if /ao_fence_out consumed;/.test(err.message) ::
+        // worked
+      else throw err
+
+  it @ 'allow_many()', @::>
+    const f_gate = ao_fence_obj()
+    const f = ao_fence_out().bind_gated(f_gate)
+    f.allow_many()
+
+    await delay_race @ ao_iter(f).next()
+    await delay_race @ ao_iter(f).next()
+    await delay_race @ ao_iter(f).next()
+
+  it @ 'ao_fork()', @::>
+    const f_gate = ao_fence_obj()
+    const f = ao_fence_out().bind_gated(f_gate)
+    f.allow_many()
+
+    await delay_race @ ao_iter(f.ao_fork()).next()
+    await delay_race @ ao_iter(f).next()
+    await delay_race @ ao_iter(f.ao_fork()).next()
+
+  it @ 'ao_bound()', @::>
+    const f_gate = ao_fence_obj()
+    const f = ao_fence_out().bind_gated(f_gate)
+    f.allow_many()
+
+    await delay_race @ ao_iter(f.ao_fork()).next()
+    await delay_race @ ao_iter(f.ao_bound()).next()
+    await delay_race @ ao_iter(f.ao_fork()).next()
+
+  it @ 'ao_run()', @::>
+    const f_gate = ao_fence_obj()
+    const f = ao_fence_out().bind_gated(f_gate)
+    f.allow_many()
+
+    await delay_race @ ao_iter(f.ao_fork()).next()
+    let p = f.ao_run()
+    await delay_race @ ao_iter(f.ao_fork()).next()
+
+    expect(p).to.be.a('promise')
+    expect(f.when_run).to.equal(p)
+

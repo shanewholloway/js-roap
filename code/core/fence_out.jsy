@@ -2,21 +2,30 @@ import {ao_check_done} from './util.jsy'
 import {ao_fence_v, _ao_fence_core_api_} from './fence.jsy'
 import {ao_run} from './drive.jsy'
 
-const _ao_out_multiple = @::
-  throw new Error('ao_fence_out already consumed')
 
 export const ao_fence_out = ao_fence_v.bind @ null, @{}
   __proto__: _ao_fence_core_api_
 
-  [Symbol.asyncIterator]() :: return this.ao_bound()
+  [Symbol.asyncIterator]() ::
+    return this.ao_bound()
   ao_bound() ::
     throw new Error('ao_fence_out not bound')
+  _ao_many() ::
+    throw new Error('ao_fence_out consumed; consider .ao_fork() or .allow_many()')
+
+  allow_many() ::
+    let {ao_fork, ao_bound, _ao_many} = this
+    if _ao_many === ao_bound ::
+      this.ao_bound = ao_fork
+    this._ao_many = ao_fork
+    this.allow_many = () => this
+    return this
 
   ao_run() ::
     let {when_run} = this
     if undefined === when_run ::
       this.when_run = when_run =
-        ao_run(this)
+        ao_run @ this.ao_bound()
     return when_run
 
   bind_gated(f_gate) ::
@@ -24,7 +33,7 @@ export const ao_fence_out = ao_fence_v.bind @ null, @{}
     ag_out.f_out = this
     ag_out.g_in = this.g_in
     this.ao_bound = @::
-      this.ao_bound = _ao_out_multiple
+      this.ao_bound = this._ao_many
       let {xemit} = this
       return xemit ? xemit(ag_out) : ag_out
 
@@ -40,6 +49,7 @@ export const ao_fence_out = ao_fence_v.bind @ null, @{}
     catch err ::
       ao_check_done(err)
     finally ::
-      f_gate.abort()
       this.abort()
+      if f_gate.abort ::
+        f_gate.abort()
 

@@ -4,16 +4,19 @@ import {ao_fence_obj, ao_fence_in} from 'roap'
 import {ao_dom_listen} from 'roap'
 
 
-let demo_target = ao_fence_in().ao_fold @:
-  * xrecv(g) ::
-    let ns = {}
-    for let e of g ::
-      ns[e.k] = e.v
-        yield ns
+let demo_target = ao_fence_in()
+  .ao_fold @:
+    * xrecv(g) ::
+      let ns = {}
+      for let e of g ::
+        ns[e.k] = e.v
+          yield ns
 
-  async * xemit(ag_out) ::
-    for await let ns of ag_out ::
-      yield {... ns}
+    async * xemit(ag_out) ::
+      for await let ns of ag_out ::
+        yield {... ns}
+
+  .allow_many()
 
 
 ao_dom_listen(demo_target)
@@ -25,7 +28,7 @@ ao_dom_listen(demo_target)
 console.log @: demo_target
 
 const ao_tgt_rgb = @*>
-  for await let {aaa, bbb, ccc} of demo_target.ao_fork() ::
+  for await let {aaa, bbb, ccc} of demo_target ::
     let r = (aaa*.255).toFixed(1)
     let g = (bbb*.255).toFixed(1)
     let b = (ccc*.255).toFixed(1)
@@ -33,7 +36,7 @@ const ao_tgt_rgb = @*>
       
 
 const ao_tgt_hsl = @*>
-  for await let {aaa, bbb, ccc} of demo_target.ao_fork() ::
+  for await let {aaa, bbb, ccc} of demo_target ::
     let h = (aaa*0.36).toFixed(1)
     let s = (bbb*0.10).toFixed(1)
     let l = (ccc*0.10).toFixed(1)

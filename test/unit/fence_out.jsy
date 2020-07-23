@@ -6,7 +6,7 @@ import {
 } from './_utils.jsy'
 
 
-describe.only @ 'ao_fence_out', function() ::
+describe @ 'ao_fence_out', function() ::
   it @ 'shape', @::
     const res = is_fence_core @ ao_fence_out()
     expect(res.ao_bound).to.be.a('function')

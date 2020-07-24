@@ -1,4 +1,4 @@
-import {ao_dom_listen, ao_drive, ao_fold, ao_interval, ao_dom_animation} from 'roap'
+import {ao_dom_listen, ao_drive, ao_fold, ao_interval, ao_iter_fenced, ao_dom_animation} from 'roap'
 import {bind_output_log} from './_demo_utils.jsy'
 
 
@@ -33,9 +33,10 @@ if 1 ::
     .listen @ 'pointermove', evt => evt
 
   // rate limit dom_fast_hub into dom_hub
-  let gen_limiter = 1
-    ? ao_dom_animation(dom_fast_hub)
-    : ao_interval(200, dom_fast_hub)
+  let gen_limiter =
+    ao_iter_fenced @ dom_fast_hub, 
+      0 ? ao_dom_animation()
+        : ao_interval(200)
 
   ao_drive @ gen_limiter, dom_hub.g_in
 

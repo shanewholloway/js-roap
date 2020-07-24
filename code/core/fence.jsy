@@ -1,4 +1,4 @@
-import {ao_done, ao_check_done, fn_chain} from './util.jsy'
+import {ao_done, ao_check_done, _fn_chain} from './util.jsy'
 
 const _noop = ()=>{}
 export function ao_fence_v(proto) ::
@@ -17,7 +17,7 @@ export function ao_fence_v(proto) ::
 
 export const _ao_fence_core_api_ = @{}
   ao_check_done
-  chain(fn) :: return fn_chain(this)(fn)
+  chain(fn) :: return _fn_chain(this)(fn)
 
   // copyable fence fork api
   [Symbol.asyncIterator]() ::

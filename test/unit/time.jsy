@@ -1,4 +1,4 @@
-import {ao_interval, ao_timeout, ao_debounce, ao_times, ao_iter} from 'roap'
+import {ao_interval, ao_timeout, ao_debounce, ao_times, ao_iter_fenced, ao_iter} from 'roap'
 
 import @{}
   assert, expect,
@@ -50,7 +50,7 @@ describe @ 'time', @::
       ao_debounce(10, [30, 20, 10, 15])
     let g = ao_iter(aot)
 
-    expect(aot.fin).to.be.a('promise')
+    expect(aot.when_run).to.be.a('promise')
 
     let p = g.next()
     expect(p).to.be.a('promise')
@@ -58,12 +58,14 @@ describe @ 'time', @::
     let {value} = await p
     assert.equal(15, value)
 
-    await aot.fin
+    await aot.when_run
 
 
-  it @ 'ao_interval as rate limit', @::>
+  it @ 'ao_iter_fenced with ao_interval as rate limit', @::>
     let g = is_gen @
-      ao_interval(10, [30, 20, 10, 15])
+      ao_iter_fenced @
+        [30, 20, 10, 15]
+        ao_interval(10)
 
     let p = g.next()
     expect(p).to.be.a('promise')

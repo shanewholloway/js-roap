@@ -1,8 +1,7 @@
 import {ao_fence_fn} from './core/fence.jsy'
-import {ao_iter_fenced} from './core/drive.jsy'
 import {ao_check_done} from './core/util.jsy'
 
-export function ao_interval(ms=1000, gen_in) ::
+export function ao_interval(ms=1000) ::
   let [_fence, _resume, _abort] = ao_fence_fn()
   let tid = setInterval(_resume, ms, 1)
   if tid.unref :: tid.unref()
@@ -10,15 +9,12 @@ export function ao_interval(ms=1000, gen_in) ::
     tid = clearInterval(tid)
     _abort()
 
-  return null == gen_in ? _fence
-    : ao_iter_fenced(gen_in, _fence)
+  return _fence
 
 
-export function ao_timeout(ms=1000, gen_in) ::
+export function ao_timeout(ms=1000) ::
   let tid, [_fence, _resume] = ao_fence_fn(timeout)
-
-  return null == gen_in ? timeout
-    : ao_iter_fenced(gen_in, timeout)
+  return timeout
 
   function timeout() ::
     tid = setTimeout(_resume, ms, 1)
@@ -26,13 +22,13 @@ export function ao_timeout(ms=1000, gen_in) ::
     return _fence()
 
 
-export function ao_debounce(ms=300, gen_in) ::
+export function ao_debounce(ms=300, ao_iterable) ::
   let tid, [_fence, _resume] = ao_fence_fn()
 
-  _fence.fin = @!>
+  _fence.when_run = @!>
     try ::
       let p
-      for await let v of gen_in ::
+      for await let v of ao_iterable ::
         clearTimeout(tid)
         p = _fence()
         tid = setTimeout(_resume, ms, v)
@@ -44,8 +40,8 @@ export function ao_debounce(ms=300, gen_in) ::
   return _fence
 
 
-export async function * ao_times(gen_in) ::
+export async function * ao_times(ao_iterable) ::
   let ts0 = Date.now()
-  for await let v of gen_in ::
+  for await let v of ao_iterable ::
     yield Date.now() - ts0
 

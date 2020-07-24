@@ -1,4 +1,4 @@
-import {is_ao_fn} from './util.jsy'
+import {is_ao_fn, _ag_copy} from './util.jsy'
 
 
 export async function ao_run(gen_in) ::
@@ -47,10 +47,15 @@ export function step_iter(iterable, or_more) ::
 export async function * ao_iter(iterable) ::
   yield * iterable
 
-export async function * ao_iter_fenced(iterable, f_gate, initial=false) ::
+
+export async function * _ao_iter_fenced(iterable, f_gate, initial=false) ::
   let f = true === initial ? f_gate.fence() : initial
   for await let v of iterable ::
     await f
     yield v
     f = f_gate.fence()
+
+
+export const ao_iter_fenced = (...args) =>
+  _ag_copy @ args[0], _ao_iter_fenced(...args)
 

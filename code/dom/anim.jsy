@@ -1,14 +1,12 @@
-import {ao_iter_fenced} from '../core/drive.jsy'
 import {ao_fence_fn} from '../core/fence.jsy'
 
-export function ao_dom_animation(gen_in) ::
+export function ao_dom_animation() ::
   let tid, [_fence, _resume] = ao_fence_fn(raf)
   raf.stop = @::
     tid = cancelAnimationFrame(tid)
     raf.done = true
 
-  return null == gen_in ? raf
-    : ao_iter_fenced(gen_in, raf)
+  return raf
 
   function raf() ::
     tid = requestAnimationFrame(_resume)

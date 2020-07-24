@@ -246,7 +246,9 @@
           ? ns_gen(this, f_out)
           : ns_gen;
 
-      f_out.xemit = xemit;
+      if (undefined !== xemit) {
+        f_out.xemit = xemit;}
+
       if (! xinit) {xinit = aog_sink;}
       let res = xinit(this, f_out, xrecv);
 
@@ -256,7 +258,9 @@
         g_in.next();
         ag_out = f_out.bind_gated(this);}
 
-      // else res is an output generator
+      else {
+        // res is an output generator
+        ag_out = res;}
 
       ag_out.g_in = f_out.g_in = g_in;
       return ag_out}

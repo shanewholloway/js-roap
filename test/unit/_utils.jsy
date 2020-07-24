@@ -38,9 +38,7 @@ export function is_fence_gen(f) ::
   is_fn(f.abort)
   is_fn(f.resume)
 
-  is_fn(f.next)
-  is_fn(f.return)
-  is_fn(f.throw)
+  is_gen(f)
   return f
 
 export function is_async_iterable(o) ::

@@ -9,16 +9,16 @@ export function ao_split(iterable) ::
   f_out.g_in = iterable.g_in
   return f_out
 
-export async function _ao_run(iterable, g_tap) ::
+export async function _ao_run(iterable, f_tap) ::
   try ::
     for await let v of iterable ::
-      g_tap.next(v)
+      f_tap.resume(v)
 
   catch err ::
     ao_check_done(err)
 
   finally ::
-    g_tap.return()
+    f_tap.abort()
 
 
 export function ao_tap(iterable) ::
@@ -28,15 +28,15 @@ export function ao_tap(iterable) ::
   ag_tap.g_in = f_tap.g_in = iterable.g_in
   return [f_tap, ag_tap]
 
-export async function * _ao_tap(iterable, g_tap) ::
+export async function * _ao_tap(iterable, f_tap) ::
   try ::
     for await let v of iterable ::
-      g_tap.next(v)
+      f_tap.resume(v)
       yield v
 
   catch err ::
     ao_check_done(err)
 
   finally ::
-    g_tap.return()
+    f_tap.abort()
 

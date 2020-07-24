@@ -1,14 +1,14 @@
 import {ao_fence_obj} from 'roap'
 import {
   assert, expect, 
-  is_fence_core, is_fence_gen,
+  is_fence_core,
   delay_race, delay,
 } from './_utils.jsy'
 
 
 describe @ 'ao_fence_obj', function() ::
   it @ 'shape', @::
-    is_fence_gen @ ao_fence_obj()
+    is_fence_core @ ao_fence_obj()
 
   it @ 'basic use', @::>
     const res = ao_fence_obj()

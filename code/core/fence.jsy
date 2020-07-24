@@ -1,8 +1,8 @@
 import {ao_done, ao_check_done, fn_chain} from './util.jsy'
 
-
+const _noop = ()=>{}
 export function ao_fence_v(proto) ::
-  let p=0, _resume = _=>0, _abort = _=>0
+  let p=0, _resume = _noop, _abort = _noop
   let _pset = (y,n) => :: _resume=y; _abort=n
 
   let fence = () => @ 0 !== p ? p : p=new Promise(_pset)
@@ -46,15 +46,6 @@ export function ao_fence_fn(tgt) ::
   return f
 
 
-export const _ao_fence_gen_api_ = @{}
-  __proto__: _ao_fence_core_api_
-
-  // generator api
-  next(v) :: return {value: this.resume(v), done: true}
-  return() :: return {value: this.abort(ao_done), done: true}
-  throw(err) :: return {value: this.abort(err), done: true}
-
-
 export const ao_fence_obj =
-  ao_fence_v.bind(null, _ao_fence_gen_api_)
+  ao_fence_v.bind(null, _ao_fence_core_api_)
 

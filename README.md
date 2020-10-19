@@ -37,3 +37,25 @@ State is inherent in async systems: timing, data stores, UIs, and network operat
 - [time](./docs/time.md)
 - [dom](./docs/dom.md)
 
+
+### Examples
+
+##### Simple
+
+- [`fence`](https://shanewholloway.github.io/js-roap/demo/fence.html)
+- [`time_timeout`](https://shanewholloway.github.io/js-roap/demo/time_timeout.html)
+- [`time_interval`](https://shanewholloway.github.io/js-roap/demo/time_interval.html)
+
+
+##### DOM-based
+
+- [`dom_pointer_events`](https://shanewholloway.github.io/js-roap/demo/dom_pointer_events.html)
+- [`dom_channels`](https://shanewholloway.github.io/js-roap/demo/dom_channels.html)
+- [`dom_input`](https://shanewholloway.github.io/js-roap/demo/dom_input.html)
+- [`dom_storage`](https://shanewholloway.github.io/js-roap/demo/dom_storage.html)
+
+
+### Testing
+
+- [unittests](https://shanewholloway.github.io/js-roap/test/unittest.html)
+

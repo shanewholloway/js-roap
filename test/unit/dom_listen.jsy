@@ -46,6 +46,7 @@ describe @ 'dom events', @::
           await delay(1)
 
         ao_tgt.g_in.return()
+        port1.close()
 
       let expected = @[]
         @{} test_name: 'from msg port1: a'

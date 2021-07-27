@@ -14,13 +14,6 @@ export const ao_check_done = err => ::
   return true
 
 
-export function _fn_chain(tail) ::
-  chain.tail = tail
-  return chain.chain = chain
-  function chain(fn) ::
-    chain.tail = fn(chain.tail)
-    return chain
-
 export const _ag_copy = ({g_in}, ag_out) => @
   undefined === g_in ? ag_out : @
     ag_out.g_in = g_in

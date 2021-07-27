@@ -30,7 +30,7 @@ export function is_fence_core(f) ::
   is_async_iterable(f)
 
   is_fn(f.ao_check_done)
-  is_fn(f.chain)
+  // is_fn(f.chain) -- moved to experimental/chain.md
   return f
 
 export function is_fence_gen(f) ::

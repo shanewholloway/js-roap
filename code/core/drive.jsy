@@ -20,7 +20,7 @@ export async function ao_drive(gen_in, gen_tgt, close_tgt) ::
 
 
 export function * iter(iterable) ::
-  yield * iterable
+  return (yield * iterable)
 
 export function ao_step_iter(iterable, or_more) ::
   iterable = ao_iter(iterable)
@@ -45,7 +45,7 @@ export function step_iter(iterable, or_more) ::
 
 
 export async function * ao_iter(iterable) ::
-  yield * iterable
+  return (yield * iterable)
 
 
 export async function * _ao_iter_fenced(iterable, f_gate, initial=false) ::

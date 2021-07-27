@@ -1,6 +1,6 @@
 {
   "name": "roap",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "Reactive Observable Async-iterable Programming",
   "license": "BSD-2-Clause",
   "author": "Shane Holloway <shane.holloway@ieee.org>",
@@ -30,9 +30,9 @@
     }
   },
   "devDependencies": {
-    "@rollup/plugin-node-resolve": "^13.0.2",
+    "@rollup/plugin-node-resolve": "^13.0.4",
     "qsrv": "^0.1.7",
-    "rollup": "^2.53.3",
+    "rollup": "^2.54.0",
     "rollup-plugin-dgnotify": "^0.1.7",
     "rollup-plugin-jsy": "^1.7.2",
     "rollup-plugin-terser": "^7.0.2"

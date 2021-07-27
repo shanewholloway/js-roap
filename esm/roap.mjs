@@ -13,13 +13,6 @@ const ao_check_done = err => {
   return true};
 
 
-function _fn_chain(tail) {
-  chain.tail = tail;
-  return chain.chain = chain
-  function chain(fn) {
-    chain.tail = fn(chain.tail);
-    return chain} }
-
 const _ag_copy = ({g_in}, ag_out) =>(
   undefined === g_in ? ag_out :(
     ag_out.g_in = g_in
@@ -54,7 +47,7 @@ async function ao_drive(gen_in, gen_tgt, close_tgt) {
 
 
 function * iter(iterable) {
-  yield * iterable;}
+  return (yield * iterable)}
 
 function ao_step_iter(iterable, or_more) {
   iterable = ao_iter(iterable);
@@ -79,7 +72,7 @@ function step_iter(iterable, or_more) {
 
 
 async function * ao_iter(iterable) {
-  yield * iterable;}
+  return (yield * iterable)}
 
 
 async function * _ao_iter_fenced(iterable, f_gate, initial=false) {
@@ -110,7 +103,6 @@ function ao_fence_v(proto) {
 
 const _ao_fence_core_api_ ={
   ao_check_done
-, chain(fn) {return _fn_chain(this)(fn)}
 
 , // copyable fence fork api
   [Symbol.asyncIterator]() {
@@ -453,5 +445,5 @@ function _ao_with_dom_vec(_bind, fn, ectx_list) {
         ectx.listen(...args);}
       return this} } }
 
-export { _ag_copy, _ao_fence_core_api_, _ao_iter_fenced, _ao_run, _ao_tap, _fn_chain, _xf_gen, ao_check_done, ao_debounce, ao_deferred, ao_deferred_v, ao_dom_animation, ao_dom_listen, ao_done, ao_drive, ao_fence_fn, ao_fence_in, ao_fence_obj, ao_fence_out, ao_fence_v, ao_fold, ao_interval, ao_iter, ao_iter_fenced, ao_queue, ao_run, ao_split, ao_step_iter, ao_tap, ao_timeout, ao_times, ao_xform, aog_iter, aog_sink, is_ao_fn, is_ao_iter, iter, step_iter };
+export { _ag_copy, _ao_fence_core_api_, _ao_iter_fenced, _ao_run, _ao_tap, _xf_gen, ao_check_done, ao_debounce, ao_deferred, ao_deferred_v, ao_dom_animation, ao_dom_listen, ao_done, ao_drive, ao_fence_fn, ao_fence_in, ao_fence_obj, ao_fence_out, ao_fence_v, ao_fold, ao_interval, ao_iter, ao_iter_fenced, ao_queue, ao_run, ao_split, ao_step_iter, ao_tap, ao_timeout, ao_times, ao_xform, aog_iter, aog_sink, is_ao_fn, is_ao_iter, iter, step_iter };
 //# sourceMappingURL=roap.mjs.map

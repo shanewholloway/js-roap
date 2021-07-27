@@ -19,13 +19,6 @@
     return true};
 
 
-  function _fn_chain(tail) {
-    chain.tail = tail;
-    return chain.chain = chain
-    function chain(fn) {
-      chain.tail = fn(chain.tail);
-      return chain} }
-
   const _ag_copy = ({g_in}, ag_out) =>(
     undefined === g_in ? ag_out :(
       ag_out.g_in = g_in
@@ -60,7 +53,7 @@
 
 
   function * iter(iterable) {
-    yield * iterable;}
+    return (yield * iterable)}
 
   function ao_step_iter(iterable, or_more) {
     iterable = ao_iter(iterable);
@@ -85,7 +78,7 @@
 
 
   async function * ao_iter(iterable) {
-    yield * iterable;}
+    return (yield * iterable)}
 
 
   async function * _ao_iter_fenced(iterable, f_gate, initial=false) {
@@ -116,7 +109,6 @@
 
   const _ao_fence_core_api_ ={
     ao_check_done
-  , chain(fn) {return _fn_chain(this)(fn)}
 
   , // copyable fence fork api
     [Symbol.asyncIterator]() {
@@ -464,7 +456,6 @@
   exports._ao_iter_fenced = _ao_iter_fenced;
   exports._ao_run = _ao_run;
   exports._ao_tap = _ao_tap;
-  exports._fn_chain = _fn_chain;
   exports._xf_gen = _xf_gen;
   exports.ao_check_done = ao_check_done;
   exports.ao_debounce = ao_debounce;

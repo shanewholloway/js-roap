@@ -1,13 +1,13 @@
+import {ao_defer_ctx} from './defer.jsy'
 import {ao_done, ao_check_done} from './util.jsy'
 
-const _noop = ()=>{}
-export function ao_fence_v(proto) ::
-  let p=0, _resume = _noop, _abort = _noop
-  let _pset = (y,n) => :: _resume=y; _abort=n
 
-  let fence = () => @ 0 !== p ? p : p=new Promise(_pset)
-  let resume = (ans) => @ p=0, _resume(ans)
-  let abort = (err=ao_done) => @ p=0, _abort(err)
+export function ao_fence_v(proto) ::
+  let reset = ao_defer_ctx(), x=reset(), p=0
+
+  let fence  = () => @ 0 !== p ? p : p=(x=reset())[0]
+  let resume = ans => :: p=0; x[1](ans)
+  let abort  = err => :: p=0; x[2](err)
 
   return proto
     ? @{} __proto__: proto, fence, resume, abort

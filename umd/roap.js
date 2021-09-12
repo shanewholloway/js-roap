@@ -24,15 +24,17 @@
       ag_out.g_in = g_in
     , ag_out) );
 
-  const ao_deferred_v = ((() => {
+  function ao_defer_ctx(as_res = (...args) => args) {
     let y,n,_pset = (a,b) => { y=a, n=b; };
     return p =>(
       p = new Promise(_pset)
-    , [p, y, n]) })());
+    , as_res(p, y, n)) }
 
-  const ao_deferred = v =>(
-    v = ao_deferred_v()
-  , {promise: v[0], resolve: v[1], reject: v[2]});
+  const ao_defer_v = /* #__PURE__ */ ao_defer_ctx();
+
+  const ao_defer = /* #__PURE__ */
+    ao_defer_ctx((p,y,n) =>
+      ({promise: p, resolve: y, reject: n}));
 
   async function ao_run(gen_in) {
     for await (let v of gen_in) {} }
@@ -92,14 +94,12 @@
   const ao_iter_fenced = (...args) =>
     _ag_copy(args[0], _ao_iter_fenced(...args));
 
-  const _noop = ()=>{};
   function ao_fence_v(proto) {
-    let p=0, _resume = _noop, _abort = _noop;
-    let _pset = (y,n) => {_resume=y; _abort=n;};
+    let reset = ao_defer_ctx(), x=reset(), p=0;
 
-    let fence = () =>(0 !== p ? p : p=new Promise(_pset));
-    let resume = (ans) =>(p=0, _resume(ans));
-    let abort = (err=ao_done) =>(p=0, _abort(err));
+    let fence  = () =>(0 !== p ? p : p=(x=reset())[0]);
+    let resume = ans => {p=0; x[1](ans);};
+    let abort  = err => {p=0; x[2](err);};
 
     return proto
       ?{__proto__: proto, fence, resume, abort}
@@ -459,8 +459,9 @@
   exports._xf_gen = _xf_gen;
   exports.ao_check_done = ao_check_done;
   exports.ao_debounce = ao_debounce;
-  exports.ao_deferred = ao_deferred;
-  exports.ao_deferred_v = ao_deferred_v;
+  exports.ao_defer = ao_defer;
+  exports.ao_defer_ctx = ao_defer_ctx;
+  exports.ao_defer_v = ao_defer_v;
   exports.ao_dom_animation = ao_dom_animation;
   exports.ao_dom_listen = ao_dom_listen;
   exports.ao_done = ao_done;

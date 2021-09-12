@@ -22,10 +22,10 @@ To drive an async generator, `ao_drive(gen_in, gen_out, xform)` uses an async it
 
 #### Deferred Promises
 
-A deferred is a `Promise` that exposes the closure `(resolve, reject)` parameters as list elements or object attributes.
+A defer is a `Promise` that exposes the closure `(resolve, reject)` parameters as list elements or object attributes.
 
-- `ao_deferred()` returns a deferred object `{promise, resolve(value) : void, reject(error) : void}`
-- `ao_deferred_v()` returns a deferred list `[promise, resolve(value) : void, reject(error) : void]`
+- `ao_defer()` returns a deferred object `{promise, resolve(value) : void, reject(error) : void}`
+- `ao_defer_v()` returns a deferred list `[promise, resolve(value) : void, reject(error) : void]`
 
 
 #### Misc Utilities

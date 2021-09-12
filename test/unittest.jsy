@@ -1,5 +1,5 @@
 import './unit/smoke.jsy'
-import './unit/core_deferred.jsy'
+import './unit/core_defer.jsy'
 import './unit/core_drive.jsy'
 import './unit/core_drive_iters.jsy'
 import './unit/core_split.jsy'

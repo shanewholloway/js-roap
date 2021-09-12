@@ -27,7 +27,7 @@ ao_dom_listen(demo_target)
 
 console.log @: demo_target
 
-const ao_tgt_rgb = @*>
+const ao_tgt_rgb = @!*>
   for await let {aaa, bbb, ccc} of demo_target ::
     let r = (aaa*.255).toFixed(1)
     let g = (bbb*.255).toFixed(1)
@@ -35,7 +35,7 @@ const ao_tgt_rgb = @*>
     yield `rgb(${r}, ${g}, ${b})`
       
 
-const ao_tgt_hsl = @*>
+const ao_tgt_hsl = @!*>
   for await let {aaa, bbb, ccc} of demo_target ::
     let h = (aaa*0.36).toFixed(1)
     let s = (bbb*0.10).toFixed(1)

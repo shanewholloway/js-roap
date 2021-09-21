@@ -15,6 +15,12 @@ Calling `abort(err)` rejects the existing deferred promise and ratchets `fence` 
 - `ao_fence_out()` returns an object of `{fence, reset, abort}` supporting the Fence Output API.
 - `ao_fence_in()` returns an object of `{fence, reset, abort}` supporting the Fence Input API.
 
+- `ao_fence_iter()` is a composition of `ao_fence_obj`, `ao_fence_out`, and `aog_iter` to form an `ao_queue` with minimal dependencies.
+- `ao_fence_sink()` is a composition of `ao_fence_obj`, `ao_fence_out`, and `aog_sink` to form an `ao_fold` with minimal dependencies.
+
+- `ao_feeder({g_in})` returns a closure `v => g_in.next(v)` to drive an `ao_fence_out` instance
+- `ao_feeder_v({g_in})` returns a closure `(...args) => g_in.next(args)` to drive an `ao_fence_out` instance
+
 
 #### Fence Core API
 
@@ -42,6 +48,9 @@ Then add useful documentation.
 - `bind_gated(f_gate) : this` -- binds `ao_bound` to `_ao_gated(f_gate)`
 
 
+(see `core/fence_out.jsy`)
+
+
 #### Fence Input API
 
 - `ao_fold(ns_gen)` -- alias for `this.ao_xform_run({xinit: aog_iter, ...ns_gen})`
@@ -58,4 +67,7 @@ Then add useful documentation.
   - `next(v) => {value, done}`
   - `return(v) => {value, done}`
   - `throw(err) => {value, done}`
+
+
+(see `core/fence_in.jsy`)
 

@@ -2,7 +2,6 @@ import {is_ao_fn, ao_done, ao_check_done} from './util.jsy'
 import {ao_fence_v, _ao_fence_core_api_} from './fence.jsy'
 import {ao_fence_out} from './fence_out.jsy'
 
-
 export const ao_xform = ns_gen => ao_fence_in().ao_xform(ns_gen)
 export const ao_fold = ns_gen => ao_fence_in().ao_fold(ns_gen)
 export const ao_queue = ns_gen => ao_fence_in().ao_queue(ns_gen)
@@ -28,7 +27,7 @@ export const ao_fence_in = ao_fence_v.bind @ null, @{}
       f_out.xemit = xemit
 
     if ! xinit :: xinit = aog_sink
-    let res = xinit(this, f_out, xrecv)
+    let res = xinit(this, f_out, xrecv, _xf_gen)
 
     let ag_out, g_in = res.g_in || res
     if res === g_in ::
@@ -51,7 +50,7 @@ export const ao_fence_in = ao_fence_v.bind @ null, @{}
 
 
 
-export function * aog_iter(f_in, f_gate, xf) ::
+export function * aog_iter(f_in, f_gate, xf, _xf_gen) ::
   xf = xf ? _xf_gen.create(xf) : void xf
   try ::
     while 1 ::
@@ -68,7 +67,7 @@ export function * aog_iter(f_in, f_gate, xf) ::
       xf.return()
 
 
-export async function * aog_sink(f_in, f_gate, xf) ::
+export async function * aog_sink(f_in, f_gate, xf, _xf_gen) ::
   xf = xf ? _xf_gen.create(xf) : void xf
   try ::
     while 1 ::

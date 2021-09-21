@@ -6,6 +6,7 @@ export * from './core/split.jsy'
 export * from './core/fence.jsy'
 export * from './core/fence_out.jsy'
 export * from './core/fence_in.jsy'
+export * from './core/fence_bare.jsy'
 
 export * from './time.jsy'
 

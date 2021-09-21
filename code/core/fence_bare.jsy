@@ -1,0 +1,24 @@
+import {ao_fence_obj} from './fence.jsy'
+import {ao_fence_out} from './fence_out.jsy'
+import {aog_iter, aog_sink} from './fence_in.jsy'
+
+export const ao_feeder = /* #__PURE__ */
+  ({g_in}) => v => g_in.next(v)
+
+export const ao_feeder_v = /* #__PURE__ */
+  ({g_in}) => (...args) => g_in.next(args)
+
+export function ao_fence_iter() ::
+  let f_in = ao_fence_obj()
+  let f_out = ao_fence_out().bind_gated(f_in)
+  let g_in = f_out.g_in = aog_iter(f_in, f_out)
+  g_in.next()
+  return f_out
+
+export function ao_fence_sink() ::
+  let f_in = ao_fence_obj()
+  let f_out = ao_fence_out().bind_gated(f_in)
+  let g_in = f_out.g_in = aog_sink(f_in, f_out)
+  g_in.next()
+  return f_out
+

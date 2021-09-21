@@ -1,0 +1,95 @@
+import {ao_fence_sink, ao_fence_iter, ao_drive, ao_iter} from 'roap'
+
+import @{}
+  assert, expect,
+  is_gen, is_async_iterable
+  delay_race, delay_walk, array_from_ao_iter,
+from './_utils.jsy'
+
+
+describe @ 'fence_bare', function() ::
+
+  describe @ 'ao_fence_sink()', function() ::
+    it @ 'shape', @::
+      let some_queue = is_async_iterable @
+        ao_fence_sink()
+
+      is_gen(some_queue.g_in)
+      expect(some_queue.fence).to.be.a('function')
+
+    it @ 'singles', @::>
+      let some_queue = ao_fence_sink()
+
+      let p_out1 = ao_iter(some_queue).next()
+      expect(p_out1).to.be.a('promise')
+
+      let p_in1 = some_queue.g_in.next @ 'first'
+      expect(p_in1).to.be.a('promise')
+
+      expect(await p_out1).to.deep.equal @:
+        value: 'first', done: false
+
+    it @ 'vec', @::>
+      let first_queue = ao_fence_sink()
+      let second_queue = @!*>
+        for await let v of first_queue ::
+          yield 1000+v
+
+      let out = array_from_ao_iter(second_queue)
+
+      await ao_drive @
+        delay_walk @# 25, 50, 75, 100
+        first_queue.g_in
+
+      await first_queue.g_in.return()
+
+      expect(await out).to.deep.equal @#
+        1025, 1050, 1075, 1100
+
+
+  describe @ 'ao_fence_iter()', function() ::
+    it @ 'shape', @::
+      let some_pipe = is_async_iterable @
+        ao_fence_iter()
+
+      is_gen @ some_pipe.g_in
+      expect(some_pipe.fence).to.be.a('function')
+
+    it @ 'simple', @::>
+      let some_pipe = ao_fence_iter()
+      let z = _test_pipe_out @ some_pipe,
+        [1942, 2042, 2142]
+
+      assert.deepEqual @
+        @[] 1942, 2042, 2142
+        await delay_race(z, 50)
+
+
+    it @ 'xemit post transform', @::>
+      let first_pipe = ao_fence_iter()
+      let second_pipe = @!*>
+        for await let v of first_pipe ::
+          yield ['xe', v]
+
+      second_pipe.g_in = first_pipe.g_in
+
+      let z = _test_pipe_out @ second_pipe,
+        [1942, 2042, 2142]
+
+      assert.deepEqual @
+        @[] ['xe', 1942]
+            ['xe', 2042]
+            ['xe', 2142]
+        await delay_race(z, 50)
+
+
+    async function _test_pipe_out(some_pipe, values) ::
+      let z = array_from_ao_iter(some_pipe)
+
+      await ao_drive @
+        delay_walk(values)
+        some_pipe.g_in, true
+
+      return z
+
+

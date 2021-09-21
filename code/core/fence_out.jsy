@@ -3,7 +3,7 @@ import {ao_fence_v, _ao_fence_core_api_} from './fence.jsy'
 import {ao_run} from './drive.jsy'
 
 
-export const ao_fence_out = ao_fence_v.bind @ null, @{}
+export const ao_fence_out = /* #__PURE__ */ ao_fence_v.bind @ null, @{}
   __proto__: _ao_fence_core_api_
 
   [Symbol.asyncIterator]() ::
@@ -44,17 +44,20 @@ export const ao_fence_out = ao_fence_v.bind @ null, @{}
   ao_gated(f_gate) ::
     return this.bind_gated(f_gate).ao_bound()
 
-  async * _ao_gated(f_gate) ::
-    try ::
-      this.resume()
-      while 1 ::
-        let v = await f_gate.fence()
-        yield v
-        this.resume(v)
-    catch err ::
-      ao_check_done(err)
-    finally ::
-      this.abort()
-      if f_gate.abort ::
-        f_gate.abort()
+  _ao_gated(f_gate) :: return aog_gated(this, f_gate)
+
+
+export async function * aog_gated(f_out, f_gate) ::
+  try ::
+    f_out.resume()
+    while 1 ::
+      let v = await f_gate.fence()
+      yield v
+      f_out.resume(v)
+  catch err ::
+    ao_check_done(err)
+  finally ::
+    f_out.abort()
+    if f_gate.abort ::
+      f_gate.abort()
 

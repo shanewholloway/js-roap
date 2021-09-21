@@ -15,7 +15,7 @@ export function ao_fence_v(proto) ::
 
 
 
-export const _ao_fence_core_api_ = @{}
+export const _ao_fence_core_api_ = /* #__PURE__ */ @{}
   ao_check_done
 
   // copyable fence fork api
@@ -45,6 +45,6 @@ export function ao_fence_fn(tgt) ::
   return f
 
 
-export const ao_fence_obj =
+export const ao_fence_obj = /* #__PURE__ */
   ao_fence_v.bind(null, _ao_fence_core_api_)
 

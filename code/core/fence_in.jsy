@@ -1,12 +1,13 @@
-import {is_ao_fn, ao_done, ao_check_done} from './util.jsy'
+import {is_ao_fn, ao_done} from './util.jsy'
 import {ao_fence_v, _ao_fence_core_api_} from './fence.jsy'
 import {ao_fence_out} from './fence_out.jsy'
+import {aog_iter, aog_sink} from './fence_bare.jsy'
 
 export const ao_xform = ns_gen => ao_fence_in().ao_xform(ns_gen)
 export const ao_fold = ns_gen => ao_fence_in().ao_fold(ns_gen)
 export const ao_queue = ns_gen => ao_fence_in().ao_queue(ns_gen)
 
-export const ao_fence_in = ao_fence_v.bind @ null, @{}
+export const ao_fence_in = /* #__PURE__ */ ao_fence_v.bind @ null, @{}
   __proto__: _ao_fence_core_api_
 
   ao_fold(ns_gen) :: return this.ao_xform @: xinit: aog_iter, ... ns_gen
@@ -27,7 +28,8 @@ export const ao_fence_in = ao_fence_v.bind @ null, @{}
       f_out.xemit = xemit
 
     if ! xinit :: xinit = aog_sink
-    let res = xinit(this, f_out, xrecv, _xf_gen)
+    let res = xinit @ this, f_out,
+      xrecv ? _xf_gen.create(xrecv) : undefined
 
     let ag_out, g_in = res.g_in || res
     if res === g_in ::
@@ -49,46 +51,7 @@ export const ao_fence_in = ao_fence_v.bind @ null, @{}
   throw(err) :: return {value: this.abort(err), done: true}
 
 
-
-export function * aog_iter(f_in, f_gate, xf, _xf_gen) ::
-  xf = xf ? _xf_gen.create(xf) : void xf
-  try ::
-    while 1 ::
-      let tip = yield
-      if undefined !== xf ::
-        tip = (xf.next(tip)).value
-      f_in.resume(tip)
-
-  catch err ::
-    ao_check_done(err)
-  finally ::
-    f_in.abort()
-    if undefined !== xf ::
-      xf.return()
-
-
-export async function * aog_sink(f_in, f_gate, xf, _xf_gen) ::
-  xf = xf ? _xf_gen.create(xf) : void xf
-  try ::
-    while 1 ::
-      ::
-        let tip = yield
-        if undefined !== xf ::
-          tip = (await xf.next(tip)).value
-        f_in.resume(tip)
-
-      if undefined !== f_gate ::
-        await f_gate.fence()
-
-  catch err ::
-    ao_check_done(err)
-  finally ::
-    f_in.abort()
-    if undefined !== xf ::
-      xf.return()
-
-
-export const _xf_gen = @{}
+const _xf_gen = /* #__PURE__ */ @{}
   create(xf) ::
     let self = {__proto__: this}
     self.xg = xf(self.xf_inv())

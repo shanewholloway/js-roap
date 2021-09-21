@@ -16,10 +16,10 @@ export const ao_fence_in = ao_fence_v.bind @ null, @{}
   aog_iter(xf) :: return aog_iter(this, xf)
   aog_sink(f_gate, xf) :: return aog_sink(this, f_gate, xf)
 
-  ao_xform(ns_gen={xinit: aog_sink}) ::
+  ao_xform(ns_gen={}) ::
     let f_out = ao_fence_out()
 
-    let {xinit, xrecv, xemit} = 
+    let {xemit, xinit, xrecv} =
       is_ao_fn(ns_gen)
         ? ns_gen(this, f_out)
         : ns_gen
@@ -57,7 +57,7 @@ export function * aog_iter(f_in, f_gate, xf) ::
     while 1 ::
       let tip = yield
       if undefined !== xf ::
-        tip = xf.next(tip).value
+        tip = (xf.next(tip)).value
       f_in.resume(tip)
 
   catch err ::
@@ -75,8 +75,7 @@ export async function * aog_sink(f_in, f_gate, xf) ::
       ::
         let tip = yield
         if undefined !== xf ::
-          tip = await xf.next(tip)
-          tip = tip.value
+          tip = (await xf.next(tip)).value
         f_in.resume(tip)
 
       if undefined !== f_gate ::

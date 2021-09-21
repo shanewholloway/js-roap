@@ -41,6 +41,9 @@ export const ao_fence_out = ao_fence_v.bind @ null, @{}
 
     return this
 
+  ao_gated(f_gate) ::
+    return this.bind_gated(f_gate).ao_bound()
+
   async * _ao_gated(f_gate) ::
     try ::
       this.resume()

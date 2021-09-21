@@ -9,16 +9,14 @@ export const ao_feeder_v = /* #__PURE__ */
   ({g_in}) => (...args) => g_in.next(args)
 
 export function ao_fence_iter() ::
-  let f_in = ao_fence_obj()
-  let f_out = ao_fence_out().bind_gated(f_in)
-  let g_in = f_out.g_in = aog_iter(f_in, f_out)
-  g_in.next()
+  let f_in = ao_fence_obj();
+  let f_out = ao_fence_out().bind_gated(f_in);
+  (f_out.g_in = aog_iter(f_in, f_out)).next();
   return f_out
 
 export function ao_fence_sink() ::
-  let f_in = ao_fence_obj()
-  let f_out = ao_fence_out().bind_gated(f_in)
-  let g_in = f_out.g_in = aog_sink(f_in, f_out)
-  g_in.next()
+  let f_in = ao_fence_obj();
+  let f_out = ao_fence_out().bind_gated(f_in);
+  (f_out.g_in = aog_sink(f_in, f_out)).next();
   return f_out
 

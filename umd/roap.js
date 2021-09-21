@@ -215,6 +215,9 @@
 
       return this}
 
+  , ao_gated(f_gate) {
+      return this.bind_gated(f_gate).ao_bound()}
+
   , async * _ao_gated(f_gate) {
       try {
         this.resume();
@@ -242,10 +245,10 @@
   , aog_iter(xf) {return aog_iter(this)}
   , aog_sink(f_gate, xf) {return aog_sink(this, f_gate, xf)}
 
-  , ao_xform(ns_gen={xinit: aog_sink}) {
+  , ao_xform(ns_gen={}) {
       let f_out = ao_fence_out();
 
-      let {xinit, xrecv, xemit} = 
+      let {xemit, xinit, xrecv} =
         is_ao_fn(ns_gen)
           ? ns_gen(this, f_out)
           : ns_gen;
@@ -254,7 +257,7 @@
         f_out.xemit = xemit;}
 
       if (! xinit) {xinit = aog_sink;}
-      let res = xinit(this, f_out, xrecv);
+      let res = xinit(this, f_out, xrecv, _xf_gen);
 
       let ag_out, g_in = res.g_in || res;
       if (res === g_in) {
@@ -277,13 +280,13 @@
 
 
 
-  function * aog_iter(f_in, f_gate, xf) {
+  function * aog_iter(f_in, f_gate, xf, _xf_gen) {
     xf = xf ? _xf_gen.create(xf) : void xf;
     try {
       while (1) {
         let tip = yield;
         if (undefined !== xf) {
-          tip = xf.next(tip).value;}
+          tip = (xf.next(tip)).value;}
         f_in.resume(tip);} }
 
     catch (err) {
@@ -294,15 +297,14 @@
         xf.return();} } }
 
 
-  async function * aog_sink(f_in, f_gate, xf) {
+  async function * aog_sink(f_in, f_gate, xf, _xf_gen) {
     xf = xf ? _xf_gen.create(xf) : void xf;
     try {
       while (1) {
          {
           let tip = yield;
           if (undefined !== xf) {
-            tip = await xf.next(tip);
-            tip = tip.value;}
+            tip = (await xf.next(tip)).value;}
           f_in.resume(tip);}
 
         if (undefined !== f_gate) {
@@ -337,6 +339,26 @@
 
   , return() {this.xg.return();}
   , throw() {this.xg.throw();} };
+
+  const ao_feeder = 
+    ({g_in}) => v => g_in.next(v);
+
+  const ao_feeder_v = 
+    ({g_in}) => (...args) => g_in.next(args);
+
+  function ao_fence_iter() {
+    let f_in = ao_fence_obj();
+    let f_out = ao_fence_out().bind_gated(f_in);
+    let g_in = f_out.g_in = aog_iter(f_in);
+    g_in.next();
+    return f_out}
+
+  function ao_fence_sink() {
+    let f_in = ao_fence_obj();
+    let f_out = ao_fence_out().bind_gated(f_in);
+    let g_in = f_out.g_in = aog_sink(f_in, f_out);
+    g_in.next();
+    return f_out}
 
   function ao_interval(ms=1000) {
     let [_fence, _resume, _abort] = ao_fence_fn();
@@ -466,10 +488,14 @@
   exports.ao_dom_listen = ao_dom_listen;
   exports.ao_done = ao_done;
   exports.ao_drive = ao_drive;
+  exports.ao_feeder = ao_feeder;
+  exports.ao_feeder_v = ao_feeder_v;
   exports.ao_fence_fn = ao_fence_fn;
   exports.ao_fence_in = ao_fence_in;
+  exports.ao_fence_iter = ao_fence_iter;
   exports.ao_fence_obj = ao_fence_obj;
   exports.ao_fence_out = ao_fence_out;
+  exports.ao_fence_sink = ao_fence_sink;
   exports.ao_fence_v = ao_fence_v;
   exports.ao_fold = ao_fold;
   exports.ao_interval = ao_interval;

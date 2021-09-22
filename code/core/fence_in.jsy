@@ -31,19 +31,12 @@ export const ao_fence_in = /* #__PURE__ */ ao_fence_v.bind @ null, @{}
     let res = xinit @ this, f_out,
       xrecv ? _xf_gen.create(xrecv) : undefined
 
-    let ag_out, g_in = res.g_in || res
-    if res === g_in ::
-      // res is an input generator
-      g_in.next()
-      ag_out = f_out.bind_gated(this)
-
-    else ::
-      // res is an output generator
-      ag_out = res
-
-    ag_out.g_in = f_out.g_in = g_in
-    return ag_out
-
+    let g_in = f_out.g_in = res.g_in || res
+    return res !== g_in
+      ? res // res is an output generator
+      : @ // res is an input generator
+          g_in.next(),
+          f_out.bind_gated(this)
 
   // ES2015 generator api
   next(v) :: return {value: this.resume(v), done: true}

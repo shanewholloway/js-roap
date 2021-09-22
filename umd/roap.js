@@ -241,10 +241,10 @@
 
   function aog_fence_xf(xinit, ...args) {
     let f_in = ao_fence_v({}), f_out = ao_fence_v({});
-    let res = aog_gated(f_out, f_in);
     let g_in = xinit(f_in, f_out, ...args);
     g_in.next();
 
+    let res = aog_gated(f_out, f_in);
     res.fence = f_out.fence;
     res.g_in = g_in;
     return res}
@@ -319,19 +319,12 @@
       let res = xinit(this, f_out,
         xrecv ? _xf_gen.create(xrecv) : undefined);
 
-      let ag_out, g_in = res.g_in || res;
-      if (res === g_in) {
-        // res is an input generator
-        g_in.next();
-        ag_out = f_out.bind_gated(this);}
-
-      else {
-        // res is an output generator
-        ag_out = res;}
-
-      ag_out.g_in = f_out.g_in = g_in;
-      return ag_out}
-
+      let g_in = f_out.g_in = res.g_in || res;
+      return res !== g_in
+        ? res // res is an output generator
+        :(// res is an input generator
+            g_in.next(),
+            f_out.bind_gated(this)) }
 
   , // ES2015 generator api
     next(v) {return {value: this.resume(v), done: true}}

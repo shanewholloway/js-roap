@@ -9,10 +9,10 @@ export const ao_feeder_v = ({g_in}) => (...args) => g_in.next(args)
 
 export function aog_fence_xf(xinit, ...args) ::
   let f_in = ao_fence_v({}), f_out = ao_fence_v({})
-  let res = aog_gated(f_out, f_in)
   let g_in = xinit(f_in, f_out, ...args)
   g_in.next()
 
+  let res = aog_gated(f_out, f_in)
   res.fence = f_out.fence
   res.g_in = g_in
   return res

@@ -29,6 +29,6 @@ function * add_jsy(src_name, out_name=src_name) {
   yield ({ input: `code/${src_name}.jsy`, plugins,
     output: { file: `esm/${out_name}.mjs`, format: 'es', sourcemap} })
 
-  yield ({ input: `code/core/fence_bare.jsy`, plugins: plugins_web,
+  yield ({ input: `code/${src_name}.jsy`, plugins: plugins_web,
     output: { file: `esm/${out_name}.min.mjs`, format: 'es'} })
 }

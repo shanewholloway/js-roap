@@ -1,0 +1,25 @@
+import {ao_check_done} from './util.jsy'
+import {ao_fence_v, as_iter_proto} from './fence.jsy'
+
+
+export function ao_push_stream() ::
+  let [fence, resume, abort] = ao_fence_v()
+  let q=[], res = ao_stream_fence(fence)
+  res.push = o => (q.push(o), resume(q), q.length)
+  res.abort = abort
+  return res
+
+
+export async function * ao_stream_fence(fence) ::
+  try ::
+    let p_ready = fence()
+    while 1 ::
+      let batch = await p_ready
+      batch = batch.splice(0, batch.length)
+
+      p_ready = fence()
+      yield * batch
+
+  catch err ::
+    ao_check_done(err)
+

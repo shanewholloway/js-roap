@@ -16,6 +16,7 @@ import './unit/fold.jsy'
 import './unit/queue.jsy'
 
 import './unit/fence_bare.jsy'
+import './unit/fence_stream.jsy'
 
 import './unit/time.jsy'
 

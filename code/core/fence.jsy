@@ -7,11 +7,21 @@ export function ao_fence_v(proto) ::
 
   let fence  = () => @ 0 !== p ? p : p=(x=reset())[0]
   let resume = ans => :: p=0; x[1](ans)
-  let abort  = err => :: p=0; x[2](err)
+  let abort  = err => :: p=0; x[2](err || ao_done)
 
   return proto
     ? @{} __proto__: proto, fence, resume, abort
     : @[] fence, resume, abort
+
+
+export async function * ao_iter_fence(fence) ::
+  try ::
+    while 1 ::
+      let r = await fence()
+      if undefined !== r ::
+        yield r
+  catch err ::
+    ao_check_done(err)
 
 
 
@@ -23,19 +33,9 @@ export const _ao_fence_core_api_ = /* #__PURE__ */ @{}
     return this.ao_fork()
 
   ao_fork() ::
-    let ag = this._ao_fork()
+    let ag = ao_iter_fence(this.fence)
     let {xemit} = this
     return xemit ? xemit(ag) : ag
-
-  async * _ao_fork() ::
-    let {fence} = this
-    try ::
-      while 1 ::
-        let r = await fence()
-        if undefined !== r ::
-          yield r
-    catch err ::
-      ao_check_done(err)
 
 
 export function ao_fence_fn(tgt) ::
@@ -47,4 +47,11 @@ export function ao_fence_fn(tgt) ::
 
 export const ao_fence_obj = /* #__PURE__ */
   ao_fence_v.bind(null, _ao_fence_core_api_)
+
+
+export function as_iter_proto(resume, abort, done = true) ::
+  return @{}
+    next: v => @: value: resume(v), done
+    return: () => @: value: abort(ao_done), done
+    throw: (err) => @: value: abort(err), done
 

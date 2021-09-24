@@ -1,0 +1,46 @@
+import {ao_push_stream, as_iter_proto, ao_drive, ao_iter} from 'roap'
+
+import @{}
+  assert, expect,
+  is_gen, is_async_iterable
+  delay_race, delay_walk, array_from_ao_iter,
+from './_utils.jsy'
+
+
+describe @ 'fence_stream', function() ::
+
+  describe @ 'ao_push_stream()', function() ::
+    it @ 'shape', @::
+      let some_stream = is_async_iterable @
+        ao_push_stream()
+
+      expect(some_stream.g_in).to.be.undefined
+
+    it @ 'singles', @::>
+      let some_stream = ao_push_stream()
+
+      let p_out1 = ao_iter(some_stream).next()
+      expect(p_out1).to.be.a('promise')
+
+      some_stream.push @ 'first'
+      expect(await p_out1).to.deep.equal @:
+        value: 'first', done: false
+
+
+    it @ 'vec', @::>
+      let first_stream = ao_push_stream()
+
+      let second_stream = @!*>
+        for await let v of first_stream ::
+          yield 1000+v
+
+      let out = array_from_ao_iter(second_stream)
+
+      for await let v of delay_walk @# 25, 50, 75, 100 ::
+        first_stream.push(v)
+
+      first_stream.abort()
+
+      expect(await out).to.deep.equal @#
+        1025, 1050, 1075, 1100
+

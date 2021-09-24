@@ -93,11 +93,21 @@ function ao_fence_v(proto) {
 
   let fence  = () =>(0 !== p ? p : p=(x=reset())[0]);
   let resume = ans => {p=0; x[1](ans);};
-  let abort  = err => {p=0; x[2](err);};
+  let abort  = err => {p=0; x[2](err || ao_done);};
 
   return proto
     ?{__proto__: proto, fence, resume, abort}
     :[fence, resume, abort] }
+
+
+async function * ao_iter_fence(fence) {
+  try {
+    while (1) {
+      let r = await fence();
+      if (undefined !== r) {
+        yield r;} } }
+  catch (err) {
+    ao_check_done(err);} }
 
 
 
@@ -109,19 +119,9 @@ const _ao_fence_core_api_ = {
     return this.ao_fork()}
 
 , ao_fork() {
-    let ag = this._ao_fork();
+    let ag = ao_iter_fence(this.fence);
     let {xemit} = this;
-    return xemit ? xemit(ag) : ag}
-
-, async * _ao_fork() {
-    let {fence} = this;
-    try {
-      while (1) {
-        let r = await fence();
-        if (undefined !== r) {
-          yield r;} } }
-    catch (err) {
-      ao_check_done(err);} } };
+    return xemit ? xemit(ag) : ag} };
 
 
 function ao_fence_fn(tgt) {
@@ -133,6 +133,13 @@ function ao_fence_fn(tgt) {
 
 const ao_fence_obj = /* #__PURE__ */
   ao_fence_v.bind(null, _ao_fence_core_api_);
+
+
+function as_iter_proto(resume, abort, done = true) {
+  return {
+    next: v =>({value: resume(v), done})
+  , return: () =>({value: abort(ao_done), done})
+  , throw: (err) =>({value: abort(err), done}) } }
 
 function ao_split(iterable) {
   let f_out = ao_fence_obj();
@@ -348,6 +355,27 @@ const _xf_gen = {
 , return() {this.xg.return();}
 , throw() {this.xg.throw();} };
 
+function ao_push_stream() {
+  let [fence, resume, abort] = ao_fence_v();
+  let q=[], res = ao_stream_fence(fence);
+  res.push = o => (q.push(o), resume(q), q.length);
+  res.abort = abort;
+  return res}
+
+
+async function * ao_stream_fence(fence) {
+  try {
+    let p_ready = fence();
+    while (1) {
+      let batch = await p_ready;
+      batch = batch.splice(0, batch.length);
+
+      p_ready = fence();
+      yield * batch;} }
+
+  catch (err) {
+    ao_check_done(err);} }
+
 function ao_interval(ms=1000) {
   let [_fence, _resume, _abort] = ao_fence_fn();
   let tid = setInterval(_resume, ms, 1);
@@ -461,5 +489,5 @@ function _ao_with_dom_vec(_bind, fn, ectx_list) {
         ectx.listen(...args);}
       return this} } }
 
-export { _ag_copy, _ao_fence_core_api_, _ao_iter_fenced, _ao_run, _ao_tap, ao_check_done, ao_debounce, ao_defer, ao_defer_ctx, ao_defer_v, ao_dom_animation, ao_dom_listen, ao_done, ao_drive, ao_feeder, ao_feeder_v, ao_fence_fn, ao_fence_in, ao_fence_iter, ao_fence_obj, ao_fence_out, ao_fence_sink, ao_fence_v, ao_fold, ao_interval, ao_iter, ao_iter_fenced, ao_queue, ao_run, ao_split, ao_step_iter, ao_tap, ao_timeout, ao_times, ao_xform, aog_fence_xf, aog_gated, aog_iter, aog_sink, is_ao_fn, is_ao_iter, iter, step_iter };
+export { _ag_copy, _ao_fence_core_api_, _ao_iter_fenced, _ao_run, _ao_tap, ao_check_done, ao_debounce, ao_defer, ao_defer_ctx, ao_defer_v, ao_dom_animation, ao_dom_listen, ao_done, ao_drive, ao_feeder, ao_feeder_v, ao_fence_fn, ao_fence_in, ao_fence_iter, ao_fence_obj, ao_fence_out, ao_fence_sink, ao_fence_v, ao_fold, ao_interval, ao_iter, ao_iter_fence, ao_iter_fenced, ao_push_stream, ao_queue, ao_run, ao_split, ao_step_iter, ao_stream_fence, ao_tap, ao_timeout, ao_times, ao_xform, aog_fence_xf, aog_gated, aog_iter, aog_sink, as_iter_proto, is_ao_fn, is_ao_iter, iter, step_iter };
 //# sourceMappingURL=roap.mjs.map

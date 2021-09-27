@@ -361,12 +361,20 @@
   , return() {this.xg.return();}
   , throw() {this.xg.throw();} };
 
-  function ao_push_stream() {
-    let [fence, resume, abort] = ao_fence_v();
-    let q=[], res = ao_stream_fence(fence);
-    res.push = o => (q.push(o), resume(q), q.length);
-    res.abort = abort;
-    return res}
+  function ao_push_stream(as_vec) {
+    as_vec = !! as_vec;
+    let q=[], [fence, resume, abort] = ao_fence_v();
+
+    return Object.assign(
+      ao_stream_fence(fence),
+      {
+        abort
+      , push(... args) {
+          if (as_vec) {q.push(args);}
+          else q.push(... args);
+
+          resume(q);
+          return q.length} } ) }
 
 
   async function * ao_stream_fence(fence) {

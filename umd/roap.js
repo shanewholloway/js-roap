@@ -362,7 +362,6 @@
   , throw() {this.xg.throw();} };
 
   function ao_push_stream(as_vec) {
-    as_vec = !! as_vec;
     let q=[], [fence, resume, abort] = ao_fence_v();
 
     return Object.assign(
@@ -370,7 +369,8 @@
       {
         abort
       , push(... args) {
-          if (as_vec) {q.push(args);}
+          if (true === as_vec) {
+            q.push(args);}
           else q.push(... args);
 
           resume(q);

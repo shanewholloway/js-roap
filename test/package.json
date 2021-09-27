@@ -7,7 +7,6 @@
   },
   "devDependencies": {},
   "scripts": {
-    "prebuild": "test -d ./node_modules || npm -s install",
     "build": "npx rollup --config",
     "clean": "rm -rf ./out/",
     "watch": "npx rollup --config --watch",

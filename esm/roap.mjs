@@ -357,21 +357,28 @@ const _xf_gen = {
 
 function ao_push_stream(as_vec) {
   let q=[], [fence, resume, abort] = ao_fence_v();
+  let stream = ao_stream_fence(fence);
 
-  return Object.assign(
-    ao_stream_fence(fence),
-    {
-      abort
-    , push(... args) {
-        if (true === as_vec) {
-          q.push(args);}
-        else q.push(... args);
+  return Object.assign(stream,{
+    stream
+  , abort
+  , push(... args) {
+      if (true === as_vec) {
+        q.push(args);}
+      else q.push(... args);
 
-        resume(q);
-        return q.length} } ) }
+      resume(q);
+      return q.length} } ) }
 
 
-async function * ao_stream_fence(fence) {
+function ao_stream_fence(fence) {
+  let [when_done, res_done, rej_done] = ao_defer_v();
+  let res = _ao_stream_fence(fence, res_done, rej_done);
+  res.when_done = when_done;
+  return res}
+
+
+async function * _ao_stream_fence(fence, resolve, reject) {
   try {
     let p_ready = fence();
     while (1) {
@@ -382,7 +389,9 @@ async function * ao_stream_fence(fence) {
       yield * batch;} }
 
   catch (err) {
-    ao_check_done(err);} }
+    if (!err || err.ao_done) {
+      resolve(true);}
+    else reject(err);} }
 
 function ao_interval(ms=1000) {
   let [_fence, _resume, _abort] = ao_fence_fn();

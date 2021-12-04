@@ -1,0 +1,44 @@
+import {ao_when} from 'roap'
+
+import @{}
+  assert, expect,
+  delay_race, delay,
+from './_utils.jsy'
+
+
+describe @ 'core ao_when', @::
+
+  it @ 'shape', @::
+    const res = ao_when()
+    expect(res).to.be.an('object')
+    expect(res.has).to.be.a('function')
+    expect(res.get).to.be.a('function')
+    expect(res.set).to.be.a('function')
+
+  it @ 'when map-like with deferred promises', @::>
+    const res = ao_when()
+    let p_get = res.get('some-key')
+    expect(p_get).to.be.a('promise')
+
+    let p_set = res.set('some-key', 'some-value')
+    expect(p_set).to.be.a('promise')
+
+    // expect same value
+    expect(p_set).to.equal(p_get)
+
+    expect(await p_get).to.equal('some-value')
+
+  it @ 'when defered multiple set', @::>
+    const res = ao_when()
+    let p_get = res.get('some-key')
+    let p_set = res.set('some-key', 'first-value')
+    expect(await p_get).to.equal('first-value')
+
+    res.set('some-key', 'another-value')
+
+    // expect first value
+    expect(await p_set).to.equal('first-value')
+
+    // expect first value
+    expect(await res.get('some-key')).to.equal('first-value')
+

@@ -36,6 +36,27 @@
     ao_defer_ctx((p,y,n) =>
       ({promise: p, resolve: y, reject: n}));
 
+
+  const ao_when = db =>
+    ao_when_map(ao_defer_v, db);
+
+  function ao_when_map(ao_fn_v, db=new Map()) {
+    let at = k => {
+      let e = db.get(k);
+      if (undefined === e) {
+        db.set(k, e=ao_fn_v());}
+      return e};
+
+    let define = (k, v) => {
+      let [r, fn] = at(k);
+      fn(v); // e.g. deferred resolve or fence resume()
+      return r};
+
+    return {
+      has: k => db.has(k)
+    , get: k => at(k)[0]
+    , set: define, define} }
+
   async function ao_run(gen_in) {
     for await (let v of gen_in) {} }
 
@@ -95,16 +116,19 @@
     _ag_copy(args[0], _ao_iter_fenced(...args));
 
   function ao_fence_v(proto) {
-    let reset = ao_defer_ctx(), x=reset(), p=0;
+    let x, p=0, reset=ao_defer_ctx();
 
     let fence  = () =>(0 !== p ? p : p=(x=reset())[0]);
     let resume = ans => {p=0; x[1](ans);};
     let abort  = err => {p=0; x[2](err || ao_done);};
 
+    fence(); // initialize x and p
     return proto
       ?{__proto__: proto, fence, resume, abort}
       :[fence, resume, abort] }
 
+  const ao_fence_when = db =>
+    ao_when_map(ao_fence_v, db);
 
   async function * ao_iter_fence(fence) {
     try {
@@ -535,6 +559,7 @@
   exports.ao_fence_out = ao_fence_out;
   exports.ao_fence_sink = ao_fence_sink;
   exports.ao_fence_v = ao_fence_v;
+  exports.ao_fence_when = ao_fence_when;
   exports.ao_fold = ao_fold;
   exports.ao_interval = ao_interval;
   exports.ao_iter = ao_iter;
@@ -549,6 +574,8 @@
   exports.ao_tap = ao_tap;
   exports.ao_timeout = ao_timeout;
   exports.ao_times = ao_times;
+  exports.ao_when = ao_when;
+  exports.ao_when_map = ao_when_map;
   exports.ao_xform = ao_xform;
   exports.aog_fence_xf = aog_fence_xf;
   exports.aog_gated = aog_gated;

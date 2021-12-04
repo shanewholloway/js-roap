@@ -1,0 +1,50 @@
+import {ao_fence_when} from 'roap'
+
+import @{}
+  assert, expect,
+  delay_race, delay,
+from './_utils.jsy'
+
+
+describe @ 'ao_fence_when', @::
+
+  it @ 'shape', @::
+    const res = ao_fence_when()
+    expect(res).to.be.an('object')
+    expect(res.has).to.be.a('function')
+    expect(res.get).to.be.a('function')
+    expect(res.set).to.be.a('function')
+    expect(res.define).to.be.a('function')
+
+  it @ 'when map-like with fences', @::>
+    const res = ao_fence_when()
+    let fn_get = res.get('some-key')
+    expect(fn_get).to.be.a('function')
+
+    let p_get = fn_get()
+    expect(p_get).to.be.a('promise')
+
+    let fn_set = res.set('some-key', 'some-value')
+    expect(fn_set).to.be.a('function')
+
+    // expect same value
+    expect(fn_set).to.equal(fn_get)
+
+    expect(await p_get).to.equal('some-value')
+
+
+  it @ 'when fence reset', @::>
+    const res = ao_fence_when()
+
+    let fn_get = res.get('some-key')
+
+    let p_get = fn_get()
+    res.set('some-key', 'first-value')
+    expect(await p_get).to.equal('first-value')
+
+    let p_get_2 = fn_get() // reset
+    res.set('some-key', 'another-value')
+
+    expect(await p_get).to.equal('first-value')
+    expect(await p_get_2).to.equal('another-value')
+

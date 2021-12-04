@@ -27,6 +27,9 @@ A defer is a `Promise` that exposes the closure `(resolve, reject)` parameters a
 - `ao_defer()` returns a deferred object `{promise, resolve(value) : void, reject(error) : void}`
 - `ao_defer_v()` returns a deferred list `[promise, resolve(value) : void, reject(error) : void]`
 
+- `ao_when(db=new Map())` creates a when-defined map using `ao_defer_v`
+- `ao_when_map(ao_fn_v, db=new Map())` creates a map-like object for deferred defintion registries.
+
 
 #### Misc Utilities
 

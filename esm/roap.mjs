@@ -30,6 +30,27 @@ const ao_defer = /* #__PURE__ */
   ao_defer_ctx((p,y,n) =>
     ({promise: p, resolve: y, reject: n}));
 
+
+const ao_when = db =>
+  ao_when_map(ao_defer_v, db);
+
+function ao_when_map(ao_fn_v, db=new Map()) {
+  let at = k => {
+    let e = db.get(k);
+    if (undefined === e) {
+      db.set(k, e=ao_fn_v());}
+    return e};
+
+  let define = (k, v) => {
+    let [r, fn] = at(k);
+    fn(v); // e.g. deferred resolve or fence resume()
+    return r};
+
+  return {
+    has: k => db.has(k)
+  , get: k => at(k)[0]
+  , set: define, define} }
+
 async function ao_run(gen_in) {
   for await (let v of gen_in) {} }
 
@@ -89,16 +110,19 @@ const ao_iter_fenced = (...args) =>
   _ag_copy(args[0], _ao_iter_fenced(...args));
 
 function ao_fence_v(proto) {
-  let reset = ao_defer_ctx(), x=reset(), p=0;
+  let x, p=0, reset=ao_defer_ctx();
 
   let fence  = () =>(0 !== p ? p : p=(x=reset())[0]);
   let resume = ans => {p=0; x[1](ans);};
   let abort  = err => {p=0; x[2](err || ao_done);};
 
+  fence(); // initialize x and p
   return proto
     ?{__proto__: proto, fence, resume, abort}
     :[fence, resume, abort] }
 
+const ao_fence_when = db =>
+  ao_when_map(ao_fence_v, db);
 
 async function * ao_iter_fence(fence) {
   try {
@@ -506,5 +530,5 @@ function _ao_with_dom_vec(_bind, fn, ectx_list) {
         ectx.listen(...args);}
       return this} } }
 
-export { _ag_copy, _ao_fence_core_api_, _ao_iter_fenced, _ao_run, _ao_tap, ao_check_done, ao_debounce, ao_defer, ao_defer_ctx, ao_defer_v, ao_dom_animation, ao_dom_listen, ao_done, ao_drive, ao_feeder, ao_feeder_v, ao_fence_fn, ao_fence_in, ao_fence_iter, ao_fence_obj, ao_fence_out, ao_fence_sink, ao_fence_v, ao_fold, ao_interval, ao_iter, ao_iter_fence, ao_iter_fenced, ao_push_stream, ao_queue, ao_run, ao_split, ao_step_iter, ao_stream_fence, ao_tap, ao_timeout, ao_times, ao_xform, aog_fence_xf, aog_gated, aog_iter, aog_sink, as_iter_proto, is_ao_fn, is_ao_iter, iter, step_iter };
+export { _ag_copy, _ao_fence_core_api_, _ao_iter_fenced, _ao_run, _ao_tap, ao_check_done, ao_debounce, ao_defer, ao_defer_ctx, ao_defer_v, ao_dom_animation, ao_dom_listen, ao_done, ao_drive, ao_feeder, ao_feeder_v, ao_fence_fn, ao_fence_in, ao_fence_iter, ao_fence_obj, ao_fence_out, ao_fence_sink, ao_fence_v, ao_fence_when, ao_fold, ao_interval, ao_iter, ao_iter_fence, ao_iter_fenced, ao_push_stream, ao_queue, ao_run, ao_split, ao_step_iter, ao_stream_fence, ao_tap, ao_timeout, ao_times, ao_when, ao_when_map, ao_xform, aog_fence_xf, aog_gated, aog_iter, aog_sink, as_iter_proto, is_ao_fn, is_ao_iter, iter, step_iter };
 //# sourceMappingURL=roap.mjs.map

@@ -10,6 +10,7 @@ import './unit/fence_fn.jsy'
 import './unit/fence_obj.jsy'
 
 import './unit/when_defer.jsy'
+import './unit/when_track.jsy'
 import './unit/when_fence.jsy'
 
 import './unit/fence_out.jsy'

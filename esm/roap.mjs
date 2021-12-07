@@ -19,21 +19,27 @@ const _ag_copy = ({g_in}, ag_out) =>(
   , ag_out) );
 
 function ao_when_map(ao_fn_v, db=new Map()) {
-  let at = k => {
-    let e = db.get(k);
-    if (undefined === e) {
-      db.set(k, e=ao_fn_v());}
-    return e};
-
-  let define = (k, v) => {
-    let [r, fn] = at(k);
-    fn(v); // e.g. deferred resolve or fence resume()
-    return r};
-
   return {
     has: k => db.has(k)
   , get: k => at(k)[0]
-  , set: define, define} }
+  , set: define, define
+  , delete(k) {
+      let r, e = db.get(k);
+      if (r = (undefined !== e)) {
+        db.delete(k);
+        e[1]();}
+      return r} }
+
+  function at(k, ) {
+    let e = db.get(k);
+    if (undefined === e) {
+      db.set(k, e=ao_fn_v());}
+    return e}
+
+  function define(k, v) {
+    let [r, fn] = at(k);
+    fn(v); // e.g. deferred resolve or fence resume()
+    return r} }
 
 function ao_defer_ctx(as_res = (...args) => args) {
   let y,n,_pset = (a,b) => { y=a, n=b; };

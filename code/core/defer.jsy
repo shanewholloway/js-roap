@@ -1,3 +1,4 @@
+import {ao_when_map} from './when.jsy'
 
 export function ao_defer_ctx(as_res = (...args) => args) ::
   let y,n,_pset = (a,b) => { y=a, n=b }
@@ -14,21 +15,3 @@ export const ao_defer = /* #__PURE__ */
 
 export const ao_when = db =>
   ao_when_map(ao_defer_v, db)
-
-export function ao_when_map(ao_fn_v, db=new Map()) ::
-  let at = k => ::
-    let e = db.get(k)
-    if undefined === e ::
-      db.set(k, e=ao_fn_v())
-    return e
-
-  let define = (k, v) => ::
-    let [r, fn] = at(k)
-    fn(v) // e.g. deferred resolve or fence resume()
-    return r
-
-  return @{}
-    has: k => db.has(k)
-    get: k => at(k)[0]
-    set: define, define
-

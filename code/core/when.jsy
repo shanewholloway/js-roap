@@ -1,0 +1,18 @@
+
+export function ao_when_map(ao_fn_v, db=new Map()) ::
+  let at = k => ::
+    let e = db.get(k)
+    if undefined === e ::
+      db.set(k, e=ao_fn_v())
+    return e
+
+  let define = (k, v) => ::
+    let [r, fn] = at(k)
+    fn(v) // e.g. deferred resolve or fence resume()
+    return r
+
+  return @{}
+    has: k => db.has(k)
+    get: k => at(k)[0]
+    set: define, define
+

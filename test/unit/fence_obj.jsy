@@ -8,7 +8,12 @@ import {
 
 describe @ 'ao_fence_obj', function() ::
   it @ 'shape', @::
-    is_fence_core @ ao_fence_obj()
+    let res = ao_fence_obj()
+    expect(res.fence).to.be.a('function')
+    expect(res.resume).to.be.a('function')
+    expect(res.abort).to.be.a('function')
+
+    is_fence_core @ res
 
   it @ 'basic use', @::>
     const res = ao_fence_obj()

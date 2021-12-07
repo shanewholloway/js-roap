@@ -23,7 +23,7 @@ describe @ 'ao_fence_v tuple', function() ::
 
   it @ 'only first after', @::>
     const [fence, resume] = ao_fence_v()
-    let f
+    let f, fz
 
     resume @ 'one'
     f = fence()
@@ -32,6 +32,9 @@ describe @ 'ao_fence_v tuple', function() ::
 
     assert.equal @ 'two', await f
 
+    fz = fence(0) // non-resetting
+    assert.equal @ 'two', await fz
+
     resume @ 'four'
     resume @ 'five'
     f = fence()
@@ -39,6 +42,8 @@ describe @ 'ao_fence_v tuple', function() ::
     resume @ 'seven'
 
     assert.equal @ 'six', await f
+    fz = fence(0) // non-resetting
+    assert.equal @ 'six', await fz
 
 
   it @ 'never blocked on fence', @::>

@@ -1,18 +1,24 @@
-import {ao_defer_ctx, ao_when_map} from './defer.jsy'
+import {ao_when_map} from './when.jsy'
+import {ao_defer_ctx} from './defer.jsy'
 import {ao_done, ao_check_done} from './util.jsy'
 
 
 export function ao_fence_v(proto) ::
-  let x, p=0, reset=ao_defer_ctx()
+  let x, p0, p=0, reset=ao_defer_ctx()
 
-  let fence  = () => @ 0 !== p ? p : p=(x=reset())[0]
-  let resume = ans => :: p=0; x[1](ans)
-  let abort  = err => :: p=0; x[2](err || ao_done)
+  let fence  = at => @ 0===at ? p0 : 0!==p ? p : p=(x=reset())[0]
+  let resume = ans => xz(x[1], ans)
+  let abort  = err => xz(x[2], err || ao_done)
 
-  fence() // initialize x and p
+  p0 = fence() // initialize x, p, and p0
   return proto
     ? @{} __proto__: proto, fence, resume, abort
     : @[] fence, resume, abort
+
+  function xz(xf, v) ::
+    if 0!==p ::
+      p0 = p; p = 0
+      xf(v)
 
 export const ao_fence_when = db =>
   ao_when_map(ao_fence_v, db)

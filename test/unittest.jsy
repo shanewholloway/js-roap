@@ -1,6 +1,5 @@
 import './unit/smoke.jsy'
 import './unit/core_defer.jsy'
-import './unit/core_when.jsy'
 
 import './unit/core_drive.jsy'
 import './unit/core_drive_iters.jsy'
@@ -9,7 +8,9 @@ import './unit/core_split.jsy'
 import './unit/fence_v.jsy'
 import './unit/fence_fn.jsy'
 import './unit/fence_obj.jsy'
-import './unit/fence_when.jsy'
+
+import './unit/when_defer.jsy'
+import './unit/when_fence.jsy'
 
 import './unit/fence_out.jsy'
 

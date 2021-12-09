@@ -6,7 +6,7 @@ import @{}
 from './_utils.jsy'
 
 
-describe @ 'ao_when and ao_track_when', @::
+describe @ 'ao_track_when', @::
 
   it @ 'shape', @::
     const res = ao_track_when()

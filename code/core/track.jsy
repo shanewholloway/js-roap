@@ -1,0 +1,30 @@
+import {ao_when_map} from './when.jsy'
+import {ao_defer_v} from './defer.jsy'
+import {ao_done} from './util.jsy'
+
+export function ao_track(proto, step) ::
+  let p, r = ao_track_v()
+  return @{} __proto__: proto,
+    tip: () => r[0]
+    resume: r[1]
+    abort: r[2]
+    fence: r[3]
+
+export function ao_track_v(reset_v = ()=>ao_defer_v()) ::
+  // like ao_defer_v() and resetable like ao_fence_v()
+  let p, r, x=reset_v()
+  let fence = tip => p=(!tip || p===x[0] || p===r[0] ? x[0] : r[0])
+  let resume = ans => xz(x[1], ans)
+  let abort  = err => xz(x[2], err || ao_done)
+  // match ao_defer_v() of [promise, resolve, reject]
+  return r = [ x[0], resume, abort, fence ]
+
+  function xz(xf, v) ::
+    // 1. update current / tip: r[0] = x[0]
+    // 2. re-prime fence: x = reset_v(r[0]]
+    x = reset_v(r[0] = x[0])
+    xf(v) // resume/abort r[0] current / tip
+
+export const ao_track_when = db =>
+  ao_when_map(ao_track_v, db)
+

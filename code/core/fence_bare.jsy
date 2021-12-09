@@ -1,5 +1,5 @@
 import {ao_check_done} from './util.jsy'
-import {ao_fence_v} from './fence.jsy'
+import {ao_fence_o} from './fence.jsy'
 import {aog_gated} from './fence_out.jsy'
 
 
@@ -8,7 +8,7 @@ export const ao_feeder_v = ({g_in}) => (...args) => g_in.next(args)
 
 
 export function aog_fence_xf(xinit, ...args) ::
-  let f_in = ao_fence_v({}), f_out = ao_fence_v({})
+  let f_in = ao_fence_o(), f_out = ao_fence_o()
   let g_in = xinit(f_in, f_out, ...args)
   g_in.next()
 

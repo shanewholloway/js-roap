@@ -1,24 +1,19 @@
 import {ao_when_map} from './when.jsy'
-import {ao_defer_ctx} from './defer.jsy'
+import {ao_defer_v} from './defer.jsy'
 import {ao_done, ao_check_done} from './util.jsy'
 
+export function ao_fence_o(proto) ::
+  let r = ao_fence_v()
+  return @{} __proto__: proto,
+    fence: r[0], resume: r[1], abort: r[2]
 
-export function ao_fence_v(proto) ::
-  let x, p0, p=0, reset=ao_defer_ctx()
+export function ao_fence_v() ::
+  let x, p=0
+  let fence  = () => ( 0!==p ? p : p=(x=ao_defer_v())[0] )
+  let resume = ans => { if (0!==p) { p=0; x[1](ans) }}
+  let abort  = err => { if (0!==p) { p=0; x[2](err || ao_done) }}
+  return @[] fence, resume, abort
 
-  let fence  = at => @ 0===at ? p0 : 0!==p ? p : p=(x=reset())[0]
-  let resume = ans => xz(x[1], ans)
-  let abort  = err => xz(x[2], err || ao_done)
-
-  p0 = fence() // initialize x, p, and p0
-  return proto
-    ? @{} __proto__: proto, fence, resume, abort
-    : @[] fence, resume, abort
-
-  function xz(xf, v) ::
-    if 0!==p ::
-      p0 = p; p = 0
-      xf(v)
 
 export const ao_fence_when = db =>
   ao_when_map(ao_fence_v, db)
@@ -55,7 +50,7 @@ export function ao_fence_fn(tgt) ::
 
 
 export const ao_fence_obj = /* #__PURE__ */
-  ao_fence_v.bind(null, _ao_fence_core_api_)
+  () => ao_fence_o(_ao_fence_core_api_)
 
 
 export function as_iter_proto(resume, abort, done = true) ::

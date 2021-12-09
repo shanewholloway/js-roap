@@ -1,5 +1,5 @@
 import {is_ao_fn, ao_done} from './util.jsy'
-import {ao_fence_v, _ao_fence_core_api_} from './fence.jsy'
+import {ao_fence_o, _ao_fence_core_api_} from './fence.jsy'
 import {ao_fence_out} from './fence_out.jsy'
 import {aog_iter, aog_sink} from './fence_bare.jsy'
 
@@ -7,7 +7,7 @@ export const ao_xform = ns_gen => ao_fence_in().ao_xform(ns_gen)
 export const ao_fold = ns_gen => ao_fence_in().ao_fold(ns_gen)
 export const ao_queue = ns_gen => ao_fence_in().ao_queue(ns_gen)
 
-export const ao_fence_in = /* #__PURE__ */ ao_fence_v.bind @ null, @{}
+export const ao_fence_in = /* #__PURE__ */ ao_fence_o.bind @ null, @{}
   __proto__: _ao_fence_core_api_
 
   ao_fold(ns_gen) :: return this.ao_xform @: xinit: aog_iter, ... ns_gen

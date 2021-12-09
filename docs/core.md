@@ -27,8 +27,16 @@ A defer is a `Promise` that exposes the closure `(resolve, reject)` parameters a
 - `ao_defer()` returns a deferred object `{promise, resolve(value) : void, reject(error) : void}`
 - `ao_defer_v()` returns a deferred list `[promise, resolve(value) : void, reject(error) : void]`
 
-- `ao_when(db=new Map())` creates a when-defined map using `ao_defer_v`
+- `ao_when()` and `ao_defer_when()` creates a when-defined map using `ao_defer_v`
 - `ao_when_map(ao_fn_v, db=new Map())` creates a map-like object for deferred defintion registries.
+
+
+#### Tracked Fenced Promises
+
+- `ao_track(proto)` returns a deferred and fenced object `{tip() : promise, resume(ans) : void, abort(error) : void, fence() : promise}`
+- `ao_track_v()` returns a mutable track list `[tip promise, resume(ans) : void, abort(error) : void, fence() : promise]`
+
+- `ao_track_when()` creates a when-defined map using `ao_track_v`
 
 
 #### Misc Utilities

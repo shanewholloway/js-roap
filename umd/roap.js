@@ -12,9 +12,9 @@
       && ! is_ao_iter(v_fn);
 
 
-  const ao_done$1 = Object.freeze({ao_done: true});
+  const ao_done = Object.freeze({ao_done: true});
   const ao_check_done = err => {
-    if (err !== ao_done$1 && err && !err.ao_done) {
+    if (err !== ao_done && err && !err.ao_done) {
       throw err}
     return true};
 
@@ -53,30 +53,14 @@
       p = new Promise(_pset)
     , as_res(p, y, n)) }
 
-  const ao_defer_v = /* #__PURE__ */ ao_defer_ctx();
+  const ao_defer_v = /* #__PURE__ */
+    ao_defer_ctx();
 
   const ao_defer = /* #__PURE__ */
     ao_defer_ctx((p,y,n) =>
       ({promise: p, resolve: y, reject: n}));
 
-
-  function ao_track_v(step, reset_v=ao_defer_v) {
-    let r, p, x=reset_v();
-    let resume = ans => xz(x[1], ans);
-    let abort  = err => xz(x[2], err || ao_done);
-    return r =[p=x[0], resume, abort]
-
-    function xz(xf, v) {
-      let p0 = r[0] = p;
-      p = (x = reset_v())[0];
-      xf(v);
-      if (step) {step(p0, p);} } }
-
-
-  const ao_track_when = db =>
-    ao_when_map(ao_track_v, db);
-
-  const ao_when = db =>
+  const ao_defer_when = db =>
     ao_when_map(ao_defer_v, db);
 
   async function ao_run(gen_in) {
@@ -137,22 +121,18 @@
   const ao_iter_fenced = (...args) =>
     _ag_copy(args[0], _ao_iter_fenced(...args));
 
-  function ao_fence_v(proto) {
-    let x, p0, p=0, reset=ao_defer_ctx();
+  function ao_fence_o(proto) {
+    let r = ao_fence_v();
+    return {__proto__: proto,
+      fence: r[0], resume: r[1], abort: r[2]} }
 
-    let fence  = at =>(0===at ? p0 : 0!==p ? p : p=(x=reset())[0]);
-    let resume = ans => xz(x[1], ans);
-    let abort  = err => xz(x[2], err || ao_done$1);
+  function ao_fence_v() {
+    let x, p=0;
+    let fence  = () => ( 0!==p ? p : p=(x=ao_defer_v())[0] );
+    let resume = ans => { if (0!==p) { p=0; x[1](ans); }};
+    let abort  = err => { if (0!==p) { p=0; x[2](err || ao_done); }};
+    return [fence, resume, abort] }
 
-    p0 = fence(); // initialize x, p, and p0
-    return proto
-      ?{__proto__: proto, fence, resume, abort}
-      :[fence, resume, abort]
-
-    function xz(xf, v) {
-      if (0!==p) {
-        p0 = p; p = 0;
-        xf(v);} } }
 
   const ao_fence_when = db =>
     ao_when_map(ao_fence_v, db);
@@ -188,14 +168,14 @@
     return f}
 
 
-  const ao_fence_obj = /* #__PURE__ */
-    ao_fence_v.bind(null, _ao_fence_core_api_);
+  const ao_fence_obj = 
+    () => ao_fence_o(_ao_fence_core_api_);
 
 
   function as_iter_proto(resume, abort, done = true) {
     return {
       next: v =>({value: resume(v), done})
-    , return: () =>({value: abort(ao_done$1), done})
+    , return: () =>({value: abort(ao_done), done})
     , throw: (err) =>({value: abort(err), done}) } }
 
   function ao_split(iterable) {
@@ -235,7 +215,33 @@
     finally {
       f_tap.abort();} }
 
-  const ao_fence_out = /* #__PURE__ */ ao_fence_v.bind(null,{
+  function ao_track(proto, step) {
+    let r = ao_track_v();
+    return {__proto__: proto,
+      tip: () => r[0]
+    , resume: r[1]
+    , abort: r[2]
+    , fence: r[3]} }
+
+  function ao_track_v(reset_v = ()=>ao_defer_v()) {
+    // like ao_defer_v() and resetable like ao_fence_v()
+    let p, r, x=reset_v();
+    let fence = tip => p=(!tip || p===x[0] || p===r[0] ? x[0] : r[0]);
+    let resume = ans => xz(x[1], ans);
+    let abort  = err => xz(x[2], err || ao_done);
+    // match ao_defer_v() of [promise, resolve, reject]
+    return r = [ x[0], resume, abort, fence ]
+
+    function xz(xf, v) {
+      // 1. update current / tip: r[0] = x[0]
+      // 2. re-prime fence: x = reset_v(r[0]]
+      x = reset_v(r[0] = x[0]);
+      xf(v); } }// resume/abort r[0] current / tip
+
+  const ao_track_when = db =>
+    ao_when_map(ao_track_v, db);
+
+  const ao_fence_out = /* #__PURE__ */ ao_fence_o.bind(null,{
     __proto__: _ao_fence_core_api_
 
   , [Symbol.asyncIterator]() {
@@ -298,7 +304,7 @@
 
 
   function aog_fence_xf(xinit, ...args) {
-    let f_in = ao_fence_v({}), f_out = ao_fence_v({});
+    let f_in = ao_fence_o(), f_out = ao_fence_o();
     let g_in = xinit(f_in, f_out, ...args);
     g_in.next();
 
@@ -353,7 +359,7 @@
   const ao_fold = ns_gen => ao_fence_in().ao_fold(ns_gen);
   const ao_queue = ns_gen => ao_fence_in().ao_queue(ns_gen);
 
-  const ao_fence_in = /* #__PURE__ */ ao_fence_v.bind(null,{
+  const ao_fence_in = /* #__PURE__ */ ao_fence_o.bind(null,{
     __proto__: _ao_fence_core_api_
 
   , ao_fold(ns_gen) {return this.ao_xform({xinit: aog_iter, ... ns_gen})}
@@ -386,7 +392,7 @@
 
   , // ES2015 generator api
     next(v) {return {value: this.resume(v), done: true}}
-  , return() {return {value: this.abort(ao_done$1), done: true}}
+  , return() {return {value: this.abort(ao_done), done: true}}
   , throw(err) {return {value: this.abort(err), done: true}} } );
 
 
@@ -573,15 +579,17 @@
   exports.ao_defer = ao_defer;
   exports.ao_defer_ctx = ao_defer_ctx;
   exports.ao_defer_v = ao_defer_v;
+  exports.ao_defer_when = ao_defer_when;
   exports.ao_dom_animation = ao_dom_animation;
   exports.ao_dom_listen = ao_dom_listen;
-  exports.ao_done = ao_done$1;
+  exports.ao_done = ao_done;
   exports.ao_drive = ao_drive;
   exports.ao_feeder = ao_feeder;
   exports.ao_feeder_v = ao_feeder_v;
   exports.ao_fence_fn = ao_fence_fn;
   exports.ao_fence_in = ao_fence_in;
   exports.ao_fence_iter = ao_fence_iter;
+  exports.ao_fence_o = ao_fence_o;
   exports.ao_fence_obj = ao_fence_obj;
   exports.ao_fence_out = ao_fence_out;
   exports.ao_fence_sink = ao_fence_sink;
@@ -601,9 +609,10 @@
   exports.ao_tap = ao_tap;
   exports.ao_timeout = ao_timeout;
   exports.ao_times = ao_times;
+  exports.ao_track = ao_track;
   exports.ao_track_v = ao_track_v;
   exports.ao_track_when = ao_track_when;
-  exports.ao_when = ao_when;
+  exports.ao_when = ao_defer_when;
   exports.ao_xform = ao_xform;
   exports.aog_fence_xf = aog_fence_xf;
   exports.aog_gated = aog_gated;

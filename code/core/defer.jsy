@@ -6,29 +6,14 @@ export function ao_defer_ctx(as_res = (...args) => args) ::
     p = new Promise(_pset)
     as_res(p, y, n)
 
-export const ao_defer_v = /* #__PURE__ */ ao_defer_ctx()
+export const ao_defer_v = /* #__PURE__ */
+  ao_defer_ctx()
 
 export const ao_defer = /* #__PURE__ */
-  ao_defer_ctx @ (p,y,n) =>
-    ({promise: p, resolve: y, reject: n})
+  ao_defer_ctx((p,y,n) =>
+    ({promise: p, resolve: y, reject: n}))
 
-
-export function ao_track_v(step, reset_v=ao_defer_v) ::
-  let r, p, x=reset_v()
-  let resume = ans => xz(x[1], ans)
-  let abort  = err => xz(x[2], err || ao_done)
-  return r = @[] p=x[0], resume, abort
-
-  function xz(xf, v) ::
-    let p0 = r[0] = p
-    p = (x = reset_v())[0]
-    xf(v)
-    if step :: step(p0, p)
-
-
-export const ao_track_when = db =>
-  ao_when_map(ao_track_v, db)
-
-export const ao_when = db =>
+export const ao_defer_when = db =>
   ao_when_map(ao_defer_v, db)
 
+export {ao_defer_when as ao_when}

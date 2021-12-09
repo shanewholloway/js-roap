@@ -1,4 +1,4 @@
-import {ao_when} from 'roap'
+import {ao_defer_when, ao_when} from 'roap'
 
 import @{}
   assert, expect,
@@ -6,9 +6,11 @@ import @{}
 from './_utils.jsy'
 
 
-describe @ 'core ao_when', @::
+describe @ 'core ao_when and ao_defer_when', @::
 
   it @ 'shape', @::
+    expect(ao_when).to.equal(ao_defer_when)
+
     const res = ao_when()
     expect(res).to.be.an('object')
     expect(res.has).to.be.a('function')

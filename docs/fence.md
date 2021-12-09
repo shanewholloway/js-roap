@@ -6,10 +6,10 @@ Calling `resume(value)` fulfills the existing deferred promise and ratchets `fen
 Calling `abort(err)` rejects the existing deferred promise and ratchets `fence` to return a new deferred promise.
 
 - `ao_fence_v()` is the minimal version, return a list of: `[fence(), reset(value), abort(err)]`.
-- `ao_fence_v(proto)` is the minimal object version, returning `{__proto__: proto, fence, reset, abort}`.
+- `ao_fence_o(proto)` is the minimal object version, returning `{__proto__: proto, fence, reset, abort}`.
 - `ao_fence_obj()` is the default object version of `{fence, reset, abort}` supporting the Fence API.
 
-- `ao_fence_when(db=new Map())` creates a when-defined map using `ao_fence_v`
+- `ao_fence_when()` creates a when-defined map using `ao_fence_v`
 
 - `ao_fence_fn(tgt)` returns a list of `[fence, reset, abort]` where `tgt` supports the Fence API.
   When `tgt` is absent, `tgt = fence` is used.

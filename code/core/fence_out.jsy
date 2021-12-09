@@ -1,9 +1,9 @@
 import {ao_check_done, _ag_copy} from './util.jsy'
-import {ao_fence_v, _ao_fence_core_api_} from './fence.jsy'
+import {ao_fence_o, _ao_fence_core_api_} from './fence.jsy'
 import {ao_run} from './drive.jsy'
 
 
-export const ao_fence_out = /* #__PURE__ */ ao_fence_v.bind @ null, @{}
+export const ao_fence_out = /* #__PURE__ */ ao_fence_o.bind @ null, @{}
   __proto__: _ao_fence_core_api_
 
   [Symbol.asyncIterator]() ::

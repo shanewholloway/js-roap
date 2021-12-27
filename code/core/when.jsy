@@ -1,24 +1,32 @@
 
-export function ao_when_map(ao_fn_v, db=new Map()) ::
+export function ao_when_map(ao_fn_v, db=new Map(), reject_deleted) ::
+  let idx_del = reject_deleted ? 2 : 1
   return @{}
     has: k => db.has(k)
-    get: k => at(k)[0]
+    get: k => at(k)[0] // promise of deferred
     set: define, define
     delete(k) ::
-      let r, e = db.get(k)
-      if r = (undefined !== e) ::
+      let b, e = db.get(k)
+      if b = (undefined !== e) ::
         db.delete(k)
-        e[1]()
-      return r
+        e[idx_del]() // e.g. resolve(undefined)
+      return b
+    clear() ::
+      // "delete" remaining on next promise tick
+      p = Promise.resolve()
+      for let e of db.values() ::
+        p.then(e[idx_del]) // e.g. resolve (undefined)
 
-  function at(k, ) ::
+      db.clear() // clear db
+
+  function at(k) ::
     let e = db.get(k)
     if undefined === e ::
       db.set(k, e=ao_fn_v())
     return e
 
   function define(k, v) ::
-    let [r, fn] = at(k)
-    fn(v) // e.g. deferred resolve or fence resume()
-    return r
+    let [p, fn_fulfill] = at(k)
+    fn_fulfill(v) // e.g. deferred's resolve(v) or fence's resume(v)
+    return p // promise of deferred
 

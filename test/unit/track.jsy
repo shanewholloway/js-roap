@@ -11,25 +11,72 @@ describe @ 'ao_track', @::
     it @ 'shape', @::
       const res = ao_track_v()
       expect(res).to.be.an('array')
-      expect(res).to.have.length(4)
+      expect(res).to.have.length(5)
       expect(res[0]).to.be.a('promise')
       expect(res[1]).to.be.a('function')
       expect(res[2]).to.be.a('function')
       expect(res[3]).to.be.a('function')
+      expect(res[4]).to.be.a('promise')
+
+      // future and current start out the same
+      expect(res[0]).to.equal(res[4])
+
+    it @ 'track fence()', @::>
+      const vt = ao_track_v()
+      const [ptip, resume, abort, fence] = vt
+
+      // until first resume, fence and tip are the same
+      let pf0 = fence()
+      expect(pf0).to.equal(ptip)
+      let pf1 = fence()
+      expect(pf1).to.equal(pf0)
+      expect(fence(true)).to.equal(pf1)
+
+      expect(vt[0]).to.equal(ptip)
+      expect(fence(false)).to.equal(vt[0])
+      resume(42) // rachet first resolved promise forward
+      expect(fence(false)).to.equal(vt[0])
+      expect(vt[0]).to.equal(ptip)
+
+      let pf2 = fence()
+      expect(pf2).to.not.equal(pf1)
+      let pf3 = fence()
+      expect(pf3).to.equal(pf2)
+
+      expect(vt[0]).to.equal(ptip)
+      expect(fence(true)).to.equal(pf3)
+      expect(fence(false)).to.equal(vt[0])
+      resume(1942) // rachet first resolved promise forward
+      expect(fence(false)).to.equal(vt[0])
+      expect(vt[0]).to.not.equal(ptip)
+      expect(vt[0]).to.equal(pf3)
+      expect(fence(true)).to.not.equal(pf3)
+
+      let pf4 = fence()
+      expect(pf4).to.not.equal(vt[0])
+      expect(pf4).to.not.equal(pf3)
+
+      expect(fence(true)).to.equal(pf4)
+      expect(fence(false)).to.equal(vt[0])
+      
+      expect(await ptip).to.equal(42)
+      expect(await pf0).to.equal(42)
+      expect(await pf1).to.equal(42)
+      expect(await pf2).to.equal(1942)
+      expect(await pf3).to.equal(1942)
+
 
     it @ 'use, resume with fence()', @::>
       const [ptip, resume, abort, fence] = ao_track_v()
       resume(42) // create difference for tip and fence
 
-      let pf0 = fence()
-      let pf1 = fence()
-
-      expect(ptip).to.be.a('promise')
+      let pf0 = fence() // first use of fence, should be same as ptip
       expect(pf0).to.be.a('promise')
-      expect(pf1).to.be.a('promise')
-
       expect(pf0).to.not.equal(ptip)
-      expect(pf0).to.equal(pf1)
+
+      let pf1 = fence() // second use of fence, should be different from ptip
+      expect(pf1).to.be.a('promise')
+      expect(pf1).to.equal(pf0)
 
       resume(1942) // create difference for tip and fence
 
@@ -37,94 +84,45 @@ describe @ 'ao_track', @::
       expect(await pf0).to.equal(1942)
       expect(await pf1).to.equal(1942)
 
-    it @ 'use, resume with fence(true)', @::>
-      const [ptip, resume, abort, fence] = ao_track_v()
-      resume(42) // create difference for tip and fence
-
-      let pf0 = fence(true)
-      let pf1 = fence(true)
-
-      expect(ptip).to.be.a('promise')
-      expect(pf0).to.be.a('promise')
-      expect(pf1).to.be.a('promise')
-
-      expect(pf0).to.equal(ptip)
-      expect(pf0).to.not.equal(pf1)
-
-      resume(1942) // create difference for tip and fence
-
-      expect(await ptip).to.equal(42)
-      expect(await pf0).to.equal(42)
-      expect(await pf1).to.equal(1942)
-
-
     it @ 'use, abort with fence()', @::>
       const [ptip, resume, abort, fence] = ao_track_v()
+      expect(fence(false)).to.equal(ptip)
+
       abort(new Error('nope')) // create difference for tip and fence
+      expect(fence(false)).to.equal(ptip)
 
       let pf0 = fence()
+      expect(pf0).to.be.a('promise')
+      expect(fence(false)).to.equal(ptip)
+      expect(fence(true)).to.equal(pf0)
+
       let pf1 = fence()
-
-      expect(ptip).to.be.a('promise')
-      expect(pf0).to.be.a('promise')
       expect(pf1).to.be.a('promise')
-
-      expect(pf0).to.not.equal(ptip)
-      expect(pf0).to.equal(pf1)
+      expect(pf1).to.equal(pf0)
+      expect(fence(false)).to.equal(ptip)
+      expect(fence(true)).to.equal(pf1)
 
       abort(new Error('not, again')) // create difference for tip and fence
+      expect(fence(false)).to.equal(pf1)
+      expect(fence(true)).to.not.equal(pf0)
 
       try ::
         await ptip
         assert.fail()
       catch err ::
-        assert.equal @ 'nope', err.message
+        assert.equal @ 'nope', err.message // await ptip
 
       try ::
         await pf0
         assert.fail()
       catch err ::
-        assert.equal @ 'not, again', err.message
+        assert.equal @ 'not, again', err.message // await pf0
 
       try ::
         await pf1
         assert.fail()
       catch err ::
-        assert.equal @ 'not, again', err.message
-
-    it @ 'use, abort with fence(true)', @::>
-      const [ptip, resume, abort, fence] = ao_track_v()
-      abort(new Error('nope')) // create difference for tip and fence
-
-      let pf0 = fence(true)
-      let pf1 = fence(true)
-
-      expect(ptip).to.be.a('promise')
-      expect(pf0).to.be.a('promise')
-      expect(pf1).to.be.a('promise')
-
-      expect(pf0).to.equal(ptip)
-      expect(pf0).to.not.equal(pf1)
-
-      abort(new Error('not, again')) // create difference for tip and fence
-
-      try ::
-        await ptip
-        assert.fail()
-      catch err ::
-        assert.equal @ 'nope', err.message
-
-      try ::
-        await pf0
-        assert.fail()
-      catch err ::
-        assert.equal @ 'nope', err.message
-
-      try ::
-        await pf1
-        assert.fail()
-      catch err ::
-        assert.equal @ 'not, again', err.message
+        assert.equal @ 'not, again', err.message // await pf1
 
 
   describe @ 'ao_track object', @::
@@ -135,21 +133,24 @@ describe @ 'ao_track', @::
       expect(res.resume).to.be.a('function')
       expect(res.abort).to.be.a('function')
       expect(res.fence).to.be.a('function')
+      expect(res.ftr).to.be.a('function')
+
+      expect(res.tip()).to.be.a('promise')
+      expect(res.ftr()).to.be.a('promise')
+      // future and current start out the same
+      expect(res.tip()).to.equal(res.ftr())
 
     it @ 'use, resume with fence()', @::>
-      const res = ao_track()
+      const res = ao_track(), ptip = res.tip()
       res.resume(42) // create difference for tip and fence
 
-      let ptip = res.tip()
-      let pf0 = res.fence()
-      let pf1 = res.fence()
-
-      expect(ptip).to.be.a('promise')
+      let pf0 = res.fence() // first use of fence, should be same as ptip
       expect(pf0).to.be.a('promise')
-      expect(pf1).to.be.a('promise')
-
       expect(pf0).to.not.equal(ptip)
-      expect(pf0).to.equal(pf1)
+
+      let pf1 = res.fence() // second use of fence, should be different from ptip
+      expect(pf1).to.be.a('promise')
+      expect(pf1).to.equal(pf0)
 
       res.resume(1942) // create difference for tip and fence
 
@@ -157,95 +158,42 @@ describe @ 'ao_track', @::
       expect(await pf0).to.equal(1942)
       expect(await pf1).to.equal(1942)
 
-    it @ 'use, resume with fence(true)', @::>
-      const res = ao_track()
-      res.resume(42) // create difference for tip and fence
-
-      let ptip = res.tip()
-      let pf0 = res.fence(true)
-      let pf1 = res.fence(true)
-
-      expect(ptip).to.be.a('promise')
-      expect(pf0).to.be.a('promise')
-      expect(pf1).to.be.a('promise')
-
-      expect(pf0).to.equal(ptip)
-      expect(pf0).to.not.equal(pf1)
-
-      res.resume(1942) // create difference for tip and fence
-
-      expect(await ptip).to.equal(42)
-      expect(await pf0).to.equal(42)
-      expect(await pf1).to.equal(1942)
-
-
     it @ 'use, abort with fence()', @::>
-      const res = ao_track()
-      res.abort(new Error('nope')) // create difference for tip and fence
+      const res = ao_track(), ptip = res.tip()
+      expect(res.fence(false)).to.equal(ptip)
 
-      let ptip = res.tip()
+      res.abort(new Error('nope')) // create difference for tip and fence
+      expect(res.fence(false)).to.equal(ptip)
+
       let pf0 = res.fence()
+      expect(pf0).to.be.a('promise')
+      expect(res.fence(false)).to.equal(ptip)
+      expect(res.fence(true)).to.equal(pf0)
+
       let pf1 = res.fence()
-
-      expect(ptip).to.be.a('promise')
-      expect(pf0).to.be.a('promise')
       expect(pf1).to.be.a('promise')
-
-      expect(pf0).to.not.equal(ptip)
-      expect(pf0).to.equal(pf1)
+      expect(pf1).to.equal(pf0)
+      expect(res.fence(false)).to.equal(ptip)
+      expect(res.fence(true)).to.equal(pf1)
 
       res.abort(new Error('not, again')) // create difference for tip and fence
+      expect(res.fence(false)).to.equal(pf1)
+      expect(res.fence(true)).to.not.equal(pf0)
 
       try ::
         await ptip
         assert.fail()
       catch err ::
-        assert.equal @ 'nope', err.message
+        assert.equal @ 'nope', err.message // await ptip
 
       try ::
         await pf0
         assert.fail()
       catch err ::
-        assert.equal @ 'not, again', err.message
+        assert.equal @ 'not, again', err.message // await pf0
 
       try ::
         await pf1
         assert.fail()
       catch err ::
-        assert.equal @ 'not, again', err.message
-
-    it @ 'use, abort with fence(true)', @::>
-      const res = ao_track()
-      res.abort(new Error('nope')) // create difference for tip and fence
-
-      let ptip = res.tip()
-      let pf0 = res.fence(true)
-      let pf1 = res.fence(true)
-
-      expect(ptip).to.be.a('promise')
-      expect(pf0).to.be.a('promise')
-      expect(pf1).to.be.a('promise')
-
-      expect(pf0).to.equal(ptip)
-      expect(pf0).to.not.equal(pf1)
-
-      res.abort(new Error('not, again')) // create difference for tip and fence
-
-      try ::
-        await ptip
-        assert.fail()
-      catch err ::
-        assert.equal @ 'nope', err.message
-
-      try ::
-        await pf0
-        assert.fail()
-      catch err ::
-        assert.equal @ 'nope', err.message
-
-      try ::
-        await pf1
-        assert.fail()
-      catch err ::
-        assert.equal @ 'not, again', err.message
-
+        assert.equal @ 'not, again', err.message // await pf1

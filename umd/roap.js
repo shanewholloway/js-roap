@@ -24,28 +24,36 @@
       ag_out.g_in = g_in
     , ag_out) );
 
-  function ao_when_map(ao_fn_v, db=new Map()) {
+  function ao_when_map(ao_fn_v, db=new Map(), reject_deleted) {
+    let idx_del = reject_deleted ? 2 : 1;
     return {
       has: k => db.has(k)
-    , get: k => at(k)[0]
+    , get: k => at(k)[0] // promise of deferred
     , set: define, define
     , delete(k) {
-        let r, e = db.get(k);
-        if (r = (undefined !== e)) {
+        let b, e = db.get(k);
+        if (b = (undefined !== e)) {
           db.delete(k);
-          e[1]();}
-        return r} }
+          e[idx_del](); }// e.g. resolve(undefined)
+        return b}
+    , clear() {
+        // "delete" remaining on next promise tick
+        p = Promise.resolve();
+        for (let e of db.values()) {
+          p.then(e[idx_del]); }// e.g. resolve (undefined)
 
-    function at(k, ) {
+        db.clear(); } }// clear db
+
+    function at(k) {
       let e = db.get(k);
       if (undefined === e) {
         db.set(k, e=ao_fn_v());}
       return e}
 
     function define(k, v) {
-      let [r, fn] = at(k);
-      fn(v); // e.g. deferred resolve or fence resume()
-      return r} }
+      let [p, fn_fulfill] = at(k);
+      fn_fulfill(v); // e.g. deferred's resolve(v) or fence's resume(v)
+      return p } }// promise of deferred
 
   function ao_defer_ctx(as_res = (...args) => args) {
     let y,n,_pset = (a,b) => { y=a, n=b; };
@@ -215,27 +223,40 @@
     finally {
       f_tap.abort();} }
 
-  function ao_track(proto, step) {
-    let r = ao_track_v();
+  function ao_track(proto, reset_v) {
+    let r = ao_track_v(reset_v);
     return {__proto__: proto,
-      tip: () => r[0]
+      tip: () => r[0] // or fence(false)
     , resume: r[1]
     , abort: r[2]
-    , fence: r[3]} }
+    , fence: r[3]
+    , ftr: () => r[4] } }// or fence(true)
 
   function ao_track_v(reset_v = ()=>ao_defer_v()) {
     // like ao_defer_v() and resetable like ao_fence_v()
-    let p, r, x=reset_v();
-    let fence = tip => p=(!tip || p===x[0] || p===r[0] ? x[0] : r[0]);
+    let r; // r is the current / tracked value defined below
+    let x=reset_v(); // x is the future/deferred
+
+    let p; // p is the rachet memory for the fence() closure
+    // similar to fence.fence() while also tracking the last completed deferred
+    let fence = ftr =>(
+      false===ftr ? r[0] : true===ftr ? x[0] : // non-racheting queries
+      p===x[0] || p===r[0] ? p=x[0] : p=r[0] );// racheting query
+
+    // like fence.resume, resolves the future/deferred x[0]; then resets x future/deferred
     let resume = ans => xz(x[1], ans);
+
+    // like fence.abort, rejects the future/deferred x[0]; then resets x future/deferred
     let abort  = err => xz(x[2], err || ao_done);
-    // match ao_defer_v() of [promise, resolve, reject]
-    return r = [ x[0], resume, abort, fence ]
+
+    // match ao_defer_v() of [current promise, resolve, reject] with additional [fence, ftr promise]
+    return r = [ p=x[0], resume, abort, fence, x[0] ]
 
     function xz(xf, v) {
-      // 1. update current / tip: r[0] = x[0]
+      // 1. update current / tip slot: r[0] = x[0]
       // 2. re-prime fence: x = reset_v(r[0]]
       x = reset_v(r[0] = x[0]);
+      r[4] = x[0]; // update public ftr slot
       xf(v); } }// resume/abort r[0] current / tip
 
   const ao_track_when = db =>

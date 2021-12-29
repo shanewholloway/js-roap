@@ -88,10 +88,10 @@ describe @ 'time', @::
       let p = g.next()
       expect(p).to.be.a('promise')
 
-      let {value: ts1} = await p
+      let {value: [ts1]} = await p
       assert(ts1 >= 0)
 
-      let {value: ts2} = await g.next()
+      let {value: [ts2]} = await g.next()
       assert(ts2 >= ts1)
 
     finally ::

@@ -32,6 +32,7 @@ export function ao_debounce(ms=300, ao_iterable) ::
         clearTimeout(tid)
         p = _fence()
         tid = setTimeout(_resume, ms, v)
+        if tid.unref :: tid.unref()
 
       await p
     catch err ::
@@ -43,5 +44,5 @@ export function ao_debounce(ms=300, ao_iterable) ::
 export async function * ao_times(ao_iterable) ::
   let ts0 = Date.now()
   for await let v of ao_iterable ::
-    yield Date.now() - ts0
+    yield [Date.now() - ts0, v]
 

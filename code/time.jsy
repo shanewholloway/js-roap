@@ -13,11 +13,14 @@ export function ao_interval(ms=1000) ::
 
 
 export function ao_timeout(ms=1000) ::
-  let tid, [_fence, _resume] = ao_fence_fn(timeout)
+  let tid, [_fence, _resume, _abort] = ao_fence_fn(timeout)
+  timeout.stop = @::
+    tid = clearTimeout(tid)
+    _abort()
   return timeout
 
-  function timeout() ::
-    tid = setTimeout(_resume, ms, 1)
+  function timeout(ms_next=ms) ::
+    tid = setTimeout(_resume, ms_next, 1)
     if tid.unref :: tid.unref()
     return _fence()
 

@@ -49,8 +49,8 @@ export function ao_fence_fn(tgt) ::
   return f
 
 
-export const ao_fence_obj = /* #__PURE__ */
-  () => ao_fence_o(_ao_fence_core_api_)
+export const ao_fence_obj = () =>
+  ao_fence_o(_ao_fence_core_api_)
 
 
 export function as_iter_proto(resume, abort, done = true) ::

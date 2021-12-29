@@ -1,6 +1,8 @@
 import {ao_when_map} from './when.jsy'
 import {ao_defer_v} from './defer.jsy'
 import {ao_done} from './util.jsy'
+import {_ao_fence_core_api_} from './fence.jsy'
+
 
 export function ao_track(proto, reset_v) ::
   let r = ao_track_v(reset_v)
@@ -38,6 +40,16 @@ export function ao_track_v(reset_v = ()=>ao_defer_v()) ::
     r[4] = x[0] // update public ftr slot
     xf(v) // resume/abort r[0] current / tip
 
+
 export const ao_track_when = db =>
   ao_when_map(ao_track_v, db)
+
+export function ao_track_fn(tgt, reset_v) ::
+  let r = ao_track_v(reset_v)
+  if undefined === tgt :: tgt = r[3]
+  tgt.fence = Object.assign(tgt, _ao_fence_core_api_)
+  return r
+
+export const ao_track_obj = () =>
+  ao_track(_ao_fence_core_api_)
 

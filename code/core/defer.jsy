@@ -1,8 +1,10 @@
 import {ao_when_map} from './when.jsy'
 
 export function ao_defer_ctx(as_res = (...args) => args) ::
+  // avoid garbage collecting _pset by using a closure over local variables
   let y,n,_pset = (a,b) => { y=a, n=b }
   return p => @
+    // create the promise and immediately capture locally set closure variables from _pset optimization
     p = new Promise(_pset)
     as_res(p, y, n)
 

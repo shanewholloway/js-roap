@@ -24,7 +24,7 @@ To drive an async generator, `ao_drive(gen_in, gen_out, xform)` uses an async it
 
 A defer is a `Promise` that exposes the closure `(resolve, reject)` parameters as list elements or object attributes.
 
-- `ao_defer()` returns a deferred object `{promise, resolve(value) : void, reject(error) : void}`
+- `ao_defer_o()` returns a deferred object `{promise, resolve(value) : void, reject(error) : void}`
 - `ao_defer_v()` returns a deferred list `[promise, resolve(value) : void, reject(error) : void]`
 
 - `ao_when()` and `ao_defer_when()` creates a when-defined map using `ao_defer_v`

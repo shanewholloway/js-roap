@@ -58,7 +58,7 @@ function ao_defer_ctx(as_res = (...args) => args) {
 const ao_defer_v = /* #__PURE__ */
   ao_defer_ctx();
 
-const ao_defer = /* #__PURE__ */
+const ao_defer_o = /* #__PURE__ */
   ao_defer_ctx((p,y,n) =>
     ({promise: p, resolve: y, reject: n}));
 
@@ -170,8 +170,8 @@ function ao_fence_fn(tgt) {
   return f}
 
 
-const ao_fence_obj = 
-  () => ao_fence_o(_ao_fence_core_api_);
+const ao_fence_obj = () =>
+  ao_fence_o(_ao_fence_core_api_);
 
 
 function as_iter_proto(resume, abort, done = true) {
@@ -253,8 +253,18 @@ function ao_track_v(reset_v = ()=>ao_defer_v()) {
     r[4] = x[0]; // update public ftr slot
     xf(v); } }// resume/abort r[0] current / tip
 
+
 const ao_track_when = db =>
   ao_when_map(ao_track_v, db);
+
+function ao_track_fn(tgt, reset_v) {
+  let r = ao_track_v(reset_v);
+  if (undefined === tgt) {tgt = r[3];}
+  tgt.fence = Object.assign(tgt, _ao_fence_core_api_);
+  return r}
+
+const ao_track_obj = () =>
+  ao_track(_ao_fence_core_api_);
 
 const ao_fence_out = /* #__PURE__ */ ao_fence_o.bind(null,{
   __proto__: _ao_fence_core_api_
@@ -483,11 +493,14 @@ function ao_interval(ms=1000) {
 
 
 function ao_timeout(ms=1000) {
-  let tid, [_fence, _resume] = ao_fence_fn(timeout);
+  let tid, [_fence, _resume, _abort] = ao_fence_fn(timeout);
+  timeout.stop = (() => {
+    tid = clearTimeout(tid);
+    _abort();});
   return timeout
 
-  function timeout() {
-    tid = setTimeout(_resume, ms, 1);
+  function timeout(ms_next=ms) {
+    tid = setTimeout(_resume, ms_next, 1);
     if (tid.unref) {tid.unref();}
     return _fence()} }
 
@@ -501,7 +514,8 @@ function ao_debounce(ms=300, ao_iterable) {
       for await (let v of ao_iterable) {
         clearTimeout(tid);
         p = _fence();
-        tid = setTimeout(_resume, ms, v);}
+        tid = setTimeout(_resume, ms, v);
+        if (tid.unref) {tid.unref();} }
 
       await p;}
     catch (err) {
@@ -513,7 +527,7 @@ function ao_debounce(ms=300, ao_iterable) {
 async function * ao_times(ao_iterable) {
   let ts0 = Date.now();
   for await (let v of ao_iterable) {
-    yield Date.now() - ts0;} }
+    yield [Date.now() - ts0, v];} }
 
 function ao_dom_animation() {
   let tid, [_fence, _resume] = ao_fence_fn(raf);
@@ -584,5 +598,5 @@ function _ao_with_dom_vec(_bind, fn, ectx_list) {
         ectx.listen(...args);}
       return this} } }
 
-export { _ag_copy, _ao_fence_core_api_, _ao_iter_fenced, _ao_run, _ao_tap, ao_check_done, ao_debounce, ao_defer, ao_defer_ctx, ao_defer_v, ao_defer_when, ao_dom_animation, ao_dom_listen, ao_done, ao_drive, ao_feeder, ao_feeder_v, ao_fence_fn, ao_fence_in, ao_fence_iter, ao_fence_o, ao_fence_obj, ao_fence_out, ao_fence_sink, ao_fence_v, ao_fence_when, ao_fold, ao_interval, ao_iter, ao_iter_fence, ao_iter_fenced, ao_push_stream, ao_queue, ao_run, ao_split, ao_step_iter, ao_stream_fence, ao_tap, ao_timeout, ao_times, ao_track, ao_track_v, ao_track_when, ao_defer_when as ao_when, ao_xform, aog_fence_xf, aog_gated, aog_iter, aog_sink, as_iter_proto, is_ao_fn, is_ao_iter, iter, step_iter };
+export { _ag_copy, _ao_fence_core_api_, _ao_iter_fenced, _ao_run, _ao_tap, ao_check_done, ao_debounce, ao_defer_ctx, ao_defer_o, ao_defer_v, ao_defer_when, ao_dom_animation, ao_dom_listen, ao_done, ao_drive, ao_feeder, ao_feeder_v, ao_fence_fn, ao_fence_in, ao_fence_iter, ao_fence_o, ao_fence_obj, ao_fence_out, ao_fence_sink, ao_fence_v, ao_fence_when, ao_fold, ao_interval, ao_iter, ao_iter_fence, ao_iter_fenced, ao_push_stream, ao_queue, ao_run, ao_split, ao_step_iter, ao_stream_fence, ao_tap, ao_timeout, ao_times, ao_track, ao_track_fn, ao_track_obj, ao_track_v, ao_track_when, ao_defer_when as ao_when, ao_xform, aog_fence_xf, aog_gated, aog_iter, aog_sink, as_iter_proto, is_ao_fn, is_ao_iter, iter, step_iter };
 //# sourceMappingURL=roap.mjs.map

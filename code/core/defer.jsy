@@ -9,7 +9,7 @@ export function ao_defer_ctx(as_res = (...args) => args) ::
 export const ao_defer_v = /* #__PURE__ */
   ao_defer_ctx()
 
-export const ao_defer = /* #__PURE__ */
+export const ao_defer_o = /* #__PURE__ */
   ao_defer_ctx((p,y,n) =>
     ({promise: p, resolve: y, reject: n}))
 

@@ -64,7 +64,7 @@
   const ao_defer_v = /* #__PURE__ */
     ao_defer_ctx();
 
-  const ao_defer = /* #__PURE__ */
+  const ao_defer_o = /* #__PURE__ */
     ao_defer_ctx((p,y,n) =>
       ({promise: p, resolve: y, reject: n}));
 
@@ -176,8 +176,8 @@
     return f}
 
 
-  const ao_fence_obj = 
-    () => ao_fence_o(_ao_fence_core_api_);
+  const ao_fence_obj = () =>
+    ao_fence_o(_ao_fence_core_api_);
 
 
   function as_iter_proto(resume, abort, done = true) {
@@ -259,8 +259,18 @@
       r[4] = x[0]; // update public ftr slot
       xf(v); } }// resume/abort r[0] current / tip
 
+
   const ao_track_when = db =>
     ao_when_map(ao_track_v, db);
+
+  function ao_track_fn(tgt, reset_v) {
+    let r = ao_track_v(reset_v);
+    if (undefined === tgt) {tgt = r[3];}
+    tgt.fence = Object.assign(tgt, _ao_fence_core_api_);
+    return r}
+
+  const ao_track_obj = () =>
+    ao_track(_ao_fence_core_api_);
 
   const ao_fence_out = /* #__PURE__ */ ao_fence_o.bind(null,{
     __proto__: _ao_fence_core_api_
@@ -489,11 +499,14 @@
 
 
   function ao_timeout(ms=1000) {
-    let tid, [_fence, _resume] = ao_fence_fn(timeout);
+    let tid, [_fence, _resume, _abort] = ao_fence_fn(timeout);
+    timeout.stop = (() => {
+      tid = clearTimeout(tid);
+      _abort();});
     return timeout
 
-    function timeout() {
-      tid = setTimeout(_resume, ms, 1);
+    function timeout(ms_next=ms) {
+      tid = setTimeout(_resume, ms_next, 1);
       if (tid.unref) {tid.unref();}
       return _fence()} }
 
@@ -507,7 +520,8 @@
         for await (let v of ao_iterable) {
           clearTimeout(tid);
           p = _fence();
-          tid = setTimeout(_resume, ms, v);}
+          tid = setTimeout(_resume, ms, v);
+          if (tid.unref) {tid.unref();} }
 
         await p;}
       catch (err) {
@@ -519,7 +533,7 @@
   async function * ao_times(ao_iterable) {
     let ts0 = Date.now();
     for await (let v of ao_iterable) {
-      yield Date.now() - ts0;} }
+      yield [Date.now() - ts0, v];} }
 
   function ao_dom_animation() {
     let tid, [_fence, _resume] = ao_fence_fn(raf);
@@ -597,8 +611,8 @@
   exports._ao_tap = _ao_tap;
   exports.ao_check_done = ao_check_done;
   exports.ao_debounce = ao_debounce;
-  exports.ao_defer = ao_defer;
   exports.ao_defer_ctx = ao_defer_ctx;
+  exports.ao_defer_o = ao_defer_o;
   exports.ao_defer_v = ao_defer_v;
   exports.ao_defer_when = ao_defer_when;
   exports.ao_dom_animation = ao_dom_animation;
@@ -631,6 +645,8 @@
   exports.ao_timeout = ao_timeout;
   exports.ao_times = ao_times;
   exports.ao_track = ao_track;
+  exports.ao_track_fn = ao_track_fn;
+  exports.ao_track_obj = ao_track_obj;
   exports.ao_track_v = ao_track_v;
   exports.ao_track_when = ao_track_when;
   exports.ao_when = ao_defer_when;

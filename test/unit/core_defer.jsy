@@ -1,11 +1,11 @@
-import {ao_defer, ao_defer_v} from 'roap'
+import {ao_defer_o, ao_defer_v} from 'roap'
 import @{}
   assert, expect,
   delay_race, delay,
 from './_utils.jsy'
 
 
-describe @ 'core ao_defer', @::
+describe @ 'core ao_defer_o', @::
 
   describe @ 'ao_defer_v tuple', @::
     it @ 'shape', @::
@@ -38,16 +38,16 @@ describe @ 'core ao_defer', @::
 
 
 
-  describe @ 'ao_defer object', @::
+  describe @ 'ao_defer_o object', @::
     it @ 'shape', @::
-      const res = ao_defer()
+      const res = ao_defer_o()
       expect(res).to.be.an('object')
       expect(res.promise).to.be.a('promise')
       expect(res.resolve).to.be.a('function')
       expect(res.reject).to.be.a('function')
 
     it @ 'use, resolve', @::>
-      const res = ao_defer()
+      const res = ao_defer_o()
       let p = res.promise
 
       assert.equal @ 'timeout', await delay_race(p,1)
@@ -56,7 +56,7 @@ describe @ 'core ao_defer', @::
       assert.equal @ 'yup', await delay_race(p,1)
 
     it @ 'use, reject', @::>
-      const res = ao_defer()
+      const res = ao_defer_o()
       let p = res.promise
 
       assert.equal @ 'timeout', await delay_race(p,1)

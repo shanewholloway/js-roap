@@ -1,6 +1,6 @@
 import rpi_jsy from 'rollup-plugin-jsy'
 import rpi_dgnotify from 'rollup-plugin-dgnotify'
-import { terser as rpi_terser } from 'rollup-plugin-terser'
+import rpi_terser from '@rollup/plugin-terser'
 
 const plugins = [ rpi_jsy(), rpi_dgnotify() ]
 const plugins_web = [ ... plugins, rpi_terser({}) ]

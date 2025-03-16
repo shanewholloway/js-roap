@@ -32,7 +32,7 @@ export async function * ao_iter_fence(fence) ::
 
 
 
-export const _ao_fence_core_api_ = /* #__PURE__ */ @{}
+export const _ao_fence_core_api_ = @{}
   ao_check_done
 
   // copyable fence fork api

@@ -19,7 +19,7 @@ const _ag_copy = ({g_in}, ag_out) =>(
   , ag_out) );
 
 function ao_when_map(ao_fn_v, db=new Map(), reject_deleted) {
-  let idx_del = reject_deleted ? 2 : 1;
+  let idx_del = 1;
   return {
     has: k => db.has(k)
   , get: k => at(k)[0] // promise of deferred
@@ -50,16 +50,16 @@ function ao_when_map(ao_fn_v, db=new Map(), reject_deleted) {
     return p } }// promise of deferred
 
 function ao_defer_ctx(as_res = (...args) => args) {
+  // avoid garbage collecting _pset by using a closure over local variables
   let y,n,_pset = (a,b) => { y=a, n=b; };
   return p =>(
+    // create the promise and immediately capture locally set closure variables from _pset optimization
     p = new Promise(_pset)
   , as_res(p, y, n)) }
 
-const ao_defer_v = /* #__PURE__ */
-  ao_defer_ctx();
+const ao_defer_v = ao_defer_ctx();
 
-const ao_defer_o = /* #__PURE__ */
-  ao_defer_ctx((p,y,n) =>
+const ao_defer_o = ao_defer_ctx((p,y,n) =>
     ({promise: p, resolve: y, reject: n}));
 
 const ao_defer_when = db =>
@@ -129,9 +129,12 @@ function ao_fence_o(proto) {
     fence: r[0], resume: r[1], abort: r[2]} }
 
 function ao_fence_v() {
-  let x, p=0;
+  let x, p=0; // x is the current deferred; p is the promise or 0
+  // when p is 0, calling fence() resets the system; otherwise p is the currently awaited promise
   let fence  = () => ( 0!==p ? p : p=(x=ao_defer_v())[0] );
+  // when p is not 0, resolve deferred in x
   let resume = ans => { if (0!==p) { p=0; x[1](ans); }};
+  // when p is not 0, reject deferred in x
   let abort  = err => { if (0!==p) { p=0; x[2](err || ao_done); }};
   return [fence, resume, abort] }
 
@@ -150,7 +153,7 @@ async function * ao_iter_fence(fence) {
 
 
 
-const _ao_fence_core_api_ = {
+const _ao_fence_core_api_ ={
   ao_check_done
 
 , // copyable fence fork api
@@ -266,7 +269,7 @@ function ao_track_fn(tgt, reset_v) {
 const ao_track_obj = () =>
   ao_track(_ao_fence_core_api_);
 
-const ao_fence_out = /* #__PURE__ */ ao_fence_o.bind(null,{
+const ao_fence_out = ao_fence_o.bind(null,{
   __proto__: _ao_fence_core_api_
 
 , [Symbol.asyncIterator]() {
@@ -384,7 +387,7 @@ const ao_xform = ns_gen => ao_fence_in().ao_xform(ns_gen);
 const ao_fold = ns_gen => ao_fence_in().ao_fold(ns_gen);
 const ao_queue = ns_gen => ao_fence_in().ao_queue(ns_gen);
 
-const ao_fence_in = /* #__PURE__ */ ao_fence_o.bind(null,{
+const ao_fence_in = ao_fence_o.bind(null,{
   __proto__: _ao_fence_core_api_
 
 , ao_fold(ns_gen) {return this.ao_xform({xinit: aog_iter, ... ns_gen})}
@@ -421,7 +424,7 @@ const ao_fence_in = /* #__PURE__ */ ao_fence_o.bind(null,{
 , throw(err) {return {value: this.abort(err), done: true}} } );
 
 
-const _xf_gen = {
+const _xf_gen ={
   create(xf) {
     let self = {__proto__: this};
     self.xg = xf(self.xf_inv());

@@ -56,8 +56,10 @@
       return p } }// promise of deferred
 
   function ao_defer_ctx(as_res = (...args) => args) {
+    // avoid garbage collecting _pset by using a closure over local variables
     let y,n,_pset = (a,b) => { y=a, n=b; };
     return p =>(
+      // create the promise and immediately capture locally set closure variables from _pset optimization
       p = new Promise(_pset)
     , as_res(p, y, n)) }
 
@@ -135,9 +137,12 @@
       fence: r[0], resume: r[1], abort: r[2]} }
 
   function ao_fence_v() {
-    let x, p=0;
+    let x, p=0; // x is the current deferred; p is the promise or 0
+    // when p is 0, calling fence() resets the system; otherwise p is the currently awaited promise
     let fence  = () => ( 0!==p ? p : p=(x=ao_defer_v())[0] );
+    // when p is not 0, resolve deferred in x
     let resume = ans => { if (0!==p) { p=0; x[1](ans); }};
+    // when p is not 0, reject deferred in x
     let abort  = err => { if (0!==p) { p=0; x[2](err || ao_done); }};
     return [fence, resume, abort] }
 

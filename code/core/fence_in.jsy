@@ -7,7 +7,7 @@ export const ao_xform = ns_gen => ao_fence_in().ao_xform(ns_gen)
 export const ao_fold = ns_gen => ao_fence_in().ao_fold(ns_gen)
 export const ao_queue = ns_gen => ao_fence_in().ao_queue(ns_gen)
 
-export const ao_fence_in = /* #__PURE__ */ ao_fence_o.bind @ null, @{}
+export const ao_fence_in = ao_fence_o.bind @ null, @{}
   __proto__: _ao_fence_core_api_
 
   ao_fold(ns_gen) :: return this.ao_xform @: xinit: aog_iter, ... ns_gen
@@ -44,7 +44,7 @@ export const ao_fence_in = /* #__PURE__ */ ao_fence_o.bind @ null, @{}
   throw(err) :: return {value: this.abort(err), done: true}
 
 
-const _xf_gen = /* #__PURE__ */ @{}
+const _xf_gen = @{}
   create(xf) ::
     let self = {__proto__: this}
     self.xg = xf(self.xf_inv())

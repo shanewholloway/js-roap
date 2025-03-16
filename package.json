@@ -14,31 +14,21 @@
   },
   "files": [
     "code/",
-    "cjs/",
-    "esm/",
-    "umd/"
+    "esm/"
   ],
   "type": "module",
-  "main": "./cjs/roap.cjs",
-  "module": "./esm/roap.mjs",
-  "browser": "./umd/roap.min.js",
   "exports": {
-    "./": "./",
-    ".": {
-      "import": "./esm/roap.mjs",
-      "require": "./cjs/roap.cjs"
-    }
+    "./esm/": "./esm/",
+    ".": "./esm/roap.mjs"
   },
   "workspaces": [
     "./demo",
     "./test"
   ],
   "devDependencies": {
-    "@rollup/plugin-node-resolve": "^15.0.1",
-    "@rollup/plugin-terser": "^0.2.0",
-    "qsrv": "^0.2.8",
-    "rollup": "^2.79.1",
-    "rollup-plugin-dgnotify": "^0.1.8",
+    "@rollup/plugin-node-resolve": "^16.0.1",
+    "@rollup/plugin-terser": "^0.4.4",
+    "rollup": "^4.35.0",
     "rollup-plugin-jsy": "^1.7.5"
   },
   "scripts": {
